@@ -1,0 +1,6002 @@
+[
+	{
+		"position": 1,
+		"domain": "youtube.com",
+		"count": 378784582,
+		"etv": 15740178897.125374
+	},
+	{
+		"position": 2,
+		"domain": "facebook.com",
+		"count": 289460140,
+		"etv": 9656095439.713978
+	},
+	{
+		"position": 3,
+		"domain": "wikipedia.org",
+		"count": 259012294,
+		"etv": 35922514924.735405
+	},
+	{
+		"position": 4,
+		"domain": "instagram.com",
+		"count": 172009713,
+		"etv": 8346639261.415041
+	},
+	{
+		"position": 5,
+		"domain": "google.com",
+		"count": 161849289,
+		"etv": 13634553362.247494
+	},
+	{
+		"position": 6,
+		"domain": "reddit.com",
+		"count": 154029433,
+		"etv": 1967249540.2253802
+	},
+	{
+		"position": 7,
+		"domain": "tiktok.com",
+		"count": 147383526,
+		"etv": 1071042175.7019564
+	},
+	{
+		"position": 8,
+		"domain": "pinterest.com",
+		"count": 141280341,
+		"etv": 4430933819.980004
+	},
+	{
+		"position": 9,
+		"domain": "linkedin.com",
+		"count": 123238305,
+		"etv": 2069075440.387456
+	},
+	{
+		"position": 10,
+		"domain": "quora.com",
+		"count": 113324039,
+		"etv": 1406132353.5166078
+	},
+	{
+		"position": 11,
+		"domain": "twitter.com",
+		"count": 111736792,
+		"etv": 2936814701.292333
+	},
+	{
+		"position": 12,
+		"domain": "amazon.com",
+		"count": 109660445,
+		"etv": 4387548225.618311
+	},
+	{
+		"position": 13,
+		"domain": "apple.com",
+		"count": 66569647,
+		"etv": 3422075436.3180175
+	},
+	{
+		"position": 14,
+		"domain": "wordpress.com",
+		"count": 65866336,
+		"etv": 241233704.0601889
+	},
+	{
+		"position": 15,
+		"domain": "fandom.com",
+		"count": 59768471,
+		"etv": 1806065881.7783587
+	},
+	{
+		"position": 16,
+		"domain": "etsy.com",
+		"count": 56782680,
+		"etv": 519711285.08341646
+	},
+	{
+		"position": 17,
+		"domain": "yahoo.com",
+		"count": 55124163,
+		"etv": 1940759621.1365025
+	},
+	{
+		"position": 18,
+		"domain": "nih.gov",
+		"count": 48077077,
+		"etv": 1599364991.9350085
+	},
+	{
+		"position": 19,
+		"domain": "indeed.com",
+		"count": 47584931,
+		"etv": 1064302873.4118556
+	},
+	{
+		"position": 20,
+		"domain": "ebay.com",
+		"count": 47406540,
+		"etv": 367700432.11960554
+	},
+	{
+		"position": 21,
+		"domain": "medium.com",
+		"count": 46277215,
+		"etv": 257029688.55659226
+	},
+	{
+		"position": 22,
+		"domain": "yelp.com",
+		"count": 46100374,
+		"etv": 2014978310.1625896
+	},
+	{
+		"position": 23,
+		"domain": "imdb.com",
+		"count": 43011179,
+		"etv": 4538282907.350471
+	},
+	{
+		"position": 24,
+		"domain": "walmart.com",
+		"count": 42607088,
+		"etv": 1097229951.855165
+	},
+	{
+		"position": 25,
+		"domain": "nytimes.com",
+		"count": 39280461,
+		"etv": 705957521.3963971
+	},
+	{
+		"position": 26,
+		"domain": "shutterstock.com",
+		"count": 34994353,
+		"etv": 462228183.3883819
+	},
+	{
+		"position": 27,
+		"domain": "tripadvisor.com",
+		"count": 34139099,
+		"etv": 3205038062.6025634
+	},
+	{
+		"position": 28,
+		"domain": "britannica.com",
+		"count": 33907884,
+		"etv": 2542674347.359639
+	},
+	{
+		"position": 29,
+		"domain": "forbes.com",
+		"count": 31053838,
+		"etv": 1001653857.729894
+	},
+	{
+		"position": 30,
+		"domain": "microsoft.com",
+		"count": 30735178,
+		"etv": 1127600372.9830747
+	},
+	{
+		"position": 31,
+		"domain": "researchgate.net",
+		"count": 30434569,
+		"etv": 92584892.50695515
+	},
+	{
+		"position": 32,
+		"domain": "theguardian.com",
+		"count": 30327347,
+		"etv": 447587348.6566098
+	},
+	{
+		"position": 33,
+		"domain": "aliexpress.com",
+		"count": 28657040,
+		"etv": 113624192.8325382
+	},
+	{
+		"position": 34,
+		"domain": "sciencedirect.com",
+		"count": 27763603,
+		"etv": 340064552.3672784
+	},
+	{
+		"position": 35,
+		"domain": "cambridge.org",
+		"count": 27407180,
+		"etv": 3203752956.382136
+	},
+	{
+		"position": 36,
+		"domain": "stackexchange.com",
+		"count": 27053861,
+		"etv": 175078006.56710723
+	},
+	{
+		"position": 37,
+		"domain": "bbc.com",
+		"count": 26952434,
+		"etv": 732209149.5053706
+	},
+	{
+		"position": 38,
+		"domain": "wikihow.com",
+		"count": 25680647,
+		"etv": 500831780.1528434
+	},
+	{
+		"position": 39,
+		"domain": "indiatimes.com",
+		"count": 25268450,
+		"etv": 1597074832.5357733
+	},
+	{
+		"position": 40,
+		"domain": "dailymotion.com",
+		"count": 24698946,
+		"etv": 166801360.62686905
+	},
+	{
+		"position": 41,
+		"domain": "alamy.com",
+		"count": 24401410,
+		"etv": 110729642.40987194
+	},
+	{
+		"position": 42,
+		"domain": "mapquest.com",
+		"count": 24277332,
+		"etv": 254063891.3234253
+	},
+	{
+		"position": 43,
+		"domain": "usatoday.com",
+		"count": 23817155,
+		"etv": 551555130.6475676
+	},
+	{
+		"position": 44,
+		"domain": "cnn.com",
+		"count": 23264763,
+		"etv": 505795052.03461623
+	},
+	{
+		"position": 45,
+		"domain": "foursquare.com",
+		"count": 23020739,
+		"etv": 113691272.7548641
+	},
+	{
+		"position": 46,
+		"domain": "collinsdictionary.com",
+		"count": 22862990,
+		"etv": 1471595080.312721
+	},
+	{
+		"position": 47,
+		"domain": "wiktionary.org",
+		"count": 22671317,
+		"etv": 989375558.7787595
+	},
+	{
+		"position": 48,
+		"domain": "scribd.com",
+		"count": 21914906,
+		"etv": 116724743.4950545
+	},
+	{
+		"position": 49,
+		"domain": "spotify.com",
+		"count": 21909674,
+		"etv": 317091983.6681041
+	},
+	{
+		"position": 50,
+		"domain": "healthline.com",
+		"count": 21708370,
+		"etv": 1315599353.2384229
+	},
+	{
+		"position": 51,
+		"domain": "reverso.net",
+		"count": 21464074,
+		"etv": 886783159.9797217
+	},
+	{
+		"position": 52,
+		"domain": "merriam-webster.com",
+		"count": 20989368,
+		"etv": 3339964020.6198683
+	},
+	{
+		"position": 53,
+		"domain": "booking.com",
+		"count": 20932420,
+		"etv": 1393284158.627429
+	},
+	{
+		"position": 54,
+		"domain": "flickr.com",
+		"count": 20711859,
+		"etv": 58768491.04222942
+	},
+	{
+		"position": 55,
+		"domain": "wikiwand.com",
+		"count": 20209341,
+		"etv": 102293214.30033502
+	},
+	{
+		"position": 56,
+		"domain": "soundcloud.com",
+		"count": 20150678,
+		"etv": 191192355.01827228
+	},
+	{
+		"position": 57,
+		"domain": "study.com",
+		"count": 19803409,
+		"etv": 345314769.6824177
+	},
+	{
+		"position": 58,
+		"domain": "target.com",
+		"count": 19745162,
+		"etv": 593884685.6191312
+	},
+	{
+		"position": 59,
+		"domain": "webmd.com",
+		"count": 19651012,
+		"etv": 1224103361.3494263
+	},
+	{
+		"position": 60,
+		"domain": "istockphoto.com",
+		"count": 19238826,
+		"etv": 498578929.4871236
+	},
+	{
+		"position": 61,
+		"domain": "github.com",
+		"count": 18847606,
+		"etv": 241337382.53252825
+	},
+	{
+		"position": 62,
+		"domain": "adobe.com",
+		"count": 18707375,
+		"etv": 716215612.762686
+	},
+	{
+		"position": 63,
+		"domain": "trip.com",
+		"count": 18370415,
+		"etv": 180575792.6955702
+	},
+	{
+		"position": 64,
+		"domain": "yellowpages.com",
+		"count": 18366906,
+		"etv": 117063185.55965686
+	},
+	{
+		"position": 65,
+		"domain": "mayoclinic.org",
+		"count": 18100966,
+		"etv": 1779143883.863457
+	},
+	{
+		"position": 66,
+		"domain": "cbsnews.com",
+		"count": 17982512,
+		"etv": 204919453.85036883
+	},
+	{
+		"position": 67,
+		"domain": "dictionary.com",
+		"count": 17508571,
+		"etv": 1434436620.064187
+	},
+	{
+		"position": 68,
+		"domain": "businessinsider.com",
+		"count": 17497511,
+		"etv": 413668960.9130653
+	},
+	{
+		"position": 69,
+		"domain": "screenrant.com",
+		"count": 16548739,
+		"etv": 224502976.8309918
+	},
+	{
+		"position": 70,
+		"domain": "bab.la",
+		"count": 16308816,
+		"etv": 310819473.0307239
+	},
+	{
+		"position": 71,
+		"domain": "goodreads.com",
+		"count": 16280512,
+		"etv": 260499842.38460946
+	},
+	{
+		"position": 72,
+		"domain": "medicalnewstoday.com",
+		"count": 16059240,
+		"etv": 640683262.0471457
+	},
+	{
+		"position": 73,
+		"domain": "amazon.co.uk",
+		"count": 15870221,
+		"etv": 548645876.6284974
+	},
+	{
+		"position": 74,
+		"domain": "bbc.co.uk",
+		"count": 15611613,
+		"etv": 541546199.0837976
+	},
+	{
+		"position": 75,
+		"domain": "jstor.org",
+		"count": 15538730,
+		"etv": 59453660.76969293
+	},
+	{
+		"position": 76,
+		"domain": "clevelandclinic.org",
+		"count": 15485356,
+		"etv": 1269903994.5958745
+	},
+	{
+		"position": 77,
+		"domain": "cnet.com",
+		"count": 15447130,
+		"etv": 222158843.75846246
+	},
+	{
+		"position": 78,
+		"domain": "dailymail.co.uk",
+		"count": 15430673,
+		"etv": 256923988.87922058
+	},
+	{
+		"position": 79,
+		"domain": "wordreference.com",
+		"count": 15160742,
+		"etv": 340850470.2671392
+	},
+	{
+		"position": 80,
+		"domain": "byjus.com",
+		"count": 15000482,
+		"etv": 1311877187.0564942
+	},
+	{
+		"position": 81,
+		"domain": "usnews.com",
+		"count": 14739610,
+		"etv": 458795018.6833198
+	},
+	{
+		"position": 82,
+		"domain": "springer.com",
+		"count": 14633621,
+		"etv": 58632594.215851344
+	},
+	{
+		"position": 83,
+		"domain": "ign.com",
+		"count": 14550755,
+		"etv": 167974127.76597464
+	},
+	{
+		"position": 84,
+		"domain": "reuters.com",
+		"count": 14298104,
+		"etv": 190675950.31422168
+	},
+	{
+		"position": 85,
+		"domain": "independent.co.uk",
+		"count": 14277217,
+		"etv": 225434714.21585482
+	},
+	{
+		"position": 86,
+		"domain": "deviantart.com",
+		"count": 14237712,
+		"etv": 59426811.889430515
+	},
+	{
+		"position": 87,
+		"domain": "redbubble.com",
+		"count": 14215247,
+		"etv": 52793569.196209446
+	},
+	{
+		"position": 88,
+		"domain": "yahoo.co.jp",
+		"count": 14119474,
+		"etv": 806539317.6774186
+	},
+	{
+		"position": 89,
+		"domain": "slideshare.net",
+		"count": 13749865,
+		"etv": 65382012.7811303
+	},
+	{
+		"position": 90,
+		"domain": "washingtonpost.com",
+		"count": 13745505,
+		"etv": 125675969.86002912
+	},
+	{
+		"position": 91,
+		"domain": "stackoverflow.com",
+		"count": 13619217,
+		"etv": 130684380.73431532
+	},
+	{
+		"position": 92,
+		"domain": "europa.eu",
+		"count": 13555602,
+		"etv": 198427448.49176097
+	},
+	{
+		"position": 93,
+		"domain": "genius.com",
+		"count": 13471409,
+		"etv": 507280437.2550149
+	},
+	{
+		"position": 94,
+		"domain": "sportskeeda.com",
+		"count": 13314464,
+		"etv": 230537652.90289563
+	},
+	{
+		"position": 95,
+		"domain": "goodhousekeeping.com",
+		"count": 13144461,
+		"etv": 576465690.3021029
+	},
+	{
+		"position": 96,
+		"domain": "thefreedictionary.com",
+		"count": 13131350,
+		"etv": 168952093.4513708
+	},
+	{
+		"position": 97,
+		"domain": "dreamstime.com",
+		"count": 13087199,
+		"etv": 91047577.92637503
+	},
+	{
+		"position": 98,
+		"domain": "homedepot.com",
+		"count": 12988837,
+		"etv": 1086041585.5450659
+	},
+	{
+		"position": 99,
+		"domain": "waze.com",
+		"count": 12962999,
+		"etv": 98269698.62975663
+	},
+	{
+		"position": 100,
+		"domain": "flipkart.com",
+		"count": 12950061,
+		"etv": 623386100.7187269
+	},
+	{
+		"position": 101,
+		"domain": "rottentomatoes.com",
+		"count": 12883194,
+		"etv": 841460807.1533
+	},
+	{
+		"position": 102,
+		"domain": "tumblr.com",
+		"count": 12879403,
+		"etv": 230148143.3032378
+	},
+	{
+		"position": 103,
+		"domain": "freepik.com",
+		"count": 12787598,
+		"etv": 347468404.82762504
+	},
+	{
+		"position": 104,
+		"domain": "ebay.co.uk",
+		"count": 12659317,
+		"etv": 105114199.82050145
+	},
+	{
+		"position": 105,
+		"domain": "harvard.edu",
+		"count": 12608086,
+		"etv": 240281215.38298586
+	},
+	{
+		"position": 106,
+		"domain": "hotels.com",
+		"count": 12399921,
+		"etv": 1275319951.7908025
+	},
+	{
+		"position": 107,
+		"domain": "amazon.de",
+		"count": 12384885,
+		"etv": 385720743.85990626
+	},
+	{
+		"position": 108,
+		"domain": "cdc.gov",
+		"count": 12373425,
+		"etv": 633659474.2344365
+	},
+	{
+		"position": 109,
+		"domain": "insider.com",
+		"count": 12159187,
+		"etv": 116231743.42194796
+	},
+	{
+		"position": 110,
+		"domain": "moovitapp.com",
+		"count": 12068376,
+		"etv": 74720704.68409929
+	},
+	{
+		"position": 111,
+		"domain": "investopedia.com",
+		"count": 12064750,
+		"etv": 666958585.3517746
+	},
+	{
+		"position": 112,
+		"domain": "npr.org",
+		"count": 12043768,
+		"etv": 130909492.0902139
+	},
+	{
+		"position": 113,
+		"domain": "vocabulary.com",
+		"count": 11997817,
+		"etv": 578456609.4374608
+	},
+	{
+		"position": 114,
+		"domain": "hindustantimes.com",
+		"count": 11884673,
+		"etv": 833498871.7521251
+	},
+	{
+		"position": 115,
+		"domain": "amazon.in",
+		"count": 11844135,
+		"etv": 1025947340.4970117
+	},
+	{
+		"position": 116,
+		"domain": "wiley.com",
+		"count": 11803146,
+		"etv": 39209426.645785786
+	},
+	{
+		"position": 117,
+		"domain": "ca.gov",
+		"count": 11620037,
+		"etv": 272084243.27871823
+	},
+	{
+		"position": 118,
+		"domain": "yourdictionary.com",
+		"count": 11567956,
+		"etv": 307619396.2148886
+	},
+	{
+		"position": 119,
+		"domain": "time.com",
+		"count": 11544644,
+		"etv": 180489810.40089262
+	},
+	{
+		"position": 120,
+		"domain": "cosmopolitan.com",
+		"count": 11525759,
+		"etv": 216872277.11663955
+	},
+	{
+		"position": 121,
+		"domain": "www.nhs.uk",
+		"count": 11521156,
+		"etv": 580222891.8735955
+	},
+	{
+		"position": 122,
+		"domain": "people.com",
+		"count": 11416869,
+		"etv": 323578755.8321861
+	},
+	{
+		"position": 123,
+		"domain": "netflix.com",
+		"count": 11354678,
+		"etv": 608429815.1781646
+	},
+	{
+		"position": 124,
+		"domain": "alibaba.com",
+		"count": 11352825,
+		"etv": 43385896.93696859
+	},
+	{
+		"position": 125,
+		"domain": "nature.com",
+		"count": 11345075,
+		"etv": 90368250.07909052
+	},
+	{
+		"position": 126,
+		"domain": "google.co.in",
+		"count": 11292593,
+		"etv": 623983984.9349648
+	},
+	{
+		"position": 127,
+		"domain": "wikimedia.org",
+		"count": 11290665,
+		"etv": 40225738.69102971
+	},
+	{
+		"position": 128,
+		"domain": "gettyimages.com",
+		"count": 11229059,
+		"etv": 115688552.88810815
+	},
+	{
+		"position": 129,
+		"domain": "steamcommunity.com",
+		"count": 11204553,
+		"etv": 56319819.27936957
+	},
+	{
+		"position": 130,
+		"domain": "gamespot.com",
+		"count": 11077599,
+		"etv": 58022188.65851037
+	},
+	{
+		"position": 131,
+		"domain": "weebly.com",
+		"count": 11066294,
+		"etv": 57970847.00698012
+	},
+	{
+		"position": 132,
+		"domain": "issuu.com",
+		"count": 11004998,
+		"etv": 24726310.171893984
+	},
+	{
+		"position": 133,
+		"domain": "cnbc.com",
+		"count": 10880491,
+		"etv": 396559522.51971817
+	},
+	{
+		"position": 134,
+		"domain": "latimes.com",
+		"count": 10879505,
+		"etv": 130824165.1933928
+	},
+	{
+		"position": 135,
+		"domain": "restaurantguru.com",
+		"count": 10843348,
+		"etv": 88439715.9496145
+	},
+	{
+		"position": 136,
+		"domain": "temu.com",
+		"count": 10744052,
+		"etv": 37649500.68836371
+	},
+	{
+		"position": 137,
+		"domain": "nbcnews.com",
+		"count": 10709617,
+		"etv": 160774434.16081792
+	},
+	{
+		"position": 138,
+		"domain": "oup.com",
+		"count": 10532997,
+		"etv": 38805413.88781288
+	},
+	{
+		"position": 139,
+		"domain": "business.site",
+		"count": 10483404,
+		"etv": 332267512.7565069
+	},
+	{
+		"position": 140,
+		"domain": "indiamart.com",
+		"count": 10451758,
+		"etv": 217029652.61364454
+	},
+	{
+		"position": 141,
+		"domain": "verywellhealth.com",
+		"count": 10397620,
+		"etv": 230650483.6498639
+	},
+	{
+		"position": 142,
+		"domain": "go.com",
+		"count": 10384684,
+		"etv": 285746943.2374082
+	},
+	{
+		"position": 143,
+		"domain": "google.co.uk",
+		"count": 10364216,
+		"etv": 134733545.62278497
+	},
+	{
+		"position": 144,
+		"domain": "zoominfo.com",
+		"count": 10241717,
+		"etv": 41250981.39986918
+	},
+	{
+		"position": 145,
+		"domain": "quizlet.com",
+		"count": 10241601,
+		"etv": 39461028.017627604
+	},
+	{
+		"position": 146,
+		"domain": "medlineplus.gov",
+		"count": 10147887,
+		"etv": 541376699.2969925
+	},
+	{
+		"position": 147,
+		"domain": "toppr.com",
+		"count": 9844067,
+		"etv": 189308148.2910122
+	},
+	{
+		"position": 148,
+		"domain": "glassdoor.com",
+		"count": 9824458,
+		"etv": 71194005.58463018
+	},
+	{
+		"position": 149,
+		"domain": "agoda.com",
+		"count": 9781606,
+		"etv": 209526839.612054
+	},
+	{
+		"position": 150,
+		"domain": "bloomberg.com",
+		"count": 9780568,
+		"etv": 256170631.68701434
+	},
+	{
+		"position": 151,
+		"domain": "msn.com",
+		"count": 9744667,
+		"etv": 136292812.94508472
+	},
+	{
+		"position": 152,
+		"domain": "as.com",
+		"count": 9710717,
+		"etv": 255739394.32774833
+	},
+	{
+		"position": 153,
+		"domain": "academia.edu",
+		"count": 9516286,
+		"etv": 27447337.903894812
+	},
+	{
+		"position": 154,
+		"domain": "justdial.com",
+		"count": 9479319,
+		"etv": 400566496.3312455
+	},
+	{
+		"position": 155,
+		"domain": "bestbuy.com",
+		"count": 9322657,
+		"etv": 350612056.7607348
+	},
+	{
+		"position": 156,
+		"domain": "gamerant.com",
+		"count": 9237849,
+		"etv": 112311403.9831815
+	},
+	{
+		"position": 157,
+		"domain": "today.com",
+		"count": 9233110,
+		"etv": 176526983.7183174
+	},
+	{
+		"position": 158,
+		"domain": "elpais.com",
+		"count": 9201127,
+		"etv": 166413526.60060123
+	},
+	{
+		"position": 159,
+		"domain": "rome2rio.com",
+		"count": 9182276,
+		"etv": 66474589.166074075
+	},
+	{
+		"position": 160,
+		"domain": "tvtropes.org",
+		"count": 9173154,
+		"etv": 67328110.78646229
+	},
+	{
+		"position": 161,
+		"domain": "thesaurus.com",
+		"count": 9158228,
+		"etv": 637464453.5532812
+	},
+	{
+		"position": 162,
+		"domain": "expedia.com",
+		"count": 9028492,
+		"etv": 777488350.7109692
+	},
+	{
+		"position": 163,
+		"domain": "vimeo.com",
+		"count": 8991864,
+		"etv": 29737449.206571497
+	},
+	{
+		"position": 164,
+		"domain": "espn.com",
+		"count": 8942404,
+		"etv": 1960851011.6764352
+	},
+	{
+		"position": 165,
+		"domain": "chegg.com",
+		"count": 8914329,
+		"etv": 28630976.04448161
+	},
+	{
+		"position": 166,
+		"domain": "wattpad.com",
+		"count": 8912805,
+		"etv": 65006510.92536382
+	},
+	{
+		"position": 167,
+		"domain": "company-information.service.gov.uk",
+		"count": 8902964,
+		"etv": 118135342.00113155
+	},
+	{
+		"position": 168,
+		"domain": "nypost.com",
+		"count": 8820403,
+		"etv": 116276303.61170271
+	},
+	{
+		"position": 169,
+		"domain": "studocu.com",
+		"count": 8804837,
+		"etv": 35958657.31006401
+	},
+	{
+		"position": 170,
+		"domain": "ziprecruiter.com",
+		"count": 8801815,
+		"etv": 145502501.84315658
+	},
+	{
+		"position": 171,
+		"domain": "google.ca",
+		"count": 8794519,
+		"etv": 97060514.523935
+	},
+	{
+		"position": 172,
+		"domain": "cbc.ca",
+		"count": 8790847,
+		"etv": 92986756.4973999
+	},
+	{
+		"position": 173,
+		"domain": "geeksforgeeks.org",
+		"count": 8766279,
+		"etv": 281213362.94419473
+	},
+	{
+		"position": 174,
+		"domain": "bandcamp.com",
+		"count": 8728896,
+		"etv": 53802747.91234214
+	},
+	{
+		"position": 175,
+		"domain": "www.gov.uk",
+		"count": 8672677,
+		"etv": 293741672.7080598
+	},
+	{
+		"position": 176,
+		"domain": "variety.com",
+		"count": 8649232,
+		"etv": 119189151.74410887
+	},
+	{
+		"position": 177,
+		"domain": "telegraph.co.uk",
+		"count": 8576658,
+		"etv": 93317352.56538686
+	},
+	{
+		"position": 178,
+		"domain": "tvguide.com",
+		"count": 8519876,
+		"etv": 250251233.90504658
+	},
+	{
+		"position": 179,
+		"domain": "last.fm",
+		"count": 8436660,
+		"etv": 75155662.69258484
+	},
+	{
+		"position": 180,
+		"domain": "digitaltrends.com",
+		"count": 8434064,
+		"etv": 132284397.16186792
+	},
+	{
+		"position": 181,
+		"domain": "timeout.com",
+		"count": 8420587,
+		"etv": 255271576.42284888
+	},
+	{
+		"position": 182,
+		"domain": "apnews.com",
+		"count": 8412396,
+		"etv": 161700638.92470053
+	},
+	{
+		"position": 183,
+		"domain": "lefigaro.fr",
+		"count": 8396619,
+		"etv": 124754813.13259043
+	},
+	{
+		"position": 184,
+		"domain": "amazon.fr",
+		"count": 8392610,
+		"etv": 228157899.72946286
+	},
+	{
+		"position": 185,
+		"domain": "indianexpress.com",
+		"count": 8372400,
+		"etv": 282252906.77564186
+	},
+	{
+		"position": 186,
+		"domain": "pbs.org",
+		"count": 8368023,
+		"etv": 111345486.35530934
+	},
+	{
+		"position": 187,
+		"domain": "bbb.org",
+		"count": 8366661,
+		"etv": 112479012.30988437
+	},
+	{
+		"position": 188,
+		"domain": "oxfordlearnersdictionaries.com",
+		"count": 8245994,
+		"etv": 205846954.4445582
+	},
+	{
+		"position": 189,
+		"domain": "rakuten.co.jp",
+		"count": 8148419,
+		"etv": 645320864.9485146
+	},
+	{
+		"position": 190,
+		"domain": "google.de",
+		"count": 8093203,
+		"etv": 113426079.87135118
+	},
+	{
+		"position": 191,
+		"domain": "wsj.com",
+		"count": 8089216,
+		"etv": 156150683.19326413
+	},
+	{
+		"position": 192,
+		"domain": "infobae.com",
+		"count": 8088636,
+		"etv": 101432476.77604727
+	},
+	{
+		"position": 193,
+		"domain": "pixabay.com",
+		"count": 8043522,
+		"etv": 277537938.2841449
+	},
+	{
+		"position": 194,
+		"domain": "cbr.com",
+		"count": 8005958,
+		"etv": 80746279.71623485
+	},
+	{
+		"position": 195,
+		"domain": "msdmanuals.com",
+		"count": 7996027,
+		"etv": 188526212.09691626
+	},
+	{
+		"position": 196,
+		"domain": "canva.com",
+		"count": 7981400,
+		"etv": 376478194.4615996
+	},
+	{
+		"position": 197,
+		"domain": "zillow.com",
+		"count": 7963521,
+		"etv": 320402504.2723231
+	},
+	{
+		"position": 198,
+		"domain": "marca.com",
+		"count": 7884020,
+		"etv": 290969851.81026864
+	},
+	{
+		"position": 199,
+		"domain": "buzzfeed.com",
+		"count": 7862696,
+		"etv": 75185455.77807057
+	},
+	{
+		"position": 200,
+		"domain": "uol.com.br",
+		"count": 7853631,
+		"etv": 643989121.6798009
+	},
+	{
+		"position": 201,
+		"domain": "lowes.com",
+		"count": 7820471,
+		"etv": 344466953.6519178
+	},
+	{
+		"position": 202,
+		"domain": "themoviedb.org",
+		"count": 7791085,
+		"etv": 167667811.62552917
+	},
+	{
+		"position": 203,
+		"domain": "steampowered.com",
+		"count": 7784960,
+		"etv": 283227317.9895974
+	},
+	{
+		"position": 204,
+		"domain": "discogs.com",
+		"count": 7766473,
+		"etv": 44859614.03155889
+	},
+	{
+		"position": 205,
+		"domain": "ew.com",
+		"count": 7738615,
+		"etv": 123499106.36929849
+	},
+	{
+		"position": 206,
+		"domain": "biomedcentral.com",
+		"count": 7677927,
+		"etv": 44139266.269577496
+	},
+	{
+		"position": 207,
+		"domain": "ameblo.jp",
+		"count": 7675231,
+		"etv": 82262171.59575282
+	},
+	{
+		"position": 208,
+		"domain": "globo.com",
+		"count": 7649296,
+		"etv": 838275075.5262617
+	},
+	{
+		"position": 209,
+		"domain": "craigslist.org",
+		"count": 7642801,
+		"etv": 109478851.37013966
+	},
+	{
+		"position": 210,
+		"domain": "testbook.com",
+		"count": 7638198,
+		"etv": 159494120.72767878
+	},
+	{
+		"position": 211,
+		"domain": "thoughtco.com",
+		"count": 7594346,
+		"etv": 101668453.46140127
+	},
+	{
+		"position": 212,
+		"domain": "wikidata.org",
+		"count": 7591157,
+		"etv": 35514059.56679425
+	},
+	{
+		"position": 213,
+		"domain": "ikea.com",
+		"count": 7582889,
+		"etv": 317395495.3146698
+	},
+	{
+		"position": 214,
+		"domain": "barnesandnoble.com",
+		"count": 7560083,
+		"etv": 113773938.20418815
+	},
+	{
+		"position": 215,
+		"domain": "lavanguardia.com",
+		"count": 7558554,
+		"etv": 116536524.99484691
+	},
+	{
+		"position": 216,
+		"domain": "urbandictionary.com",
+		"count": 7501844,
+		"etv": 161839444.9156279
+	},
+	{
+		"position": 217,
+		"domain": "parade.com",
+		"count": 7475420,
+		"etv": 395845373.22045434
+	},
+	{
+		"position": 218,
+		"domain": "khanacademy.org",
+		"count": 7468183,
+		"etv": 240052611.00374192
+	},
+	{
+		"position": 219,
+		"domain": "wordhippo.com",
+		"count": 7417217,
+		"etv": 147953335.40387136
+	},
+	{
+		"position": 220,
+		"domain": "theverge.com",
+		"count": 7415372,
+		"etv": 106111132.6954512
+	},
+	{
+		"position": 221,
+		"domain": "amazon.ca",
+		"count": 7369910,
+		"etv": 175772145.6837644
+	},
+	{
+		"position": 222,
+		"domain": "sagepub.com",
+		"count": 7350117,
+		"etv": 23398814.004083015
+	},
+	{
+		"position": 223,
+		"domain": "crunchbase.com",
+		"count": 7336520,
+		"etv": 101274068.01931232
+	},
+	{
+		"position": 224,
+		"domain": "amazon.co.jp",
+		"count": 7295612,
+		"etv": 420716868.535719
+	},
+	{
+		"position": 225,
+		"domain": "mirror.co.uk",
+		"count": 7264519,
+		"etv": 83163546.95656203
+	},
+	{
+		"position": 226,
+		"domain": "pcmag.com",
+		"count": 7256747,
+		"etv": 189455315.51250097
+	},
+	{
+		"position": 227,
+		"domain": "collider.com",
+		"count": 7249919,
+		"etv": 127052699.81946175
+	},
+	{
+		"position": 228,
+		"domain": "hopkinsmedicine.org",
+		"count": 7233526,
+		"etv": 366735384.9469477
+	},
+	{
+		"position": 229,
+		"domain": "thesun.co.uk",
+		"count": 7220599,
+		"etv": 79176933.82406636
+	},
+	{
+		"position": 230,
+		"domain": "makeuseof.com",
+		"count": 7207579,
+		"etv": 74325827.2285673
+	},
+	{
+		"position": 231,
+		"domain": "metacritic.com",
+		"count": 7182993,
+		"etv": 84379123.25898546
+	},
+	{
+		"position": 232,
+		"domain": "hollywoodreporter.com",
+		"count": 7182180,
+		"etv": 67300976.35031472
+	},
+	{
+		"position": 233,
+		"domain": "justanswer.com",
+		"count": 7163182,
+		"etv": 18488344.418078806
+	},
+	{
+		"position": 234,
+		"domain": "trustpilot.com",
+		"count": 7159681,
+		"etv": 218738922.42864415
+	},
+	{
+		"position": 235,
+		"domain": "si.com",
+		"count": 7115651,
+		"etv": 197647511.7842706
+	},
+	{
+		"position": 236,
+		"domain": "frontiersin.org",
+		"count": 7113086,
+		"etv": 47368306.47793418
+	},
+	{
+		"position": 237,
+		"domain": "canada.ca",
+		"count": 7105673,
+		"etv": 160660001.4167177
+	},
+	{
+		"position": 238,
+		"domain": "deezer.com",
+		"count": 7102471,
+		"etv": 44330705.0844845
+	},
+	{
+		"position": 239,
+		"domain": "ubereats.com",
+		"count": 7076937,
+		"etv": 277370769.40027875
+	},
+	{
+		"position": 240,
+		"domain": "cornell.edu",
+		"count": 7064824,
+		"etv": 109896012.43910046
+	},
+	{
+		"position": 241,
+		"domain": "ny.gov",
+		"count": 7036904,
+		"etv": 160842942.95555094
+	},
+	{
+		"position": 242,
+		"domain": "tandfonline.com",
+		"count": 7018998,
+		"etv": 20919420.66872325
+	},
+	{
+		"position": 243,
+		"domain": "realtor.com",
+		"count": 6995714,
+		"etv": 196857570.072464
+	},
+	{
+		"position": 244,
+		"domain": "naver.com",
+		"count": 6993702,
+		"etv": 154066248.3053354
+	},
+	{
+		"position": 245,
+		"domain": "rollingstone.com",
+		"count": 6977550,
+		"etv": 93925295.79632293
+	},
+	{
+		"position": 246,
+		"domain": "elle.com",
+		"count": 6970597,
+		"etv": 137872067.23113608
+	},
+	{
+		"position": 247,
+		"domain": "mit.edu",
+		"count": 6948019,
+		"etv": 87203901.75451636
+	},
+	{
+		"position": 248,
+		"domain": "wired.com",
+		"count": 6945495,
+		"etv": 94699820.14283064
+	},
+	{
+		"position": 249,
+		"domain": "glosbe.com",
+		"count": 6930922,
+		"etv": 74727432.25766875
+	},
+	{
+		"position": 250,
+		"domain": "apkpure.com",
+		"count": 6930323,
+		"etv": 97376878.21650082
+	},
+	{
+		"position": 251,
+		"domain": "costco.com",
+		"count": 6919630,
+		"etv": 219414653.38843352
+	},
+	{
+		"position": 252,
+		"domain": "ouest-france.fr",
+		"count": 6908929,
+		"etv": 161444906.6234146
+	},
+	{
+		"position": 253,
+		"domain": "indiatoday.in",
+		"count": 6894052,
+		"etv": 282090988.71938217
+	},
+	{
+		"position": 254,
+		"domain": "ndtv.com",
+		"count": 6888061,
+		"etv": 465940255.4429668
+	},
+	{
+		"position": 255,
+		"domain": "samsung.com",
+		"count": 6877982,
+		"etv": 183498919.08394104
+	},
+	{
+		"position": 256,
+		"domain": "kayak.com",
+		"count": 6832297,
+		"etv": 424906849.12705845
+	},
+	{
+		"position": 257,
+		"domain": "who.int",
+		"count": 6811379,
+		"etv": 165048683.17729473
+	},
+	{
+		"position": 258,
+		"domain": "statista.com",
+		"count": 6801831,
+		"etv": 97807851.31189582
+	},
+	{
+		"position": 259,
+		"domain": "coursehero.com",
+		"count": 6800004,
+		"etv": 17975313.278427657
+	},
+	{
+		"position": 260,
+		"domain": "techradar.com",
+		"count": 6796163,
+		"etv": 87809533.98084554
+	},
+	{
+		"position": 261,
+		"domain": "line.me",
+		"count": 6794569,
+		"etv": 84066617.47216868
+	},
+	{
+		"position": 262,
+		"domain": "123rf.com",
+		"count": 6781497,
+		"etv": 29395665.782228693
+	},
+	{
+		"position": 263,
+		"domain": "allrecipes.com",
+		"count": 6738576,
+		"etv": 551968848.3097402
+	},
+	{
+		"position": 264,
+		"domain": "archive.org",
+		"count": 6724282,
+		"etv": 66286743.867085025
+	},
+	{
+		"position": 265,
+		"domain": "timesofindia.com",
+		"count": 6675850,
+		"etv": 232959787.35397914
+	},
+	{
+		"position": 266,
+		"domain": "lifewire.com",
+		"count": 6674394,
+		"etv": 117196992.18174756
+	},
+	{
+		"position": 267,
+		"domain": "usda.gov",
+		"count": 6672895,
+		"etv": 129071634.73476097
+	},
+	{
+		"position": 268,
+		"domain": "womenshealthmag.com",
+		"count": 6655387,
+		"etv": 93769062.04870762
+	},
+	{
+		"position": 269,
+		"domain": "thehindu.com",
+		"count": 6649815,
+		"etv": 260930585.54744184
+	},
+	{
+		"position": 270,
+		"domain": "depositphotos.com",
+		"count": 6638929,
+		"etv": 44617774.04207595
+	},
+	{
+		"position": 271,
+		"domain": "mapcarta.com",
+		"count": 6581827,
+		"etv": 16236325.781899238
+	},
+	{
+		"position": 272,
+		"domain": "medicinenet.com",
+		"count": 6581132,
+		"etv": 71772892.73229314
+	},
+	{
+		"position": 273,
+		"domain": "kleinanzeigen.de",
+		"count": 6570399,
+		"etv": 58221178.20021009
+	},
+	{
+		"position": 274,
+		"domain": "aminoapps.com",
+		"count": 6561869,
+		"etv": 29589343.187737033
+	},
+	{
+		"position": 275,
+		"domain": "menshealth.com",
+		"count": 6523047,
+		"etv": 102888596.45612895
+	},
+	{
+		"position": 276,
+		"domain": "popsugar.com",
+		"count": 6521233,
+		"etv": 52782471.90977532
+	},
+	{
+		"position": 277,
+		"domain": "huffpost.com",
+		"count": 6502096,
+		"etv": 50582121.95323333
+	},
+	{
+		"position": 278,
+		"domain": "nextdoor.com",
+		"count": 6497630,
+		"etv": 22962758.27966837
+	},
+	{
+		"position": 279,
+		"domain": "tenor.com",
+		"count": 6497397,
+		"etv": 96014307.51099856
+	},
+	{
+		"position": 280,
+		"domain": "ft.com",
+		"count": 6479106,
+		"etv": 116445965.60437569
+	},
+	{
+		"position": 281,
+		"domain": "ldoceonline.com",
+		"count": 6473865,
+		"etv": 84426971.24400948
+	},
+	{
+		"position": 282,
+		"domain": "brainly.in",
+		"count": 6470451,
+		"etv": 61343572.88857922
+	},
+	{
+		"position": 283,
+		"domain": "abebooks.com",
+		"count": 6466144,
+		"etv": 19274246.657414295
+	},
+	{
+		"position": 284,
+		"domain": "tripadvisor.co.uk",
+		"count": 6435766,
+		"etv": 372206905.29701316
+	},
+	{
+		"position": 285,
+		"domain": "vecteezy.com",
+		"count": 6428172,
+		"etv": 54810907.97827489
+	},
+	{
+		"position": 286,
+		"domain": "thegamer.com",
+		"count": 6413328,
+		"etv": 58348991.74848832
+	},
+	{
+		"position": 287,
+		"domain": "news18.com",
+		"count": 6383642,
+		"etv": 198879072.30677336
+	},
+	{
+		"position": 288,
+		"domain": "pons.com",
+		"count": 6382915,
+		"etv": 350523008.06229204
+	},
+	{
+		"position": 289,
+		"domain": "academic-accelerator.com",
+		"count": 6362520,
+		"etv": 23001368.234557606
+	},
+	{
+		"position": 290,
+		"domain": "mdpi.com",
+		"count": 6354254,
+		"etv": 24800445.242426574
+	},
+	{
+		"position": 291,
+		"domain": "kidshealth.org",
+		"count": 6346184,
+		"etv": 157358750.32997707
+	},
+	{
+		"position": 292,
+		"domain": "libretexts.org",
+		"count": 6339423,
+		"etv": 118445763.8751728
+	},
+	{
+		"position": 293,
+		"domain": "groupon.com",
+		"count": 6338072,
+		"etv": 292726761.86760116
+	},
+	{
+		"position": 294,
+		"domain": "mundodeportivo.com",
+		"count": 6318678,
+		"etv": 121410431.88221738
+	},
+	{
+		"position": 295,
+		"domain": "pinterest.es",
+		"count": 6314607,
+		"etv": 165774268.85331926
+	},
+	{
+		"position": 296,
+		"domain": "un.org",
+		"count": 6309599,
+		"etv": 111313231.62103048
+	},
+	{
+		"position": 297,
+		"domain": "ebay.ca",
+		"count": 6304617,
+		"etv": 20621423.824573576
+	},
+	{
+		"position": 298,
+		"domain": "texas.gov",
+		"count": 6303080,
+		"etv": 107338060.6876243
+	},
+	{
+		"position": 299,
+		"domain": "stanford.edu",
+		"count": 6300491,
+		"etv": 81953823.96788147
+	},
+	{
+		"position": 300,
+		"domain": "vedantu.com",
+		"count": 6294867,
+		"etv": 190718355.1614766
+	},
+	{
+		"position": 301,
+		"domain": "esquire.com",
+		"count": 6282241,
+		"etv": 105317080.98945269
+	},
+	{
+		"position": 302,
+		"domain": "india.com",
+		"count": 6225097,
+		"etv": 332577309.84895813
+	},
+	{
+		"position": 303,
+		"domain": "vulture.com",
+		"count": 6221318,
+		"etv": 78427790.43795867
+	},
+	{
+		"position": 304,
+		"domain": "billboard.com",
+		"count": 6182911,
+		"etv": 74121618.71380979
+	},
+	{
+		"position": 305,
+		"domain": "prezi.com",
+		"count": 6167571,
+		"etv": 16414008.927972414
+	},
+	{
+		"position": 306,
+		"domain": "ralitores.com",
+		"count": 6158869,
+		"etv": 6380366.642212518
+	},
+	{
+		"position": 307,
+		"domain": "everydayhealth.com",
+		"count": 6127254,
+		"etv": 87499973.56960599
+	},
+	{
+		"position": 308,
+		"domain": "salary.com",
+		"count": 6123086,
+		"etv": 29322628.682032958
+	},
+	{
+		"position": 309,
+		"domain": "shabdkosh.com",
+		"count": 6102199,
+		"etv": 443343594.13295555
+	},
+	{
+		"position": 310,
+		"domain": "theconversation.com",
+		"count": 6083999,
+		"etv": 38151077.549191974
+	},
+	{
+		"position": 311,
+		"domain": "softonic.com",
+		"count": 6017089,
+		"etv": 190091624.09942403
+	},
+	{
+		"position": 312,
+		"domain": "abc.net.au",
+		"count": 6010121,
+		"etv": 40585638.8085158
+	},
+	{
+		"position": 313,
+		"domain": "justwatch.com",
+		"count": 6008063,
+		"etv": 70557820.97198102
+	},
+	{
+		"position": 314,
+		"domain": "accuweather.com",
+		"count": 5993708,
+		"etv": 1027967871.5050126
+	},
+	{
+		"position": 315,
+		"domain": "answers.com",
+		"count": 5986465,
+		"etv": 26371683.644629106
+	},
+	{
+		"position": 316,
+		"domain": "prnewswire.com",
+		"count": 5969290,
+		"etv": 36150158.34918906
+	},
+	{
+		"position": 317,
+		"domain": "countryliving.com",
+		"count": 5956791,
+		"etv": 263866408.301494
+	},
+	{
+		"position": 318,
+		"domain": "umich.edu",
+		"count": 5941022,
+		"etv": 58326808.122222655
+	},
+	{
+		"position": 319,
+		"domain": "nasa.gov",
+		"count": 5924957,
+		"etv": 177797192.32276946
+	},
+	{
+		"position": 320,
+		"domain": "jiosaavn.com",
+		"count": 5922735,
+		"etv": 125161115.85160066
+	},
+	{
+		"position": 321,
+		"domain": "medscape.com",
+		"count": 5913844,
+		"etv": 95893356.21934292
+	},
+	{
+		"position": 322,
+		"domain": "loc.gov",
+		"count": 5905793,
+		"etv": 108976116.26250982
+	},
+	{
+		"position": 323,
+		"domain": "semanticscholar.org",
+		"count": 5901528,
+		"etv": 12793565.383998148
+	},
+	{
+		"position": 324,
+		"domain": "newsweek.com",
+		"count": 5856940,
+		"etv": 39469637.34812693
+	},
+	{
+		"position": 325,
+		"domain": "tistory.com",
+		"count": 5850235,
+		"etv": 55309514.36819407
+	},
+	{
+		"position": 326,
+		"domain": "elespanol.com",
+		"count": 5824790,
+		"etv": 52723814.63911957
+	},
+	{
+		"position": 327,
+		"domain": "google.com.ua",
+		"count": 5778652,
+		"etv": 30494953.083683107
+	},
+	{
+		"position": 328,
+		"domain": "hubspot.com",
+		"count": 5771743,
+		"etv": 206392621.54507437
+	},
+	{
+		"position": 329,
+		"domain": "detik.com",
+		"count": 5761783,
+		"etv": 447218994.4015358
+	},
+	{
+		"position": 330,
+		"domain": "hinative.com",
+		"count": 5753463,
+		"etv": 31461581.826167837
+	},
+	{
+		"position": 331,
+		"domain": "express.co.uk",
+		"count": 5752142,
+		"etv": 39516381.92456524
+	},
+	{
+		"position": 332,
+		"domain": "marriott.com",
+		"count": 5730720,
+		"etv": 205442897.4605114
+	},
+	{
+		"position": 333,
+		"domain": "livemint.com",
+		"count": 5721272,
+		"etv": 368912350.41795635
+	},
+	{
+		"position": 334,
+		"domain": "wa.gov",
+		"count": 5721042,
+		"etv": 60067838.8937492
+	},
+	{
+		"position": 335,
+		"domain": "patch.com",
+		"count": 5700115,
+		"etv": 22213747.845748562
+	},
+	{
+		"position": 336,
+		"domain": "polygon.com",
+		"count": 5670759,
+		"etv": 47370113.18789789
+	},
+	{
+		"position": 337,
+		"domain": "standard.co.uk",
+		"count": 5660357,
+		"etv": 61384053.14144499
+	},
+	{
+		"position": 338,
+		"domain": "makemytrip.com",
+		"count": 5650597,
+		"etv": 544096266.9564592
+	},
+	{
+		"position": 339,
+		"domain": "uptodown.com",
+		"count": 5642615,
+		"etv": 253931237.94646543
+	},
+	{
+		"position": 340,
+		"domain": "unsplash.com",
+		"count": 5640296,
+		"etv": 489561221.0166479
+	},
+	{
+		"position": 341,
+		"domain": "betterhealth.vic.gov.au",
+		"count": 5636786,
+		"etv": 149428334.36333686
+	},
+	{
+		"position": 342,
+		"domain": "yumpu.com",
+		"count": 5606166,
+		"etv": 7744920.692351418
+	},
+	{
+		"position": 343,
+		"domain": "goal.com",
+		"count": 5597936,
+		"etv": 295956901.04443276
+	},
+	{
+		"position": 344,
+		"domain": "encyclopedia.com",
+		"count": 5594491,
+		"etv": 52747093.12580004
+	},
+	{
+		"position": 345,
+		"domain": "elmundo.es",
+		"count": 5587440,
+		"etv": 203415581.7867069
+	},
+	{
+		"position": 346,
+		"domain": "nsw.gov.au",
+		"count": 5583136,
+		"etv": 69221731.32087302
+	},
+	{
+		"position": 347,
+		"domain": "dnb.com",
+		"count": 5578182,
+		"etv": 36038327.185671695
+	},
+	{
+		"position": 348,
+		"domain": "thespruce.com",
+		"count": 5569182,
+		"etv": 177543681.9793188
+	},
+	{
+		"position": 349,
+		"domain": "airbnb.com",
+		"count": 5568041,
+		"etv": 46830864.21958356
+	},
+	{
+		"position": 350,
+		"domain": "instructables.com",
+		"count": 5562477,
+		"etv": 42750791.04600819
+	},
+	{
+		"position": 351,
+		"domain": "tomsguide.com",
+		"count": 5541636,
+		"etv": 82414906.71202296
+	},
+	{
+		"position": 352,
+		"domain": "google.co.id",
+		"count": 5541363,
+		"etv": 332218249.4004462
+	},
+	{
+		"position": 353,
+		"domain": "travelocity.com",
+		"count": 5519708,
+		"etv": 144026686.97125208
+	},
+	{
+		"position": 354,
+		"domain": "southernliving.com",
+		"count": 5516384,
+		"etv": 312595867.6993995
+	},
+	{
+		"position": 355,
+		"domain": "abplive.com",
+		"count": 5511940,
+		"etv": 227349349.28202087
+	},
+	{
+		"position": 356,
+		"domain": "primevideo.com",
+		"count": 5493548,
+		"etv": 132103074.79529664
+	},
+	{
+		"position": 357,
+		"domain": "prom.ua",
+		"count": 5492037,
+		"etv": 37453070.912333034
+	},
+	{
+		"position": 358,
+		"domain": "techtarget.com",
+		"count": 5490210,
+		"etv": 384286235.3036082
+	},
+	{
+		"position": 359,
+		"domain": "lemonde.fr",
+		"count": 5485842,
+		"etv": 77372263.10114071
+	},
+	{
+		"position": 360,
+		"domain": "rd.com",
+		"count": 5470417,
+		"etv": 127346997.392229
+	},
+	{
+		"position": 361,
+		"domain": "pngtree.com",
+		"count": 5453234,
+		"etv": 68409957.14469086
+	},
+	{
+		"position": 362,
+		"domain": "tribunnews.com",
+		"count": 5417318,
+		"etv": 135886672.31379363
+	},
+	{
+		"position": 363,
+		"domain": "movieweb.com",
+		"count": 5391964,
+		"etv": 77251695.52477194
+	},
+	{
+		"position": 364,
+		"domain": "dw.com",
+		"count": 5376497,
+		"etv": 34486038.68163158
+	},
+	{
+		"position": 365,
+		"domain": "foodnetwork.com",
+		"count": 5370425,
+		"etv": 227761650.7506475
+	},
+	{
+		"position": 366,
+		"domain": "chron.com",
+		"count": 5358898,
+		"etv": 47311829.34108136
+	},
+	{
+		"position": 367,
+		"domain": "pagesjaunes.fr",
+		"count": 5353107,
+		"etv": 102483427.07612194
+	},
+	{
+		"position": 368,
+		"domain": "redfin.com",
+		"count": 5347963,
+		"etv": 73286162.84228279
+	},
+	{
+		"position": 369,
+		"domain": "healthdirect.gov.au",
+		"count": 5343304,
+		"etv": 128870458.46107861
+	},
+	{
+		"position": 370,
+		"domain": "tokopedia.com",
+		"count": 5336586,
+		"etv": 334709183.9907023
+	},
+	{
+		"position": 371,
+		"domain": "kompas.com",
+		"count": 5334956,
+		"etv": 251893094.1480565
+	},
+	{
+		"position": 372,
+		"domain": "metro.co.uk",
+		"count": 5313167,
+		"etv": 40347448.40735406
+	},
+	{
+		"position": 373,
+		"domain": "mashable.com",
+		"count": 5308952,
+		"etv": 61934883.12730037
+	},
+	{
+		"position": 374,
+		"domain": "birdeye.com",
+		"count": 5296583,
+		"etv": 11424792.408636864
+	},
+	{
+		"position": 375,
+		"domain": "allevents.in",
+		"count": 5294541,
+		"etv": 11017999.718971392
+	},
+	{
+		"position": 376,
+		"domain": "realsimple.com",
+		"count": 5226156,
+		"etv": 136785838.26332855
+	},
+	{
+		"position": 377,
+		"domain": "pngwing.com",
+		"count": 5221827,
+		"etv": 49196874.0070567
+	},
+	{
+		"position": 378,
+		"domain": "behance.net",
+		"count": 5197359,
+		"etv": 26411879.131371927
+	},
+	{
+		"position": 379,
+		"domain": "ebay.de",
+		"count": 5184395,
+		"etv": 51426973.910837054
+	},
+	{
+		"position": 380,
+		"domain": "radiotimes.com",
+		"count": 5178690,
+		"etv": 82384569.11882862
+	},
+	{
+		"position": 381,
+		"domain": "deadline.com",
+		"count": 5177899,
+		"etv": 51117785.193493746
+	},
+	{
+		"position": 382,
+		"domain": "letras.com",
+		"count": 5165664,
+		"etv": 69133624.53594142
+	},
+	{
+		"position": 383,
+		"domain": "dexerto.com",
+		"count": 5134219,
+		"etv": 60196390.66910673
+	},
+	{
+		"position": 384,
+		"domain": "gamesradar.com",
+		"count": 5126646,
+		"etv": 50989031.95175982
+	},
+	{
+		"position": 385,
+		"domain": "rateyourmusic.com",
+		"count": 5118045,
+		"etv": 22654255.88902922
+	},
+	{
+		"position": 386,
+		"domain": "harpersbazaar.com",
+		"count": 5085131,
+		"etv": 95927778.96422867
+	},
+	{
+		"position": 387,
+		"domain": "brainly.com",
+		"count": 5071205,
+		"etv": 16406234.072680147
+	},
+	{
+		"position": 388,
+		"domain": "doordash.com",
+		"count": 5069136,
+		"etv": 1046897314.354141
+	},
+	{
+		"position": 389,
+		"domain": "alberta.ca",
+		"count": 5067194,
+		"etv": 59365158.5422622
+	},
+	{
+		"position": 390,
+		"domain": "educalingo.com",
+		"count": 5054524,
+		"etv": 16208926.513554972
+	},
+	{
+		"position": 391,
+		"domain": "foxnews.com",
+		"count": 5036366,
+		"etv": 269416200.32447064
+	},
+	{
+		"position": 392,
+		"domain": "mountsinai.org",
+		"count": 5034582,
+		"etv": 172688890.01792395
+	},
+	{
+		"position": 393,
+		"domain": "refinery29.com",
+		"count": 5015406,
+		"etv": 24117859.861055344
+	},
+	{
+		"position": 394,
+		"domain": "houzz.com",
+		"count": 5006193,
+		"etv": 57474372.4862743
+	},
+	{
+		"position": 395,
+		"domain": "goo.ne.jp",
+		"count": 4992467,
+		"etv": 152694901.00749844
+	},
+	{
+		"position": 396,
+		"domain": "olx.ua",
+		"count": 4990754,
+		"etv": 57041335.68892818
+	},
+	{
+		"position": 397,
+		"domain": "goodrx.com",
+		"count": 4988379,
+		"etv": 89903457.64098959
+	},
+	{
+		"position": 398,
+		"domain": "weather.com",
+		"count": 4985191,
+		"etv": 1557102004.0826159
+	},
+	{
+		"position": 399,
+		"domain": "dzen.ru",
+		"count": 4983562,
+		"etv": 9089184.414663017
+	},
+	{
+		"position": 400,
+		"domain": "health.com",
+		"count": 4976068,
+		"etv": 105508716.369252
+	},
+	{
+		"position": 401,
+		"domain": "google.fr",
+		"count": 4974340,
+		"etv": 158019185.81451923
+	},
+	{
+		"position": 402,
+		"domain": "nationalgeographic.com",
+		"count": 4970253,
+		"etv": 182599223.46363777
+	},
+	{
+		"position": 403,
+		"domain": "namu.wiki",
+		"count": 4967398,
+		"etv": 261597629.29124397
+	},
+	{
+		"position": 404,
+		"domain": "shazam.com",
+		"count": 4947540,
+		"etv": 22697047.081569247
+	},
+	{
+		"position": 405,
+		"domain": "eventbrite.com",
+		"count": 4938569,
+		"etv": 35051357.454371385
+	},
+	{
+		"position": 406,
+		"domain": "drugs.com",
+		"count": 4925488,
+		"etv": 139065761.5754979
+	},
+	{
+		"position": 407,
+		"domain": "hm.com",
+		"count": 4918669,
+		"etv": 129926499.32589123
+	},
+	{
+		"position": 408,
+		"domain": "nps.gov",
+		"count": 4903987,
+		"etv": 218896906.5769458
+	},
+	{
+		"position": 409,
+		"domain": "digitalspy.com",
+		"count": 4898970,
+		"etv": 63430792.009493716
+	},
+	{
+		"position": 410,
+		"domain": "aljazeera.com",
+		"count": 4880948,
+		"etv": 178346818.9574175
+	},
+	{
+		"position": 411,
+		"domain": "the-sun.com",
+		"count": 4873688,
+		"etv": 47350609.63769422
+	},
+	{
+		"position": 412,
+		"domain": "cbssports.com",
+		"count": 4870714,
+		"etv": 660740639.782771
+	},
+	{
+		"position": 413,
+		"domain": "google.co.jp",
+		"count": 4861724,
+		"etv": 106327612.83431569
+	},
+	{
+		"position": 414,
+		"domain": "psu.edu",
+		"count": 4850604,
+		"etv": 48411896.85038252
+	},
+	{
+		"position": 415,
+		"domain": "livejournal.com",
+		"count": 4849996,
+		"etv": 10003052.471240511
+	},
+	{
+		"position": 416,
+		"domain": "state.gov",
+		"count": 4840582,
+		"etv": 164043982.70434433
+	},
+	{
+		"position": 417,
+		"domain": "ranker.com",
+		"count": 4827864,
+		"etv": 40317982.881122805
+	},
+	{
+		"position": 418,
+		"domain": "howstuffworks.com",
+		"count": 4824806,
+		"etv": 92733788.0713019
+	},
+	{
+		"position": 419,
+		"domain": "macys.com",
+		"count": 4805616,
+		"etv": 252575680.9388708
+	},
+	{
+		"position": 420,
+		"domain": "google.com.au",
+		"count": 4803953,
+		"etv": 25086128.4912342
+	},
+	{
+		"position": 421,
+		"domain": "amazon.es",
+		"count": 4803352,
+		"etv": 121883303.99400531
+	},
+	{
+		"position": 422,
+		"domain": "lemon8-app.com",
+		"count": 4793086,
+		"etv": 21532393.18915449
+	},
+	{
+		"position": 423,
+		"domain": "thepioneerwoman.com",
+		"count": 4792759,
+		"etv": 222712757.20448923
+	},
+	{
+		"position": 424,
+		"domain": "cookpad.com",
+		"count": 4785829,
+		"etv": 208945839.03734908
+	},
+	{
+		"position": 425,
+		"domain": "rozetka.com.ua",
+		"count": 4765198,
+		"etv": 75821890.47333555
+	},
+	{
+		"position": 426,
+		"domain": "wayfair.com",
+		"count": 4760181,
+		"etv": 139997013.18808654
+	},
+	{
+		"position": 427,
+		"domain": "gutefrage.net",
+		"count": 4760176,
+		"etv": 22414490.47067193
+	},
+	{
+		"position": 428,
+		"domain": "ibm.com",
+		"count": 4754953,
+		"etv": 145013332.07432798
+	},
+	{
+		"position": 429,
+		"domain": "umn.edu",
+		"count": 4753469,
+		"etv": 52491503.91118181
+	},
+	{
+		"position": 430,
+		"domain": "linguee.com",
+		"count": 4753076,
+		"etv": 68188085.32617061
+	},
+	{
+		"position": 431,
+		"domain": "substack.com",
+		"count": 4750130,
+		"etv": 17917286.8068792
+	},
+	{
+		"position": 432,
+		"domain": "unirioja.es",
+		"count": 4746918,
+		"etv": 18820753.887321316
+	},
+	{
+		"position": 433,
+		"domain": "commonsensemedia.org",
+		"count": 4738255,
+		"etv": 48703570.05932264
+	},
+	{
+		"position": 434,
+		"domain": "city-data.com",
+		"count": 4737476,
+		"etv": 23421608.9260817
+	},
+	{
+		"position": 435,
+		"domain": "travelweekly.com",
+		"count": 4725456,
+		"etv": 39680596.43035498
+	},
+	{
+		"position": 436,
+		"domain": "xbox.com",
+		"count": 4723671,
+		"etv": 96543268.47659068
+	},
+	{
+		"position": 437,
+		"domain": "20minutos.es",
+		"count": 4697057,
+		"etv": 63747463.52321232
+	},
+	{
+		"position": 438,
+		"domain": "jooble.org",
+		"count": 4694801,
+		"etv": 20163449.804041777
+	},
+	{
+		"position": 439,
+		"domain": "euronews.com",
+		"count": 4689495,
+		"etv": 45894865.87306258
+	},
+	{
+		"position": 440,
+		"domain": "zippia.com",
+		"count": 4680503,
+		"etv": 25188209.07586509
+	},
+	{
+		"position": 441,
+		"domain": "tasteofhome.com",
+		"count": 4679328,
+		"etv": 133077791.56088129
+	},
+	{
+		"position": 442,
+		"domain": "lww.com",
+		"count": 4666201,
+		"etv": 20767759.17793508
+	},
+	{
+		"position": 443,
+		"domain": "a-z-animals.com",
+		"count": 4650291,
+		"etv": 150853046.52953342
+	},
+	{
+		"position": 444,
+		"domain": "liputan6.com",
+		"count": 4642639,
+		"etv": 194023901.1563553
+	},
+	{
+		"position": 445,
+		"domain": "columbia.edu",
+		"count": 4637756,
+		"etv": 41596544.30417592
+	},
+	{
+		"position": 446,
+		"domain": "uptodate.com",
+		"count": 4628658,
+		"etv": 66402750.87034457
+	},
+	{
+		"position": 447,
+		"domain": "newyorker.com",
+		"count": 4625840,
+		"etv": 54400905.04217257
+	},
+	{
+		"position": 448,
+		"domain": "vice.com",
+		"count": 4623415,
+		"etv": 22275276.18119833
+	},
+	{
+		"position": 449,
+		"domain": "abc.es",
+		"count": 4619021,
+		"etv": 55567721.524427556
+	},
+	{
+		"position": 450,
+		"domain": "vk.com",
+		"count": 4609396,
+		"etv": 21418646.69258055
+	},
+	{
+		"position": 451,
+		"domain": "pinterest.de",
+		"count": 4607147,
+		"etv": 101856345.86319637
+	},
+	{
+		"position": 452,
+		"domain": "vectorstock.com",
+		"count": 4600440,
+		"etv": 48670379.525629625
+	},
+	{
+		"position": 453,
+		"domain": "fnac.com",
+		"count": 4599654,
+		"etv": 55293706.26066454
+	},
+	{
+		"position": 454,
+		"domain": "yandex.ru",
+		"count": 4587985,
+		"etv": 19522555.802535657
+	},
+	{
+		"position": 455,
+		"domain": "sportingnews.com",
+		"count": 4570017,
+		"etv": 105746889.98117554
+	},
+	{
+		"position": 456,
+		"domain": "scmp.com",
+		"count": 4545377,
+		"etv": 32989323.911022156
+	},
+	{
+		"position": 457,
+		"domain": "bleacherreport.com",
+		"count": 4540666,
+		"etv": 151290791.22948682
+	},
+	{
+		"position": 458,
+		"domain": "wordnik.com",
+		"count": 4535342,
+		"etv": 126952556.32752766
+	},
+	{
+		"position": 459,
+		"domain": "amazon.it",
+		"count": 4532306,
+		"etv": 192590262.433744
+	},
+	{
+		"position": 460,
+		"domain": "teacherspayteachers.com",
+		"count": 4526380,
+		"etv": 22259653.194870427
+	},
+	{
+		"position": 461,
+		"domain": "ctvnews.ca",
+		"count": 4524146,
+		"etv": 47651495.42012327
+	},
+	{
+		"position": 462,
+		"domain": "hinkhoj.com",
+		"count": 4519742,
+		"etv": 309695511.3100859
+	},
+	{
+		"position": 463,
+		"domain": "restaurantji.com",
+		"count": 4515732,
+		"etv": 12803698.868870618
+	},
+	{
+		"position": 464,
+		"domain": "javatpoint.com",
+		"count": 4496846,
+		"etv": 138724531.34693143
+	},
+	{
+		"position": 465,
+		"domain": "rocketreach.co",
+		"count": 4490309,
+		"etv": 12270530.959529538
+	},
+	{
+		"position": 466,
+		"domain": "nerdwallet.com",
+		"count": 4488454,
+		"etv": 301998352.48586094
+	},
+	{
+		"position": 467,
+		"domain": "bbcgoodfood.com",
+		"count": 4487476,
+		"etv": 199264577.75648665
+	},
+	{
+		"position": 468,
+		"domain": "masterclass.com",
+		"count": 4479795,
+		"etv": 94802114.37974061
+	},
+	{
+		"position": 469,
+		"domain": "justia.com",
+		"count": 4479420,
+		"etv": 33328004.116114557
+	},
+	{
+		"position": 470,
+		"domain": "bhg.com",
+		"count": 4476199,
+		"etv": 120233659.96134779
+	},
+	{
+		"position": 471,
+		"domain": "investing.com",
+		"count": 4470693,
+		"etv": 362423765.1184144
+	},
+	{
+		"position": 472,
+		"domain": "mozilla.org",
+		"count": 4444198,
+		"etv": 116160759.7148195
+	},
+	{
+		"position": 473,
+		"domain": "made-in-china.com",
+		"count": 4439888,
+		"etv": 11402713.737331795
+	},
+	{
+		"position": 474,
+		"domain": "vox.com",
+		"count": 4430610,
+		"etv": 48886485.288043685
+	},
+	{
+		"position": 475,
+		"domain": "eater.com",
+		"count": 4430591,
+		"etv": 164280080.23290357
+	},
+	{
+		"position": 476,
+		"domain": "shopify.com",
+		"count": 4428317,
+		"etv": 159354111.5322479
+	},
+	{
+		"position": 477,
+		"domain": "mercadolivre.com.br",
+		"count": 4411324,
+		"etv": 218409454.47302788
+	},
+	{
+		"position": 478,
+		"domain": "twitch.tv",
+		"count": 4408416,
+		"etv": 109282478.3213516
+	},
+	{
+		"position": 479,
+		"domain": "core.ac.uk",
+		"count": 4395923,
+		"etv": 9385580.4942142
+	},
+	{
+		"position": 480,
+		"domain": "asos.com",
+		"count": 4394348,
+		"etv": 120604195.30378789
+	},
+	{
+		"position": 481,
+		"domain": "superpages.com",
+		"count": 4391380,
+		"etv": 6642195.631157782
+	},
+	{
+		"position": 482,
+		"domain": "aarp.org",
+		"count": 4390008,
+		"etv": 67628038.78492852
+	},
+	{
+		"position": 483,
+		"domain": "kohls.com",
+		"count": 4386752,
+		"etv": 115217962.48907885
+	},
+	{
+		"position": 484,
+		"domain": "elconfidencial.com",
+		"count": 4386344,
+		"etv": 42316560.50165951
+	},
+	{
+		"position": 485,
+		"domain": "shein.com",
+		"count": 4359502,
+		"etv": 59666768.20217186
+	},
+	{
+		"position": 486,
+		"domain": "google.com.br",
+		"count": 4357633,
+		"etv": 109684460.87327176
+	},
+	{
+		"position": 487,
+		"domain": "pexels.com",
+		"count": 4353869,
+		"etv": 266355431.22447082
+	},
+	{
+		"position": 488,
+		"domain": "francetvinfo.fr",
+		"count": 4346418,
+		"etv": 73383963.50743942
+	},
+	{
+		"position": 489,
+		"domain": "consumerreports.org",
+		"count": 4342696,
+		"etv": 55816520.31858161
+	},
+	{
+		"position": 490,
+		"domain": "kumparan.com",
+		"count": 4339165,
+		"etv": 130140970.77087584
+	},
+	{
+		"position": 491,
+		"domain": "letras.mus.br",
+		"count": 4333524,
+		"etv": 97353255.90786953
+	},
+	{
+		"position": 492,
+		"domain": "grubhub.com",
+		"count": 4332747,
+		"etv": 591666396.9002237
+	},
+	{
+		"position": 493,
+		"domain": "ieee.org",
+		"count": 4311870,
+		"etv": 32426780.093388326
+	},
+	{
+		"position": 494,
+		"domain": "azlyrics.com",
+		"count": 4302152,
+		"etv": 103660220.65981843
+	},
+	{
+		"position": 495,
+		"domain": "klook.com",
+		"count": 4294104,
+		"etv": 66986148.742820986
+	},
+	{
+		"position": 496,
+		"domain": "note.com",
+		"count": 4292888,
+		"etv": 42375312.76727044
+	},
+	{
+		"position": 497,
+		"domain": "boomplay.com",
+		"count": 4292411,
+		"etv": 22789411.373019822
+	},
+	{
+		"position": 498,
+		"domain": "history.com",
+		"count": 4289787,
+		"etv": 146409652.43675977
+	},
+	{
+		"position": 499,
+		"domain": "si.edu",
+		"count": 4282892,
+		"etv": 103863207.98248647
+	},
+	{
+		"position": 500,
+		"domain": "filmaffinity.com",
+		"count": 4280585,
+		"etv": 82299501.45243654
+	},
+	{
+		"position": 501,
+		"domain": "nymag.com",
+		"count": 4277627,
+		"etv": 69329666.06465366
+	},
+	{
+		"position": 502,
+		"domain": "definitions.net",
+		"count": 4274494,
+		"etv": 28616311.178827107
+	},
+	{
+		"position": 503,
+		"domain": "lyricstranslate.com",
+		"count": 4273008,
+		"etv": 14735549.977324441
+	},
+	{
+		"position": 504,
+		"domain": "bmj.com",
+		"count": 4268478,
+		"etv": 30510125.935852446
+	},
+	{
+		"position": 505,
+		"domain": "viator.com",
+		"count": 4251337,
+		"etv": 42450277.61980449
+	},
+	{
+		"position": 506,
+		"domain": "noaa.gov",
+		"count": 4246425,
+		"etv": 131591248.12459764
+	},
+	{
+		"position": 507,
+		"domain": "fda.gov",
+		"count": 4236292,
+		"etv": 64523032.097353674
+	},
+	{
+		"position": 508,
+		"domain": "virigada.shop",
+		"count": 4235364,
+		"etv": 13860008.946865154
+	},
+	{
+		"position": 509,
+		"domain": "theatlantic.com",
+		"count": 4224050,
+		"etv": 41495498.84293714
+	},
+	{
+		"position": 510,
+		"domain": "focus.de",
+		"count": 4221502,
+		"etv": 46313336.2046492
+	},
+	{
+		"position": 511,
+		"domain": "foxsports.com",
+		"count": 4210521,
+		"etv": 449694671.1240554
+	},
+	{
+		"position": 512,
+		"domain": "jagran.com",
+		"count": 4210307,
+		"etv": 140502887.80677152
+	},
+	{
+		"position": 513,
+		"domain": "amazon.com.au",
+		"count": 4206520,
+		"etv": 44677299.18120653
+	},
+	{
+		"position": 514,
+		"domain": "orbitz.com",
+		"count": 4204057,
+		"etv": 56558088.17111497
+	},
+	{
+		"position": 515,
+		"domain": "vrbo.com",
+		"count": 4203722,
+		"etv": 42528489.19241956
+	},
+	{
+		"position": 516,
+		"domain": "opentable.com",
+		"count": 4197930,
+		"etv": 465574559.5593644
+	},
+	{
+		"position": 517,
+		"domain": "rogerebert.com",
+		"count": 4183792,
+		"etv": 77086553.13037357
+	},
+	{
+		"position": 518,
+		"domain": "mubi.com",
+		"count": 4175265,
+		"etv": 39501023.09081897
+	},
+	{
+		"position": 519,
+		"domain": "pinterest.fr",
+		"count": 4159873,
+		"etv": 84876173.52062143
+	},
+	{
+		"position": 520,
+		"domain": "berkeley.edu",
+		"count": 4153574,
+		"etv": 45414378.28112486
+	},
+	{
+		"position": 521,
+		"domain": "bustle.com",
+		"count": 4148594,
+		"etv": 17328757.362064682
+	},
+	{
+		"position": 522,
+		"domain": "washington.edu",
+		"count": 4146894,
+		"etv": 35663888.73976515
+	},
+	{
+		"position": 523,
+		"domain": "timeanddate.com",
+		"count": 4141243,
+		"etv": 798075898.0710956
+	},
+	{
+		"position": 524,
+		"domain": "musixmatch.com",
+		"count": 4133481,
+		"etv": 13810622.061661495
+	},
+	{
+		"position": 525,
+		"domain": "trulia.com",
+		"count": 4132782,
+		"etv": 171373170.79551047
+	},
+	{
+		"position": 526,
+		"domain": "bartleby.com",
+		"count": 4132672,
+		"etv": 11855906.31452268
+	},
+	{
+		"position": 527,
+		"domain": "fresherslive.com",
+		"count": 4130996,
+		"etv": 33063478.692737866
+	},
+	{
+		"position": 528,
+		"domain": "kroger.com",
+		"count": 4126613,
+		"etv": 74357300.52328609
+	},
+	{
+		"position": 529,
+		"domain": "eonline.com",
+		"count": 4121891,
+		"etv": 47973835.38304065
+	},
+	{
+		"position": 530,
+		"domain": "giphy.com",
+		"count": 4119398,
+		"etv": 75183471.77903257
+	},
+	{
+		"position": 531,
+		"domain": "nordstrom.com",
+		"count": 4113151,
+		"etv": 293124219.8208245
+	},
+	{
+		"position": 532,
+		"domain": "sofascore.com",
+		"count": 4110763,
+		"etv": 305586952.8824308
+	},
+	{
+		"position": 533,
+		"domain": "psychologytoday.com",
+		"count": 4107386,
+		"etv": 53434290.261610225
+	},
+	{
+		"position": 534,
+		"domain": "theathletic.com",
+		"count": 4103232,
+		"etv": 250389569.5169993
+	},
+	{
+		"position": 535,
+		"domain": "planetofhotels.com",
+		"count": 4096901,
+		"etv": 12751874.093708063
+	},
+	{
+		"position": 536,
+		"domain": "thespruceeats.com",
+		"count": 4094349,
+		"etv": 79310276.49252498
+	},
+	{
+		"position": 537,
+		"domain": "casetext.com",
+		"count": 4093489,
+		"etv": 10092345.014231378
+	},
+	{
+		"position": 538,
+		"domain": "ufl.edu",
+		"count": 4086775,
+		"etv": 45639026.862791
+	},
+	{
+		"position": 539,
+		"domain": "food.com",
+		"count": 4086036,
+		"etv": 61816458.93504062
+	},
+	{
+		"position": 540,
+		"domain": "manta.com",
+		"count": 4079063,
+		"etv": 6430117.353702713
+	},
+	{
+		"position": 541,
+		"domain": "apartments.com",
+		"count": 4076963,
+		"etv": 199452481.85698235
+	},
+	{
+		"position": 542,
+		"domain": "epa.gov",
+		"count": 4075703,
+		"etv": 78886282.91031718
+	},
+	{
+		"position": 543,
+		"domain": "ferdaliko.com",
+		"count": 4068936,
+		"etv": 2909634.5828837603
+	},
+	{
+		"position": 544,
+		"domain": "theknot.com",
+		"count": 4065545,
+		"etv": 98008795.28671408
+	},
+	{
+		"position": 545,
+		"domain": "healthgrades.com",
+		"count": 4063945,
+		"etv": 41949108.755360946
+	},
+	{
+		"position": 546,
+		"domain": "prevention.com",
+		"count": 4063901,
+		"etv": 86024223.71594971
+	},
+	{
+		"position": 547,
+		"domain": "apa.org",
+		"count": 4060789,
+		"etv": 55245345.54061119
+	},
+	{
+		"position": 548,
+		"domain": "rochester.edu",
+		"count": 4049313,
+		"etv": 58375688.85545513
+	},
+	{
+		"position": 549,
+		"domain": "oed.com",
+		"count": 4029424,
+		"etv": 46571693.810879834
+	},
+	{
+		"position": 550,
+		"domain": "superuser.com",
+		"count": 4023736,
+		"etv": 25352329.539684776
+	},
+	{
+		"position": 551,
+		"domain": "playstation.com",
+		"count": 4016773,
+		"etv": 130704501.94483995
+	},
+	{
+		"position": 552,
+		"domain": "smh.com.au",
+		"count": 4015879,
+		"etv": 26251768.41618353
+	},
+	{
+		"position": 553,
+		"domain": "lawinsider.com",
+		"count": 4014552,
+		"etv": 31433051.368462615
+	},
+	{
+		"position": 554,
+		"domain": "wanderlog.com",
+		"count": 4006928,
+		"etv": 35993156.5451373
+	},
+	{
+		"position": 555,
+		"domain": "elcomercio.pe",
+		"count": 3998992,
+		"etv": 85934058.9114929
+	},
+	{
+		"position": 556,
+		"domain": "france24.com",
+		"count": 3990528,
+		"etv": 31836577.576599576
+	},
+	{
+		"position": 557,
+		"domain": "ancestry.com",
+		"count": 3990092,
+		"etv": 91402863.49745288
+	},
+	{
+		"position": 558,
+		"domain": "mercadolibre.com.mx",
+		"count": 3985432,
+		"etv": 162818732.49865055
+	},
+	{
+		"position": 559,
+		"domain": "simplyhired.com",
+		"count": 3984136,
+		"etv": 22256675.014113076
+	},
+	{
+		"position": 560,
+		"domain": "tutorialspoint.com",
+		"count": 3983990,
+		"etv": 59341647.578960285
+	},
+	{
+		"position": 561,
+		"domain": "leparisien.fr",
+		"count": 3981129,
+		"etv": 40696572.7843155
+	},
+	{
+		"position": 562,
+		"domain": "menupix.com",
+		"count": 3978012,
+		"etv": 13893053.920744255
+	},
+	{
+		"position": 563,
+		"domain": "delish.com",
+		"count": 3976534,
+		"etv": 230007584.76062626
+	},
+	{
+		"position": 564,
+		"domain": "amazon.com.br",
+		"count": 3975868,
+		"etv": 138994505.88558474
+	},
+	{
+		"position": 565,
+		"domain": "letterboxd.com",
+		"count": 3967667,
+		"etv": 30607341.76338777
+	},
+	{
+		"position": 566,
+		"domain": "ultimate-guitar.com",
+		"count": 3966030,
+		"etv": 42262767.71307208
+	},
+	{
+		"position": 567,
+		"domain": "oracle.com",
+		"count": 3963265,
+		"etv": 63033852.16446305
+	},
+	{
+		"position": 568,
+		"domain": "larousse.fr",
+		"count": 3956078,
+		"etv": 257341648.61382046
+	},
+	{
+		"position": 569,
+		"domain": "kiddle.co",
+		"count": 3955915,
+		"etv": 17488810.770700514
+	},
+	{
+		"position": 570,
+		"domain": "rakuten.com",
+		"count": 3955002,
+		"etv": 28337898.276445124
+	},
+	{
+		"position": 571,
+		"domain": "almaany.com",
+		"count": 3949452,
+		"etv": 62880293.16048714
+	},
+	{
+		"position": 572,
+		"domain": "skysports.com",
+		"count": 3946945,
+		"etv": 365707310.38596535
+	},
+	{
+		"position": 573,
+		"domain": "mercari.com",
+		"count": 3938030,
+		"etv": 46676256.43738221
+	},
+	{
+		"position": 574,
+		"domain": "nike.com",
+		"count": 3933328,
+		"etv": 323587395.6452177
+	},
+	{
+		"position": 575,
+		"domain": "alltrails.com",
+		"count": 3932980,
+		"etv": 54366196.06863486
+	},
+	{
+		"position": 576,
+		"domain": "magazineluiza.com.br",
+		"count": 3909075,
+		"etv": 236687376.14105177
+	},
+	{
+		"position": 577,
+		"domain": "travelandleisure.com",
+		"count": 3907418,
+		"etv": 102974394.29396129
+	},
+	{
+		"position": 578,
+		"domain": "vymaps.com",
+		"count": 3906919,
+		"etv": 7826342.851742571
+	},
+	{
+		"position": 579,
+		"domain": "vintageisthenewold.com",
+		"count": 3902497,
+		"etv": 13012709.148813648
+	},
+	{
+		"position": 580,
+		"domain": "momjunction.com",
+		"count": 3894363,
+		"etv": 51508439.8306204
+	},
+	{
+		"position": 581,
+		"domain": "aol.com",
+		"count": 3890892,
+		"etv": 80973719.79481736
+	},
+	{
+		"position": 582,
+		"domain": "tureng.com",
+		"count": 3880343,
+		"etv": 68566914.92360239
+	},
+	{
+		"position": 583,
+		"domain": "globalnews.ca",
+		"count": 3879362,
+		"etv": 50002390.29720168
+	},
+	{
+		"position": 584,
+		"domain": "mynavi.jp",
+		"count": 3878621,
+		"etv": 109967668.81454027
+	},
+	{
+		"position": 585,
+		"domain": "ebay.com.au",
+		"count": 3864476,
+		"etv": 17404680.706281565
+	},
+	{
+		"position": 586,
+		"domain": "moneycontrol.com",
+		"count": 3860260,
+		"etv": 1190248652.23828
+	},
+	{
+		"position": 587,
+		"domain": "jamanetwork.com",
+		"count": 3860092,
+		"etv": 19828063.764207516
+	},
+	{
+		"position": 588,
+		"domain": "google.it",
+		"count": 3851336,
+		"etv": 79076358.07215273
+	},
+	{
+		"position": 589,
+		"domain": "cntraveler.com",
+		"count": 3847689,
+		"etv": 106516042.18390141
+	},
+	{
+		"position": 590,
+		"domain": "wisc.edu",
+		"count": 3847527,
+		"etv": 47165050.19915044
+	},
+	{
+		"position": 591,
+		"domain": "lumenlearning.com",
+		"count": 3846555,
+		"etv": 41516173.96135074
+	},
+	{
+		"position": 592,
+		"domain": "glamour.com",
+		"count": 3845390,
+		"etv": 74051070.6649721
+	},
+	{
+		"position": 593,
+		"domain": "fondiko.com",
+		"count": 3843380,
+		"etv": 4656873.256761171
+	},
+	{
+		"position": 594,
+		"domain": "va.gov",
+		"count": 3836915,
+		"etv": 54762267.172632866
+	},
+	{
+		"position": 595,
+		"domain": "allmusic.com",
+		"count": 3835332,
+		"etv": 36815371.77415856
+	},
+	{
+		"position": 596,
+		"domain": "rae.es",
+		"count": 3833674,
+		"etv": 472627355.864912
+	},
+	{
+		"position": 597,
+		"domain": "sky.com",
+		"count": 3828854,
+		"etv": 91508288.35833977
+	},
+	{
+		"position": 598,
+		"domain": "shopee.co.id",
+		"count": 3827930,
+		"etv": 187329160.97052404
+	},
+	{
+		"position": 599,
+		"domain": "livescience.com",
+		"count": 3825476,
+		"etv": 54230903.04081111
+	},
+	{
+		"position": 600,
+		"domain": "zdnet.com",
+		"count": 3821099,
+		"etv": 72213042.03204083
+	},
+	{
+		"position": 601,
+		"domain": "com.be",
+		"count": 3817720,
+		"etv": 18914383.337828014
+	},
+	{
+		"position": 602,
+		"domain": "mojim.com",
+		"count": 3815424,
+		"etv": 32420724.178092267
+	},
+	{
+		"position": 603,
+		"domain": "capcut.com",
+		"count": 3808564,
+		"etv": 24232451.276565805
+	},
+	{
+		"position": 604,
+		"domain": "tr-ex.me",
+		"count": 3790328,
+		"etv": 34058602.919139154
+	},
+	{
+		"position": 605,
+		"domain": "everand.com",
+		"count": 3786963,
+		"etv": 8029512.056672823
+	},
+	{
+		"position": 606,
+		"domain": "songtell.com",
+		"count": 3781819,
+		"etv": 9400744.18130517
+	},
+	{
+		"position": 607,
+		"domain": "caranddriver.com",
+		"count": 3781807,
+		"etv": 115625724.54100984
+	},
+	{
+		"position": 608,
+		"domain": "timesnownews.com",
+		"count": 3777291,
+		"etv": 192565937.35841584
+	},
+	{
+		"position": 609,
+		"domain": "amarujala.com",
+		"count": 3770326,
+		"etv": 201575813.89257783
+	},
+	{
+		"position": 610,
+		"domain": "poshmark.com",
+		"count": 3769772,
+		"etv": 26665026.045599625
+	},
+	{
+		"position": 611,
+		"domain": "comicbook.com",
+		"count": 3769163,
+		"etv": 13128561.22271905
+	},
+	{
+		"position": 612,
+		"domain": "lyrics.com",
+		"count": 3769134,
+		"etv": 41660720.87435744
+	},
+	{
+		"position": 613,
+		"domain": "arxiv.org",
+		"count": 3768383,
+		"etv": 21968052.44911307
+	},
+	{
+		"position": 614,
+		"domain": "hamariweb.com",
+		"count": 3763149,
+		"etv": 125190477.98599052
+	},
+	{
+		"position": 615,
+		"domain": "indigo.ca",
+		"count": 3761109,
+		"etv": 19122107.033621892
+	},
+	{
+		"position": 616,
+		"domain": "wise.com",
+		"count": 3755771,
+		"etv": 525445494.70030934
+	},
+	{
+		"position": 617,
+		"domain": "nyc.gov",
+		"count": 3753677,
+		"etv": 97570465.42302507
+	},
+	{
+		"position": 618,
+		"domain": "byrdie.com",
+		"count": 3731388,
+		"etv": 108966705.7420249
+	},
+	{
+		"position": 619,
+		"domain": "fc2.com",
+		"count": 3728468,
+		"etv": 31293477.25866057
+	},
+	{
+		"position": 620,
+		"domain": "roku.com",
+		"count": 3727433,
+		"etv": 43596715.300775155
+	},
+	{
+		"position": 621,
+		"domain": "vogue.com",
+		"count": 3725901,
+		"etv": 56453393.54234822
+	},
+	{
+		"position": 622,
+		"domain": "johnlewis.com",
+		"count": 3722146,
+		"etv": 63958625.475484855
+	},
+	{
+		"position": 623,
+		"domain": "nina.az",
+		"count": 3720004,
+		"etv": 8620874.415393759
+	},
+	{
+		"position": 624,
+		"domain": "pxfuel.com",
+		"count": 3717766,
+		"etv": 39129869.99439791
+	},
+	{
+		"position": 625,
+		"domain": "marketwatch.com",
+		"count": 3708160,
+		"etv": 593635132.7264531
+	},
+	{
+		"position": 626,
+		"domain": "cdiscount.com",
+		"count": 3700021,
+		"etv": 47502978.55668205
+	},
+	{
+		"position": 627,
+		"domain": "wondershare.com",
+		"count": 3699590,
+		"etv": 39357072.598468445
+	},
+	{
+		"position": 628,
+		"domain": "virginia.gov",
+		"count": 3688251,
+		"etv": 46244931.35745591
+	},
+	{
+		"position": 629,
+		"domain": "lonelyplanet.com",
+		"count": 3687459,
+		"etv": 72397266.08481567
+	},
+	{
+		"position": 630,
+		"domain": "smithsonianmag.com",
+		"count": 3681544,
+		"etv": 52289262.91182871
+	},
+	{
+		"position": 631,
+		"domain": "nikkei.com",
+		"count": 3681221,
+		"etv": 109745193.13496901
+	},
+	{
+		"position": 632,
+		"domain": "loopnet.com",
+		"count": 3680072,
+		"etv": 17794687.838279933
+	},
+	{
+		"position": 633,
+		"domain": "hayalis.com",
+		"count": 3669154,
+		"etv": 2091121.539556373
+	},
+	{
+		"position": 634,
+		"domain": "bol.com",
+		"count": 3667237,
+		"etv": 61621614.19721359
+	},
+	{
+		"position": 635,
+		"domain": "news-medical.net",
+		"count": 3664162,
+		"etv": 35600156.46671874
+	},
+	{
+		"position": 636,
+		"domain": "mass.gov",
+		"count": 3663429,
+		"etv": 38311883.84397967
+	},
+	{
+		"position": 637,
+		"domain": "upenn.edu",
+		"count": 3657298,
+		"etv": 29955734.42839288
+	},
+	{
+		"position": 638,
+		"domain": "eatingwell.com",
+		"count": 3647762,
+		"etv": 113674747.82380405
+	},
+	{
+		"position": 639,
+		"domain": "ed.gov",
+		"count": 3645931,
+		"etv": 41425074.795432925
+	},
+	{
+		"position": 640,
+		"domain": "yale.edu",
+		"count": 3635255,
+		"etv": 26861218.619160146
+	},
+	{
+		"position": 641,
+		"domain": "alamy.es",
+		"count": 3629874,
+		"etv": 12289490.846358249
+	},
+	{
+		"position": 642,
+		"domain": "nme.com",
+		"count": 3628698,
+		"etv": 26072889.742141478
+	},
+	{
+		"position": 643,
+		"domain": "pinterest.co.uk",
+		"count": 3621248,
+		"etv": 134060468.37941241
+	},
+	{
+		"position": 644,
+		"domain": "udemy.com",
+		"count": 3612983,
+		"etv": 36802116.39603266
+	},
+	{
+		"position": 645,
+		"domain": "mercadolibre.com.ar",
+		"count": 3594419,
+		"etv": 124809280.42905568
+	},
+	{
+		"position": 646,
+		"domain": "howtopronounce.com",
+		"count": 3589411,
+		"etv": 21595696.32646897
+	},
+	{
+		"position": 647,
+		"domain": "yelp.ca",
+		"count": 3584834,
+		"etv": 86964088.331465
+	},
+	{
+		"position": 648,
+		"domain": "purdue.edu",
+		"count": 3581213,
+		"etv": 91198358.20319021
+	},
+	{
+		"position": 649,
+		"domain": "livestrong.com",
+		"count": 3572995,
+		"etv": 23903316.253674302
+	},
+	{
+		"position": 650,
+		"domain": "marthastewart.com",
+		"count": 3564171,
+		"etv": 67271629.07415572
+	},
+	{
+		"position": 651,
+		"domain": "brainly.lat",
+		"count": 3555537,
+		"etv": 21673188.30573363
+	},
+	{
+		"position": 652,
+		"domain": "unam.mx",
+		"count": 3544139,
+		"etv": 49636581.758923665
+	},
+	{
+		"position": 653,
+		"domain": "uklima.info",
+		"count": 3533956,
+		"etv": 13784825.994569557
+	},
+	{
+		"position": 654,
+		"domain": "bilibili.tv",
+		"count": 3529877,
+		"etv": 33256503.989481814
+	},
+	{
+		"position": 655,
+		"domain": "fortune.com",
+		"count": 3528584,
+		"etv": 43472418.520218536
+	},
+	{
+		"position": 656,
+		"domain": "legacy.com",
+		"count": 3516307,
+		"etv": 63988051.25591074
+	},
+	{
+		"position": 657,
+		"domain": "xworldse.online",
+		"count": 3511554,
+		"etv": 6571459.100584745
+	},
+	{
+		"position": 658,
+		"domain": "tripadvisor.ca",
+		"count": 3506089,
+		"etv": 239998404.35406342
+	},
+	{
+		"position": 659,
+		"domain": "kaiserpermanente.org",
+		"count": 3503573,
+		"etv": 38788863.66343252
+	},
+	{
+		"position": 660,
+		"domain": "usmagazine.com",
+		"count": 3497053,
+		"etv": 75569339.85010143
+	},
+	{
+		"position": 661,
+		"domain": "lanacion.com.ar",
+		"count": 3485724,
+		"etv": 79359491.26466589
+	},
+	{
+		"position": 662,
+		"domain": "terra.com.br",
+		"count": 3481721,
+		"etv": 138859705.5849138
+	},
+	{
+		"position": 663,
+		"domain": "foodandwine.com",
+		"count": 3474542,
+		"etv": 124551285.45403932
+	},
+	{
+		"position": 664,
+		"domain": "howtogeek.com",
+		"count": 3468605,
+		"etv": 39568453.09126693
+	},
+	{
+		"position": 665,
+		"domain": "stylecraze.com",
+		"count": 3468512,
+		"etv": 45556608.978306584
+	},
+	{
+		"position": 666,
+		"domain": "corriere.it",
+		"count": 3467876,
+		"etv": 119765851.17329022
+	},
+	{
+		"position": 667,
+		"domain": "oxfordreference.com",
+		"count": 3466910,
+		"etv": 26866799.800790723
+	},
+	{
+		"position": 668,
+		"domain": "spanishdict.com",
+		"count": 3456505,
+		"etv": 227280619.46404892
+	},
+	{
+		"position": 669,
+		"domain": "unacademy.com",
+		"count": 3451436,
+		"etv": 139547326.67255792
+	},
+	{
+		"position": 670,
+		"domain": "angi.com",
+		"count": 3449508,
+		"etv": 91154168.20091482
+	},
+	{
+		"position": 671,
+		"domain": "google.co.kr",
+		"count": 3449029,
+		"etv": 14575834.352006769
+	},
+	{
+		"position": 672,
+		"domain": "theculturetrip.com",
+		"count": 3445374,
+		"etv": 32041311.517682992
+	},
+	{
+		"position": 673,
+		"domain": "distractify.com",
+		"count": 3437143,
+		"etv": 23767425.2139239
+	},
+	{
+		"position": 674,
+		"domain": "pennmedicine.org",
+		"count": 3436893,
+		"etv": 129545336.60847339
+	},
+	{
+		"position": 675,
+		"domain": "zendesk.com",
+		"count": 3429237,
+		"etv": 38592183.953815445
+	},
+	{
+		"position": 676,
+		"domain": "jagranjosh.com",
+		"count": 3414855,
+		"etv": 147703739.51434305
+	},
+	{
+		"position": 677,
+		"domain": "famousbirthdays.com",
+		"count": 3407702,
+		"etv": 45595369.23868561
+	},
+	{
+		"position": 678,
+		"domain": "michigan.gov",
+		"count": 3404508,
+		"etv": 37055241.55875221
+	},
+	{
+		"position": 679,
+		"domain": "androidauthority.com",
+		"count": 3399456,
+		"etv": 45853695.940214634
+	},
+	{
+		"position": 680,
+		"domain": "gaana.com",
+		"count": 3397415,
+		"etv": 78742210.48715015
+	},
+	{
+		"position": 681,
+		"domain": "nhsinform.scot",
+		"count": 3397087,
+		"etv": 108433130.94039544
+	},
+	{
+		"position": 682,
+		"domain": "nj.gov",
+		"count": 3395607,
+		"etv": 37050536.107349545
+	},
+	{
+		"position": 683,
+		"domain": "mercadolibre.com.co",
+		"count": 3389165,
+		"etv": 54471607.84065754
+	},
+	{
+		"position": 684,
+		"domain": "verywellmind.com",
+		"count": 3386204,
+		"etv": 118706788.26084591
+	},
+	{
+		"position": 685,
+		"domain": "20minutes.fr",
+		"count": 3383324,
+		"etv": 59385444.78214251
+	},
+	{
+		"position": 686,
+		"domain": "hatenablog.com",
+		"count": 3379206,
+		"etv": 22154196.3446042
+	},
+	{
+		"position": 687,
+		"domain": "acs.org",
+		"count": 3379202,
+		"etv": 31664215.350398988
+	},
+	{
+		"position": 688,
+		"domain": "clarin.com",
+		"count": 3371723,
+		"etv": 54453811.27937582
+	},
+	{
+		"position": 689,
+		"domain": "eurogamer.net",
+		"count": 3368659,
+		"etv": 23105076.706161216
+	},
+	{
+		"position": 690,
+		"domain": "google.es",
+		"count": 3368366,
+		"etv": 137644449.50325075
+	},
+	{
+		"position": 691,
+		"domain": "fodors.com",
+		"count": 3360319,
+		"etv": 24060904.66864402
+	},
+	{
+		"position": 692,
+		"domain": "pngegg.com",
+		"count": 3351203,
+		"etv": 15707757.313267939
+	},
+	{
+		"position": 693,
+		"domain": "plos.org",
+		"count": 3347484,
+		"etv": 9533371.512218129
+	},
+	{
+		"position": 694,
+		"domain": "artstation.com",
+		"count": 3345473,
+		"etv": 14897803.639266757
+	},
+	{
+		"position": 695,
+		"domain": "thekitchn.com",
+		"count": 3335553,
+		"etv": 62439827.64384306
+	},
+	{
+		"position": 696,
+		"domain": "cylex-uk.co.uk",
+		"count": 3333407,
+		"etv": 18456087.69862614
+	},
+	{
+		"position": 697,
+		"domain": "chordify.net",
+		"count": 3325742,
+		"etv": 6230889.351233449
+	},
+	{
+		"position": 698,
+		"domain": "pressbooks.pub",
+		"count": 3321695,
+		"etv": 27011737.08028
+	},
+	{
+		"position": 699,
+		"domain": "scielo.br",
+		"count": 3317750,
+		"etv": 19648626.31476704
+	},
+	{
+		"position": 700,
+		"domain": "babycenter.com",
+		"count": 3309526,
+		"etv": 40992332.7088256
+	},
+	{
+		"position": 701,
+		"domain": "powerthesaurus.org",
+		"count": 3308902,
+		"etv": 20309360.316990674
+	},
+	{
+		"position": 702,
+		"domain": "dribbble.com",
+		"count": 3307402,
+		"etv": 20744211.058718633
+	},
+	{
+		"position": 703,
+		"domain": "uchicago.edu",
+		"count": 3305992,
+		"etv": 21348464.80135979
+	},
+	{
+		"position": 704,
+		"domain": "hp.com",
+		"count": 3305375,
+		"etv": 63801056.06530248
+	},
+	{
+		"position": 705,
+		"domain": "stern.de",
+		"count": 3305227,
+		"etv": 44879794.9093116
+	},
+	{
+		"position": 706,
+		"domain": "lovetoknow.com",
+		"count": 3304452,
+		"etv": 46028416.21167977
+	},
+	{
+		"position": 707,
+		"domain": "docomo.ne.jp",
+		"count": 3303595,
+		"etv": 81941181.92386663
+	},
+	{
+		"position": 708,
+		"domain": "w3schools.com",
+		"count": 3298462,
+		"etv": 159402959.78753662
+	},
+	{
+		"position": 709,
+		"domain": "aaa.com",
+		"count": 3295124,
+		"etv": 81154940.36213635
+	},
+	{
+		"position": 710,
+		"domain": "business-standard.com",
+		"count": 3294596,
+		"etv": 85970819.78336315
+	},
+	{
+		"position": 711,
+		"domain": "cancer.gov",
+		"count": 3292399,
+		"etv": 100141616.77123268
+	},
+	{
+		"position": 712,
+		"domain": "thetimes.co.uk",
+		"count": 3291726,
+		"etv": 35904167.602390796
+	},
+	{
+		"position": 713,
+		"domain": "freecodecamp.org",
+		"count": 3291364,
+		"etv": 50866532.57015391
+	},
+	{
+		"position": 714,
+		"domain": "cvs.com",
+		"count": 3290542,
+		"etv": 210786866.97952244
+	},
+	{
+		"position": 715,
+		"domain": "vanityfair.com",
+		"count": 3289076,
+		"etv": 35020628.0839348
+	},
+	{
+		"position": 716,
+		"domain": "plex.tv",
+		"count": 3287792,
+		"etv": 26028637.2424695
+	},
+	{
+		"position": 717,
+		"domain": "bfmtv.com",
+		"count": 3280814,
+		"etv": 43884547.92820109
+	},
+	{
+		"position": 718,
+		"domain": "roadtrippers.com",
+		"count": 3279697,
+		"etv": 16017907.482384227
+	},
+	{
+		"position": 719,
+		"domain": "songfacts.com",
+		"count": 3279693,
+		"etv": 29608872.175262652
+	},
+	{
+		"position": 720,
+		"domain": "openedition.org",
+		"count": 3279691,
+		"etv": 14282384.556877632
+	},
+	{
+		"position": 721,
+		"domain": "livehindustan.com",
+		"count": 3277942,
+		"etv": 147967001.38550583
+	},
+	{
+		"position": 722,
+		"domain": "tripadvisor.fr",
+		"count": 3273188,
+		"etv": 156490297.495534
+	},
+	{
+		"position": 723,
+		"domain": "gulanir.info",
+		"count": 3272960,
+		"etv": 19388003.150831163
+	},
+	{
+		"position": 724,
+		"domain": "mappy.com",
+		"count": 3267920,
+		"etv": 37385377.21521306
+	},
+	{
+		"position": 725,
+		"domain": "archiveofourown.org",
+		"count": 3265955,
+		"etv": 22163873.646942783
+	},
+	{
+		"position": 726,
+		"domain": "ea.com",
+		"count": 3264864,
+		"etv": 70669100.2163739
+	},
+	{
+		"position": 727,
+		"domain": "slate.com",
+		"count": 3259060,
+		"etv": 21560366.574953333
+	},
+	{
+		"position": 728,
+		"domain": "pa.gov",
+		"count": 3258067,
+		"etv": 42192452.48363665
+	},
+	{
+		"position": 729,
+		"domain": "zara.com",
+		"count": 3251784,
+		"etv": 86437058.72676986
+	},
+	{
+		"position": 730,
+		"domain": "ebay.fr",
+		"count": 3246840,
+		"etv": 14049398.174981963
+	},
+	{
+		"position": 731,
+		"domain": "nasdaq.com",
+		"count": 3241186,
+		"etv": 158814064.12550583
+	},
+	{
+		"position": 732,
+		"domain": "aajtak.in",
+		"count": 3239923,
+		"etv": 226248839.6163153
+	},
+	{
+		"position": 733,
+		"domain": "looper.com",
+		"count": 3239065,
+		"etv": 23964396.822010152
+	},
+	{
+		"position": 734,
+		"domain": "decider.com",
+		"count": 3237726,
+		"etv": 20224715.224629723
+	},
+	{
+		"position": 735,
+		"domain": "gq.com",
+		"count": 3230840,
+		"etv": 40520650.93768761
+	},
+	{
+		"position": 736,
+		"domain": "scientificamerican.com",
+		"count": 3228736,
+		"etv": 30746099.239341885
+	},
+	{
+		"position": 737,
+		"domain": "worldbank.org",
+		"count": 3221832,
+		"etv": 45106663.11017223
+	},
+	{
+		"position": 738,
+		"domain": "ct.gov",
+		"count": 3214300,
+		"etv": 30710216.024486076
+	},
+	{
+		"position": 739,
+		"domain": "pixnet.net",
+		"count": 3212940,
+		"etv": 25886451.24701748
+	},
+	{
+		"position": 740,
+		"domain": "wynk.in",
+		"count": 3210714,
+		"etv": 96014822.74317853
+	},
+	{
+		"position": 741,
+		"domain": "osu.edu",
+		"count": 3207567,
+		"etv": 30576656.89236474
+	},
+	{
+		"position": 742,
+		"domain": "ingles.com",
+		"count": 3206011,
+		"etv": 195437697.37531
+	},
+	{
+		"position": 743,
+		"domain": "priceline.com",
+		"count": 3197902,
+		"etv": 50339268.54782404
+	},
+	{
+		"position": 744,
+		"domain": "hbr.org",
+		"count": 3196450,
+		"etv": 54730933.33522108
+	},
+	{
+		"position": 745,
+		"domain": "walmart.ca",
+		"count": 3195829,
+		"etv": 45658309.137656525
+	},
+	{
+		"position": 746,
+		"domain": "ucdavis.edu",
+		"count": 3186473,
+		"etv": 35508577.44694453
+	},
+	{
+		"position": 747,
+		"domain": "seriouseats.com",
+		"count": 3186125,
+		"etv": 58187496.66051528
+	},
+	{
+		"position": 748,
+		"domain": "cars.com",
+		"count": 3179457,
+		"etv": 118778138.5105216
+	},
+	{
+		"position": 749,
+		"domain": "wionews.com",
+		"count": 3179223,
+		"etv": 52771357.15190098
+	},
+	{
+		"position": 750,
+		"domain": "news.com.au",
+		"count": 3177795,
+		"etv": 23291225.50991886
+	},
+	{
+		"position": 751,
+		"domain": "utah.edu",
+		"count": 3177126,
+		"etv": 29774620.962091003
+	},
+	{
+		"position": 752,
+		"domain": "justice.gov",
+		"count": 3173184,
+		"etv": 38522646.26893853
+	},
+	{
+		"position": 753,
+		"domain": "untappd.com",
+		"count": 3172065,
+		"etv": 11692161.997773424
+	},
+	{
+		"position": 754,
+		"domain": "walgreens.com",
+		"count": 3167750,
+		"etv": 196670060.26665583
+	},
+	{
+		"position": 755,
+		"domain": "univision.com",
+		"count": 3162834,
+		"etv": 18786677.440313086
+	},
+	{
+		"position": 756,
+		"domain": "yell.com",
+		"count": 3151978,
+		"etv": 23070792.709491577
+	},
+	{
+		"position": 757,
+		"domain": "squarespace.com",
+		"count": 3151493,
+		"etv": 17729757.13749913
+	},
+	{
+		"position": 758,
+		"domain": "hola.com",
+		"count": 3140139,
+		"etv": 38727934.95879145
+	},
+	{
+		"position": 759,
+		"domain": "iheart.com",
+		"count": 3136859,
+		"etv": 30113567.969895072
+	},
+	{
+		"position": 760,
+		"domain": "oldtimemusic.com",
+		"count": 3135138,
+		"etv": 7123160.531857194
+	},
+	{
+		"position": 761,
+		"domain": "irs.gov",
+		"count": 3134696,
+		"etv": 173114902.65249312
+	},
+	{
+		"position": 762,
+		"domain": "arcgis.com",
+		"count": 3130511,
+		"etv": 30172918.960863665
+	},
+	{
+		"position": 763,
+		"domain": "msu.edu",
+		"count": 3129646,
+		"etv": 31941130.87952639
+	},
+	{
+		"position": 764,
+		"domain": "actu.fr",
+		"count": 3128359,
+		"etv": 30157600.13569685
+	},
+	{
+		"position": 765,
+		"domain": "uzaklasi.com",
+		"count": 3122244,
+		"etv": 4190721.472112648
+	},
+	{
+		"position": 766,
+		"domain": "youm7.com",
+		"count": 3120170,
+		"etv": 80227936.30754122
+	},
+	{
+		"position": 767,
+		"domain": "self.com",
+		"count": 3117813,
+		"etv": 29248478.04679506
+	},
+	{
+		"position": 768,
+		"domain": "yekdrina.com",
+		"count": 3117809,
+		"etv": 5704746.766408604
+	},
+	{
+		"position": 769,
+		"domain": "ox.ac.uk",
+		"count": 3114226,
+		"etv": 21677341.963512637
+	},
+	{
+		"position": 770,
+		"domain": "in.gov",
+		"count": 3114112,
+		"etv": 38922043.924724035
+	},
+	{
+		"position": 771,
+		"domain": "aafp.org",
+		"count": 3110618,
+		"etv": 37821620.82481553
+	},
+	{
+		"position": 772,
+		"domain": "tripsavvy.com",
+		"count": 3107222,
+		"etv": 38096379.43273221
+	},
+	{
+		"position": 773,
+		"domain": "newsbreak.com",
+		"count": 3101493,
+		"etv": 18917832.71223905
+	},
+	{
+		"position": 774,
+		"domain": "ulkecesek.online",
+		"count": 3096379,
+		"etv": 5588989.288198402
+	},
+	{
+		"position": 775,
+		"domain": "eltiempo.com",
+		"count": 3096008,
+		"etv": 56761310.250142746
+	},
+	{
+		"position": 776,
+		"domain": "zeebiz.com",
+		"count": 3089783,
+		"etv": 107763427.6306544
+	},
+	{
+		"position": 777,
+		"domain": "chip.de",
+		"count": 3082061,
+		"etv": 70733628.29313666
+	},
+	{
+		"position": 778,
+		"domain": "navitime.co.jp",
+		"count": 3077725,
+		"etv": 78085354.36593372
+	},
+	{
+		"position": 779,
+		"domain": "redalyc.org",
+		"count": 3075847,
+		"etv": 10947697.491625024
+	},
+	{
+		"position": 780,
+		"domain": "prtimes.jp",
+		"count": 3075212,
+		"etv": 46754014.501893595
+	},
+	{
+		"position": 781,
+		"domain": "olympics.com",
+		"count": 3065825,
+		"etv": 105799625.16426136
+	},
+	{
+		"position": 782,
+		"domain": "hlelrse.com",
+		"count": 3063532,
+		"etv": 5377519.671808155
+	},
+	{
+		"position": 783,
+		"domain": "bizjournals.com",
+		"count": 3060653,
+		"etv": 10801672.355658598
+	},
+	{
+		"position": 784,
+		"domain": "mo.gov",
+		"count": 3059822,
+		"etv": 44279848.07527599
+	},
+	{
+		"position": 785,
+		"domain": "yardbarker.com",
+		"count": 3059101,
+		"etv": 39375072.506899774
+	},
+	{
+		"position": 786,
+		"domain": "voanews.com",
+		"count": 3058282,
+		"etv": 24178512.762961924
+	},
+	{
+		"position": 787,
+		"domain": "mumsnet.com",
+		"count": 3055530,
+		"etv": 10359393.635721352
+	},
+	{
+		"position": 788,
+		"domain": "edmunds.com",
+		"count": 3054801,
+		"etv": 92736220.92134932
+	},
+	{
+		"position": 789,
+		"domain": "allure.com",
+		"count": 3054242,
+		"etv": 166995089.327029
+	},
+	{
+		"position": 790,
+		"domain": "pixiv.net",
+		"count": 3053195,
+		"etv": 179245301.10010776
+	},
+	{
+		"position": 791,
+		"domain": "abril.com.br",
+		"count": 3050087,
+		"etv": 44016459.401779324
+	},
+	{
+		"position": 792,
+		"domain": "outlookindia.com",
+		"count": 3049944,
+		"etv": 67239635.7468059
+	},
+	{
+		"position": 793,
+		"domain": "blibli.com",
+		"count": 3047936,
+		"etv": 123560620.44429459
+	},
+	{
+		"position": 794,
+		"domain": "aa.com.tr",
+		"count": 3046257,
+		"etv": 27238012.714876894
+	},
+	{
+		"position": 795,
+		"domain": "spiegel.de",
+		"count": 3041107,
+		"etv": 66129184.16990693
+	},
+	{
+		"position": 796,
+		"domain": "zmenu.com",
+		"count": 3040042,
+		"etv": 8228055.754563933
+	},
+	{
+		"position": 797,
+		"domain": "pikiran-rakyat.com",
+		"count": 3039278,
+		"etv": 37501734.93556093
+	},
+	{
+		"position": 798,
+		"domain": "findlaw.com",
+		"count": 3037171,
+		"etv": 33891149.43653244
+	},
+	{
+		"position": 799,
+		"domain": "cinemablend.com",
+		"count": 3035500,
+		"etv": 16118630.363522567
+	},
+	{
+		"position": 800,
+		"domain": "unc.edu",
+		"count": 3031216,
+		"etv": 34022501.01261294
+	},
+	{
+		"position": 801,
+		"domain": "idealo.de",
+		"count": 3030812,
+		"etv": 42601808.95141764
+	},
+	{
+		"position": 802,
+		"domain": "usgs.gov",
+		"count": 3029903,
+		"etv": 66560555.268915914
+	},
+	{
+		"position": 803,
+		"domain": "weather.gov",
+		"count": 3028850,
+		"etv": 307755919.5764572
+	},
+	{
+		"position": 804,
+		"domain": "housebeautiful.com",
+		"count": 3025711,
+		"etv": 105140484.01145364
+	},
+	{
+		"position": 805,
+		"domain": "patient.info",
+		"count": 3021524,
+		"etv": 24248981.46507939
+	},
+	{
+		"position": 806,
+		"domain": "etonline.com",
+		"count": 3020887,
+		"etv": 29665135.88959427
+	},
+	{
+		"position": 807,
+		"domain": "apkcombo.com",
+		"count": 3019793,
+		"etv": 33371109.27084904
+	},
+	{
+		"position": 808,
+		"domain": "prottelerese.com",
+		"count": 3015779,
+		"etv": 17198445.14640747
+	},
+	{
+		"position": 809,
+		"domain": "tripadvisor.co",
+		"count": 3014618,
+		"etv": 23445533.064118333
+	},
+	{
+		"position": 810,
+		"domain": "purewow.com",
+		"count": 3013550,
+		"etv": 41410960.87000711
+	},
+	{
+		"position": 811,
+		"domain": "trivago.com",
+		"count": 3010601,
+		"etv": 78240877.93903816
+	},
+	{
+		"position": 812,
+		"domain": "thriftbooks.com",
+		"count": 3008106,
+		"etv": 22286958.281662643
+	},
+	{
+		"position": 813,
+		"domain": "fool.com",
+		"count": 3006081,
+		"etv": 59355183.52105134
+	},
+	{
+		"position": 814,
+		"domain": "motortrend.com",
+		"count": 3000698,
+		"etv": 34330787.60053498
+	},
+	{
+		"position": 815,
+		"domain": "bonappetit.com",
+		"count": 2988255,
+		"etv": 71531722.49988773
+	},
+	{
+		"position": 816,
+		"domain": "architecturaldigest.com",
+		"count": 2986019,
+		"etv": 63047884.820193514
+	},
+	{
+		"position": 817,
+		"domain": "fiverr.com",
+		"count": 2983206,
+		"etv": 41083980.36405866
+	},
+	{
+		"position": 818,
+		"domain": "etymonline.com",
+		"count": 2983070,
+		"etv": 14836382.610387295
+	},
+	{
+		"position": 819,
+		"domain": "hgtv.com",
+		"count": 2982928,
+		"etv": 80651301.50557765
+	},
+	{
+		"position": 820,
+		"domain": "retwyia.com",
+		"count": 2976123,
+		"etv": 5147466.242938779
+	},
+	{
+		"position": 821,
+		"domain": "songmeanings.com",
+		"count": 2972659,
+		"etv": 25976626.44793669
+	},
+	{
+		"position": 822,
+		"domain": "oprahdaily.com",
+		"count": 2967055,
+		"etv": 62273762.36621686
+	},
+	{
+		"position": 823,
+		"domain": "verywellfit.com",
+		"count": 2962981,
+		"etv": 79080714.00605518
+	},
+	{
+		"position": 824,
+		"domain": "utexas.edu",
+		"count": 2960020,
+		"etv": 34187653.90494214
+	},
+	{
+		"position": 825,
+		"domain": "tripadvisor.de",
+		"count": 2953954,
+		"etv": 91877202.04962707
+	},
+	{
+		"position": 826,
+		"domain": "welt.de",
+		"count": 2950394,
+		"etv": 23745146.45974948
+	},
+	{
+		"position": 827,
+		"domain": "coursera.org",
+		"count": 2944810,
+		"etv": 98199215.85549223
+	},
+	{
+		"position": 828,
+		"domain": "chicagotribune.com",
+		"count": 2943080,
+		"etv": 16652566.438150505
+	},
+	{
+		"position": 829,
+		"domain": "army.mil",
+		"count": 2939420,
+		"etv": 49788302.316906884
+	},
+	{
+		"position": 830,
+		"domain": "okdiario.com",
+		"count": 2938148,
+		"etv": 24857459.9358661
+	},
+	{
+		"position": 831,
+		"domain": "t-online.de",
+		"count": 2934652,
+		"etv": 63149834.53052713
+	},
+	{
+		"position": 832,
+		"domain": "samsclub.com",
+		"count": 2934063,
+		"etv": 84543984.94826998
+	},
+	{
+		"position": 833,
+		"domain": "allocine.fr",
+		"count": 2933055,
+		"etv": 163740037.32086292
+	},
+	{
+		"position": 834,
+		"domain": "usembassy.gov",
+		"count": 2932958,
+		"etv": 47383834.20315932
+	},
+	{
+		"position": 835,
+		"domain": "lovethemaldives.com",
+		"count": 2932884,
+		"etv": 6163203.786029266
+	},
+	{
+		"position": 836,
+		"domain": "t.me",
+		"count": 2925082,
+		"etv": 40713143.79339998
+	},
+	{
+		"position": 837,
+		"domain": "pitchbook.com",
+		"count": 2922339,
+		"etv": 19884982.345812246
+	},
+	{
+		"position": 838,
+		"domain": "tvinsider.com",
+		"count": 2922222,
+		"etv": 60772066.21353234
+	},
+	{
+		"position": 839,
+		"domain": "farfetch.com",
+		"count": 2921519,
+		"etv": 55552052.4348506
+	},
+	{
+		"position": 840,
+		"domain": "nhk.or.jp",
+		"count": 2916268,
+		"etv": 132769581.33096145
+	},
+	{
+		"position": 841,
+		"domain": "www.gob.mx",
+		"count": 2915571,
+		"etv": 118384331.04382993
+	},
+	{
+		"position": 842,
+		"domain": "grid.id",
+		"count": 2912458,
+		"etv": 43311981.816609465
+	},
+	{
+		"position": 843,
+		"domain": "complex.com",
+		"count": 2912066,
+		"etv": 19685299.41953896
+	},
+	{
+		"position": 844,
+		"domain": "bukalapak.com",
+		"count": 2911930,
+		"etv": 41969257.66014331
+	},
+	{
+		"position": 845,
+		"domain": "pcgamer.com",
+		"count": 2903523,
+		"etv": 27218272.77966413
+	},
+	{
+		"position": 846,
+		"domain": "unesco.org",
+		"count": 2903221,
+		"etv": 63020538.354830295
+	},
+	{
+		"position": 847,
+		"domain": "teenvogue.com",
+		"count": 2899992,
+		"etv": 48900219.72881268
+	},
+	{
+		"position": 848,
+		"domain": "cheatsheet.com",
+		"count": 2899454,
+		"etv": 11679771.795351025
+	},
+	{
+		"position": 849,
+		"domain": "peakpx.com",
+		"count": 2894234,
+		"etv": 73889917.8956739
+	},
+	{
+		"position": 850,
+		"domain": "thrillist.com",
+		"count": 2891859,
+		"etv": 31202431.223187365
+	},
+	{
+		"position": 851,
+		"domain": "bu.edu",
+		"count": 2890790,
+		"etv": 26978133.966966353
+	},
+	{
+		"position": 852,
+		"domain": "top-rated.online",
+		"count": 2889245,
+		"etv": 4371566.721508233
+	},
+	{
+		"position": 853,
+		"domain": "ohio.gov",
+		"count": 2882899,
+		"etv": 30956682.71710068
+	},
+	{
+		"position": 854,
+		"domain": "sueddeutsche.de",
+		"count": 2878161,
+		"etv": 30568459.065846026
+	},
+	{
+		"position": 855,
+		"domain": "smule.com",
+		"count": 2876832,
+		"etv": 27610190.79306312
+	},
+	{
+		"position": 856,
+		"domain": "merckmanuals.com",
+		"count": 2867844,
+		"etv": 39693112.978742376
+	},
+	{
+		"position": 857,
+		"domain": "cedars-sinai.org",
+		"count": 2865089,
+		"etv": 56371106.1643962
+	},
+	{
+		"position": 858,
+		"domain": "picuki.com",
+		"count": 2863239,
+		"etv": 11563463.22655625
+	},
+	{
+		"position": 859,
+		"domain": "kwai.com",
+		"count": 2863074,
+		"etv": 14793887.086620534
+	},
+	{
+		"position": 860,
+		"domain": "argos.co.uk",
+		"count": 2862890,
+		"etv": 76075702.38694176
+	},
+	{
+		"position": 861,
+		"domain": "findmeglutenfree.com",
+		"count": 2861451,
+		"etv": 19617945.902910367
+	},
+	{
+		"position": 862,
+		"domain": "dot.gov",
+		"count": 2859422,
+		"etv": 34340090.57724428
+	},
+	{
+		"position": 863,
+		"domain": "verizon.com",
+		"count": 2857936,
+		"etv": 107024932.58850193
+	},
+	{
+		"position": 864,
+		"domain": "daum.net",
+		"count": 2855573,
+		"etv": 19836903.22535249
+	},
+	{
+		"position": 865,
+		"domain": "aptoide.com",
+		"count": 2855192,
+		"etv": 47027707.17606765
+	},
+	{
+		"position": 866,
+		"domain": "popularmechanics.com",
+		"count": 2852394,
+		"etv": 24785850.564534746
+	},
+	{
+		"position": 867,
+		"domain": "illinois.edu",
+		"count": 2852068,
+		"etv": 23632191.906167053
+	},
+	{
+		"position": 868,
+		"domain": "ucla.edu",
+		"count": 2851708,
+		"etv": 28022835.426314075
+	},
+	{
+		"position": 869,
+		"domain": "wikimapia.org",
+		"count": 2847416,
+		"etv": 6617288.400520176
+	},
+	{
+		"position": 870,
+		"domain": "pinterest.com.mx",
+		"count": 2847205,
+		"etv": 139448187.47997135
+	},
+	{
+		"position": 871,
+		"domain": "instyle.com",
+		"count": 2843660,
+		"etv": 55015770.9749011
+	},
+	{
+		"position": 872,
+		"domain": "ingelakus.cfd",
+		"count": 2841015,
+		"etv": 2944569.03578547
+	},
+	{
+		"position": 873,
+		"domain": "homes.com",
+		"count": 2838909,
+		"etv": 73152053.17639272
+	},
+	{
+		"position": 874,
+		"domain": "urdupoint.com",
+		"count": 2836611,
+		"etv": 74190463.8625879
+	},
+	{
+		"position": 875,
+		"domain": "otto.de",
+		"count": 2833526,
+		"etv": 45834875.20476473
+	},
+	{
+		"position": 876,
+		"domain": "ampsycinuity.com",
+		"count": 2828592,
+		"etv": 16489088.502465824
+	},
+	{
+		"position": 877,
+		"domain": "linguee.fr",
+		"count": 2827960,
+		"etv": 104997474.280558
+	},
+	{
+		"position": 878,
+		"domain": "lazada.co.id",
+		"count": 2824824,
+		"etv": 81737943.00717345
+	},
+	{
+		"position": 879,
+		"domain": "bankrate.com",
+		"count": 2821038,
+		"etv": 192506408.7119159
+	},
+	{
+		"position": 880,
+		"domain": "translated.net",
+		"count": 2819062,
+		"etv": 33889210.626932494
+	},
+	{
+		"position": 881,
+		"domain": "churchofjesuschrist.org",
+		"count": 2818790,
+		"etv": 57155035.811642505
+	},
+	{
+		"position": 882,
+		"domain": "hilton.com",
+		"count": 2814795,
+		"etv": 175727340.6763767
+	},
+	{
+		"position": 883,
+		"domain": "thewrap.com",
+		"count": 2814225,
+		"etv": 21123513.195291564
+	},
+	{
+		"position": 884,
+		"domain": "loc8nearme.com",
+		"count": 2810296,
+		"etv": 5112113.209682563
+	},
+	{
+		"position": 885,
+		"domain": "elsevier.es",
+		"count": 2810218,
+		"etv": 31088156.56466531
+	},
+	{
+		"position": 886,
+		"domain": "marketscreener.com",
+		"count": 2804047,
+		"etv": 36072987.95845314
+	},
+	{
+		"position": 887,
+		"domain": "bringfido.com",
+		"count": 2802795,
+		"etv": 19620260.907240838
+	},
+	{
+		"position": 888,
+		"domain": "buzzfile.com",
+		"count": 2802534,
+		"etv": 3225217.968392795
+	},
+	{
+		"position": 889,
+		"domain": "kbb.com",
+		"count": 2799140,
+		"etv": 101275015.10427862
+	},
+	{
+		"position": 890,
+		"domain": "pinterest.jp",
+		"count": 2796824,
+		"etv": 78379987.94351138
+	},
+	{
+		"position": 891,
+		"domain": "seattletimes.com",
+		"count": 2795564,
+		"etv": 23014796.2461192
+	},
+	{
+		"position": 892,
+		"domain": "pharmeasy.in",
+		"count": 2795561,
+		"etv": 106105392.04585229
+	},
+	{
+		"position": 893,
+		"domain": "francebleu.fr",
+		"count": 2795516,
+		"etv": 23829371.672520336
+	},
+	{
+		"position": 894,
+		"domain": "shiksha.com",
+		"count": 2794857,
+		"etv": 138951793.85835716
+	},
+	{
+		"position": 895,
+		"domain": "peelectripede.com",
+		"count": 2793723,
+		"etv": 12208173.3698206
+	},
+	{
+		"position": 896,
+		"domain": "hrs.com",
+		"count": 2788435,
+		"etv": 11877446.362656001
+	},
+	{
+		"position": 897,
+		"domain": "libguides.com",
+		"count": 2785232,
+		"etv": 38482648.60931847
+	},
+	{
+		"position": 898,
+		"domain": "townandcountrymag.com",
+		"count": 2784587,
+		"etv": 59192693.15449083
+	},
+	{
+		"position": 899,
+		"domain": "meesho.com",
+		"count": 2784067,
+		"etv": 86968540.6449086
+	},
+	{
+		"position": 900,
+		"domain": "bobvila.com",
+		"count": 2778555,
+		"etv": 36507431.37431394
+	},
+	{
+		"position": 901,
+		"domain": "grammarly.com",
+		"count": 2777701,
+		"etv": 194367574.48763898
+	},
+	{
+		"position": 902,
+		"domain": "cnnindonesia.com",
+		"count": 2772671,
+		"etv": 141247201.0658149
+	},
+	{
+		"position": 903,
+		"domain": "doubtnut.com",
+		"count": 2769086,
+		"etv": 21873496.748375516
+	},
+	{
+		"position": 904,
+		"domain": "sandiegouniontribune.com",
+		"count": 2768802,
+		"etv": 14598250.392488172
+	},
+	{
+		"position": 905,
+		"domain": "fineartamerica.com",
+		"count": 2765941,
+		"etv": 14064611.305591758
+	},
+	{
+		"position": 906,
+		"domain": "hindawi.com",
+		"count": 2765589,
+		"etv": 8840998.480701264
+	},
+	{
+		"position": 907,
+		"domain": "womansday.com",
+		"count": 2765487,
+		"etv": 114699208.5527871
+	},
+	{
+		"position": 908,
+		"domain": "oregon.gov",
+		"count": 2762304,
+		"etv": 22009145.451117314
+	},
+	{
+		"position": 909,
+		"domain": "gramedia.com",
+		"count": 2762017,
+		"etv": 116701906.65492004
+	},
+	{
+		"position": 910,
+		"domain": "audible.com",
+		"count": 2759083,
+		"etv": 17328437.455414087
+	},
+	{
+		"position": 911,
+		"domain": "tubitv.com",
+		"count": 2758616,
+		"etv": 41354021.101750106
+	},
+	{
+		"position": 912,
+		"domain": "deepl.com",
+		"count": 2758346,
+		"etv": 1443600731.564938
+	},
+	{
+		"position": 913,
+		"domain": "allegro.pl",
+		"count": 2757294,
+		"etv": 112513966.0265711
+	},
+	{
+		"position": 914,
+		"domain": "state.mn.us",
+		"count": 2756708,
+		"etv": 33215746.28730186
+	},
+	{
+		"position": 915,
+		"domain": "argentina.gob.ar",
+		"count": 2752269,
+		"etv": 79667120.18119788
+	},
+	{
+		"position": 916,
+		"domain": "wordwall.net",
+		"count": 2751133,
+		"etv": 18738151.12959353
+	},
+	{
+		"position": 917,
+		"domain": "faz.net",
+		"count": 2746082,
+		"etv": 31603892.975385975
+	},
+	{
+		"position": 918,
+		"domain": "pinkvilla.com",
+		"count": 2744218,
+		"etv": 34290717.776656926
+	},
+	{
+		"position": 919,
+		"domain": "instacart.com",
+		"count": 2741904,
+		"etv": 52280582.30828733
+	},
+	{
+		"position": 920,
+		"domain": "omnicalculator.com",
+		"count": 2737955,
+		"etv": 165556807.70736566
+	},
+	{
+		"position": 921,
+		"domain": "meinestadt.de",
+		"count": 2736608,
+		"etv": 14615400.512299504
+	},
+	{
+		"position": 922,
+		"domain": "zazzle.com",
+		"count": 2734279,
+		"etv": 15095980.473064905
+	},
+	{
+		"position": 923,
+		"domain": "hypebeast.com",
+		"count": 2733223,
+		"etv": 14377143.613890443
+	},
+	{
+		"position": 924,
+		"domain": "autoblog.com",
+		"count": 2733036,
+		"etv": 31876064.371400543
+	},
+	{
+		"position": 925,
+		"domain": "dell.com",
+		"count": 2732260,
+		"etv": 41116078.96049167
+	},
+	{
+		"position": 926,
+		"domain": "axios.com",
+		"count": 2728561,
+		"etv": 25008082.659174576
+	},
+	{
+		"position": 927,
+		"domain": "reasseruptizee.com",
+		"count": 2723661,
+		"etv": 11696175.59887847
+	},
+	{
+		"position": 928,
+		"domain": "maryland.gov",
+		"count": 2720907,
+		"etv": 30572095.52603927
+	},
+	{
+		"position": 929,
+		"domain": "amazon.com.mx",
+		"count": 2716880,
+		"etv": 82380430.75903037
+	},
+	{
+		"position": 930,
+		"domain": "dbpedia.org",
+		"count": 2714044,
+		"etv": 17990419.67247942
+	},
+	{
+		"position": 931,
+		"domain": "familyhandyman.com",
+		"count": 2707469,
+		"etv": 43302502.7296204
+	},
+	{
+		"position": 932,
+		"domain": "glamourmagazine.co.uk",
+		"count": 2705843,
+		"etv": 33862982.6863817
+	},
+	{
+		"position": 933,
+		"domain": "kompass.com",
+		"count": 2704202,
+		"etv": 8737689.811543534
+	},
+	{
+		"position": 934,
+		"domain": "my-best.com",
+		"count": 2697376,
+		"etv": 107679255.94027765
+	},
+	{
+		"position": 935,
+		"domain": "denofgeek.com",
+		"count": 2696255,
+		"etv": 16134150.97881652
+	},
+	{
+		"position": 936,
+		"domain": "rtve.es",
+		"count": 2689313,
+		"etv": 34704448.6286297
+	},
+	{
+		"position": 937,
+		"domain": "prokerala.com",
+		"count": 2688778,
+		"etv": 82757304.714815
+	},
+	{
+		"position": 938,
+		"domain": "techcrunch.com",
+		"count": 2688487,
+		"etv": 28372216.93807242
+	},
+	{
+		"position": 939,
+		"domain": "eurosport.com",
+		"count": 2688421,
+		"etv": 63772802.058998734
+	},
+	{
+		"position": 940,
+		"domain": "jdpower.com",
+		"count": 2687521,
+		"etv": 38410703.74615665
+	},
+	{
+		"position": 941,
+		"domain": "journaldesfemmes.fr",
+		"count": 2686379,
+		"etv": 74482877.21706481
+	},
+	{
+		"position": 942,
+		"domain": "epicgames.com",
+		"count": 2678440,
+		"etv": 64492891.31815372
+	},
+	{
+		"position": 943,
+		"domain": "weblio.jp",
+		"count": 2677069,
+		"etv": 226170024.08967966
+	},
+	{
+		"position": 944,
+		"domain": "malinasi.com",
+		"count": 2675456,
+		"etv": 4930310.682876766
+	},
+	{
+		"position": 945,
+		"domain": "sominasi.com",
+		"count": 2671963,
+		"etv": 5694380.2963994425
+	},
+	{
+		"position": 946,
+		"domain": "google.com.mx",
+		"count": 2671396,
+		"etv": 89692655.46412852
+	},
+	{
+		"position": 947,
+		"domain": "dickssportinggoods.com",
+		"count": 2670073,
+		"etv": 93740453.64921843
+	},
+	{
+		"position": 948,
+		"domain": "eroptitalia.com",
+		"count": 2666153,
+		"etv": 14207093.467284046
+	},
+	{
+		"position": 949,
+		"domain": "familysearch.org",
+		"count": 2664768,
+		"etv": 25401289.729632176
+	},
+	{
+		"position": 950,
+		"domain": "metafilter.com",
+		"count": 2662253,
+		"etv": 8391178.441278767
+	},
+	{
+		"position": 951,
+		"domain": "carfax.com",
+		"count": 2657527,
+		"etv": 93247444.55408356
+	},
+	{
+		"position": 952,
+		"domain": "lyst.com",
+		"count": 2653490,
+		"etv": 36121134.07701795
+	},
+	{
+		"position": 953,
+		"domain": "tedirlke.com",
+		"count": 2651727,
+		"etv": 4830476.091500694
+	},
+	{
+		"position": 954,
+		"domain": "beebom.com",
+		"count": 2648989,
+		"etv": 28863253.51378752
+	},
+	{
+		"position": 955,
+		"domain": "theglobeandmail.com",
+		"count": 2647208,
+		"etv": 29870101.481453042
+	},
+	{
+		"position": 956,
+		"domain": "indiatvnews.com",
+		"count": 2642008,
+		"etv": 129365955.11173113
+	},
+	{
+		"position": 957,
+		"domain": "seamless.com",
+		"count": 2639286,
+		"etv": 29366057.157825764
+	},
+	{
+		"position": 958,
+		"domain": "merdeka.com",
+		"count": 2629839,
+		"etv": 57575002.92579179
+	},
+	{
+		"position": 959,
+		"domain": "traveloka.com",
+		"count": 2629717,
+		"etv": 74843377.50821182
+	},
+	{
+		"position": 960,
+		"domain": "ncsu.edu",
+		"count": 2628650,
+		"etv": 47540920.58136813
+	},
+	{
+		"position": 961,
+		"domain": "kakaku.com",
+		"count": 2627371,
+		"etv": 101419696.44962838
+	},
+	{
+		"position": 962,
+		"domain": "tripadvisor.in",
+		"count": 2626960,
+		"etv": 431124867.29767346
+	},
+	{
+		"position": 963,
+		"domain": "ucsd.edu",
+		"count": 2625495,
+		"etv": 19823600.86403629
+	},
+	{
+		"position": 964,
+		"domain": "lastminute.com",
+		"count": 2625377,
+		"etv": 44117636.38297799
+	},
+	{
+		"position": 965,
+		"domain": "algopix.com",
+		"count": 2622118,
+		"etv": 5159304.322057961
+	},
+	{
+		"position": 966,
+		"domain": "talent.com",
+		"count": 2621998,
+		"etv": 14138088.982523307
+	},
+	{
+		"position": 967,
+		"domain": "scielo.org.mx",
+		"count": 2621521,
+		"etv": 14775035.391618239
+	},
+	{
+		"position": 968,
+		"domain": "synonym.com",
+		"count": 2619818,
+		"etv": 15571051.827729557
+	},
+	{
+		"position": 969,
+		"domain": "cylex.de",
+		"count": 2618943,
+		"etv": 6124817.34265724
+	},
+	{
+		"position": 970,
+		"domain": "epicentrk.ua",
+		"count": 2616549,
+		"etv": 27244799.095975325
+	},
+	{
+		"position": 971,
+		"domain": "worldatlas.com",
+		"count": 2614202,
+		"etv": 41896772.59761095
+	},
+	{
+		"position": 972,
+		"domain": "americanas.com.br",
+		"count": 2612832,
+		"etv": 106039552.93915398
+	},
+	{
+		"position": 973,
+		"domain": "illinois.gov",
+		"count": 2610601,
+		"etv": 37853119.91953593
+	},
+	{
+		"position": 974,
+		"domain": "udn.com",
+		"count": 2610563,
+		"etv": 31370846.507149663
+	},
+	{
+		"position": 975,
+		"domain": "ertwas.com",
+		"count": 2608476,
+		"etv": 3273922.6889791265
+	},
+	{
+		"position": 976,
+		"domain": "newegg.com",
+		"count": 2608158,
+		"etv": 19402714.628333975
+	},
+	{
+		"position": 977,
+		"domain": "asahi.com",
+		"count": 2604553,
+		"etv": 66134225.95832439
+	},
+	{
+		"position": 978,
+		"domain": "indiewire.com",
+		"count": 2604426,
+		"etv": 20306576.71273531
+	},
+	{
+		"position": 979,
+		"domain": "tesco.com",
+		"count": 2602047,
+		"etv": 84867711.38616857
+	},
+	{
+		"position": 980,
+		"domain": "yellowpages.ca",
+		"count": 2601576,
+		"etv": 31527030.2770653
+	},
+	{
+		"position": 981,
+		"domain": "signalhire.com",
+		"count": 2601274,
+		"etv": 6151187.997629862
+	},
+	{
+		"position": 982,
+		"domain": "redbull.com",
+		"count": 2600694,
+		"etv": 20008146.1249844
+	},
+	{
+		"position": 983,
+		"domain": "tabelog.com",
+		"count": 2599926,
+		"etv": 244593038.8893036
+	},
+	{
+		"position": 984,
+		"domain": "ahsetim.com",
+		"count": 2599522,
+		"etv": 2088179.117402766
+	},
+	{
+		"position": 985,
+		"domain": "free.fr",
+		"count": 2598430,
+		"etv": 24406463.084989026
+	},
+	{
+		"position": 986,
+		"domain": "ihg.com",
+		"count": 2596838,
+		"etv": 86827234.83470257
+	},
+	{
+		"position": 987,
+		"domain": "collegedunia.com",
+		"count": 2595931,
+		"etv": 93186421.65578575
+	},
+	{
+		"position": 988,
+		"domain": "butabedno.wiki",
+		"count": 2595441,
+		"etv": 11255922.873397628
+	},
+	{
+		"position": 989,
+		"domain": "momondo.com",
+		"count": 2593510,
+		"etv": 31841985.427827034
+	},
+	{
+		"position": 990,
+		"domain": "jimdofree.com",
+		"count": 2588167,
+		"etv": 14576230.169481456
+	},
+	{
+		"position": 991,
+		"domain": "spiceworks.com",
+		"count": 2586791,
+		"etv": 20110982.42303422
+	},
+	{
+		"position": 992,
+		"domain": "hawaii.edu",
+		"count": 2586093,
+		"etv": 21243123.169322915
+	},
+	{
+		"position": 993,
+		"domain": "monsfld.com",
+		"count": 2585993,
+		"etv": 3114250.9129835796
+	},
+	{
+		"position": 994,
+		"domain": "thesaurus.plus",
+		"count": 2584714,
+		"etv": 8931256.892519867
+	},
+	{
+		"position": 995,
+		"domain": "simplilearn.com",
+		"count": 2584235,
+		"etv": 66648341.56563878
+	},
+	{
+		"position": 996,
+		"domain": "monumbarch.com",
+		"count": 2583359,
+		"etv": 7046159.130743755
+	},
+	{
+		"position": 997,
+		"domain": "wordsense.eu",
+		"count": 2581698,
+		"etv": 22478611.225248724
+	},
+	{
+		"position": 998,
+		"domain": "pitchhikersrl.com",
+		"count": 2571063,
+		"etv": 12750421.191882921
+	},
+	{
+		"position": 999,
+		"domain": "toasttab.com",
+		"count": 2570550,
+		"etv": 27112663.704982117
+	},
+	{
+		"position": 1000,
+		"domain": "bigl.ua",
+		"count": 2570061,
+		"etv": 3423290.7128894646
+	}
+]

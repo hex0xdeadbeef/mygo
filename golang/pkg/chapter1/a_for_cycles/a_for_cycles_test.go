@@ -1,4 +1,4 @@
-package chapter1
+package a_for_cycles
 
 import "testing"
 

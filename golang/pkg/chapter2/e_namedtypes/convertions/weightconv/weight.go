@@ -1,4 +1,4 @@
-package weighconv
+package weightconv
 
 type Kilogram float64
 type Pound float64

@@ -1,4 +1,4 @@
-package weighconv
+package weightconv
 
 import "fmt"
 

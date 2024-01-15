@@ -210,16 +210,6 @@ func countLines(file *os.File, counts map[string]int) {
 	}
 }
 
-func Creating_Lissajou() {
-	file, err := os.Create("lissajous.gif")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	Lissajous(file)
-}
-
 // Определение констант и переменных палитры и индекса цвета
 
 var palette = []color.Color{color.Black, color.RGBA{0, 255, 0, 255}, color.RGBA{255, 255, 0, 255}, color.White}
@@ -258,7 +248,6 @@ func Lissajous(out io.Writer, numberOfCycles ...int) {
 			var index uint8
 			index = uint8(rand.Intn(4))
 			img.SetColorIndex(size+int(x*size+0.5), size+int(y*size+0.5), index)
-
 		}
 		phase += 0.1
 		anim.Delay = append(anim.Delay, delay)
@@ -267,7 +256,6 @@ func Lissajous(out io.Writer, numberOfCycles ...int) {
 
 	fmt.Fprint(os.Stdout, "%g\n", time.Since(start).Milliseconds())
 	gif.EncodeAll(out, &anim)
-
 }
 
 func Fetch(urls ...string) {

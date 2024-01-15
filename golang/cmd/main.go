@@ -1,7 +1,8 @@
 package main
 
 import (
-	c3 "golang/pkg/chapter3"
+	// c3 "golang/pkg/chapter3"
+	threedsurface "golang/pkg/chapter3/threedsurface"
 )
 
 // c1 "golang/pkg/chapter1"
@@ -36,5 +37,11 @@ func main() {
 	// c3.BitsOverflow()
 	// c3.OperandIsOutOfRangeForTargetType()
 	// c3.HexadecimalOctalDecimalPrinting()
-	c3.RunePrinting()
+	// c3.RunePrinting()
+	// c3.MaxFloatsValues()
+	// c3.Float32ErrorAccumulation()
+	// c3.FloatVerbsForPrinting()
+	// c3.InfinitiesAndResultsOfDubiousOperations()
+	// c3.ComparisonWithNan()
+	threedsurface.LocalServer()
 }

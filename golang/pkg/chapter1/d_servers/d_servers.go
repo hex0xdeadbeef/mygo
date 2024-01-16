@@ -25,11 +25,11 @@ var mu sync.Mutex
 var count int
 
 func Second_Server() {
-	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 	http.HandleFunc("/", getRequestPath)
-	http.HandleFunc("/count", getRequestCount)
 	http.HandleFunc("/req", getRequestInformation)
 	http.HandleFunc("/lissajou", getLissajouGif)
+	http.HandleFunc("/count", getRequestCount)
+	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }
 
 func getRequestPath(writer http.ResponseWriter, request *http.Request) {

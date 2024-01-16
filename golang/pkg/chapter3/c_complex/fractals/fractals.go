@@ -1,74 +1,198 @@
 package fractals
 
+// http://localhost:8000/create?type=mandelbrot&smoothing=0
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
-	"io"
 	"log"
+	"math"
 	"math/cmplx"
+	"math/rand"
 	"net/http"
+	"os"
+	"strconv"
 )
 
+const (
+	width, height = 1024, 1024
+)
+
+var (
+	img                    *image.RGBA
+	parametersToBeApplied  []string
+	zoom                           = 1.0
+	xmin, ymin, xmax, ymax float64 = -2, -2, 2, 2
+)
+
+func reInit() {
+	img = image.NewRGBA(image.Rect(0, 0, width, height))
+	parametersToBeApplied = make([]string, 0)
+}
+
 func Server() {
-	http.HandleFunc("/mandelbrot", getMandelbrotHandler)
-	http.HandleFunc("/newton", getNewtonHandler)
+
+	http.HandleFunc("/create", fractalHandler)
 	log.Fatalf("Error occured: %v", http.ListenAndServe("localhost:8000", nil))
 }
 
-func getMandelbrotHandler(writer http.ResponseWriter, request *http.Request) {
-	createFractal(writer, "mandelbrot")
-}
-func getNewtonHandler(writer http.ResponseWriter, request *http.Request) {
-	createFractal(writer, "newton")
-}
+func fractalHandler(writer http.ResponseWriter, request *http.Request) {
+	parameters := request.URL.Query()
+	if len(parameters) != 0 {
+		reInit()
+		for key, arrayOfValues := range parameters {
+			switch key {
+			case "type":
+				value := arrayOfValues[0]
+				switch value {
+				case "":
+					fmt.Fprint(os.Stderr, "Error occured: no type parameter\n")
+					os.Exit(1)
+				case "mandelbrot":
+					parametersToBeApplied = append(parametersToBeApplied, "mandelbrot")
+				case "newton":
+					parametersToBeApplied = append(parametersToBeApplied, "newton")
 
-const (
-	width, height          = 1024, 1024
-	xmin, ymin, xmax, ymax = -1, -1, 1, 1
-)
+				}
 
-func createFractal(writer io.Writer, method string) {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for py := 0; py < height; py++ {
-		for px := 0; px < width; px++ {
-			img.Set(px, py, getAverageColor(method, px, py))
+			case "smoothing":
+				value := arrayOfValues[0]
+				switch value {
+				case "":
+					fmt.Fprint(os.Stderr, "Error occured: no smoothing parameter\n")
+					os.Exit(1)
+				case "0":
+					parametersToBeApplied = append(parametersToBeApplied, "0")
+				case "1":
+					parametersToBeApplied = append(parametersToBeApplied, "1")
+				}
+
+			case "zoom":
+				value := arrayOfValues[0]
+				switch value {
+				case "":
+					fmt.Fprint(os.Stderr, "Error occured: no smoothing parameter\n")
+					os.Exit(1)
+				default:
+					if value, err := strconv.ParseFloat(value, 64); err != nil {
+						fmt.Fprintf(os.Stderr, err.Error())
+					} else {
+						zoom = value
+					}
+				}
+			case "x":
+				value := arrayOfValues[0]
+				switch value {
+				case "":
+					fmt.Fprint(os.Stderr, "Error occured: no x parameter\n")
+					os.Exit(1)
+				default:
+					if value, err := strconv.ParseFloat(value, 64); err != nil {
+						fmt.Fprintf(os.Stderr, err.Error())
+					} else {
+						xmin, xmax = -value, value
+					}
+				}
+			case "y":
+				value := arrayOfValues[0]
+				switch value {
+				case "":
+					fmt.Fprint(os.Stderr, "Error occured: no y parameter\n")
+					os.Exit(1)
+				default:
+					if value, err := strconv.ParseFloat(value, 64); err != nil {
+						fmt.Fprintf(os.Stderr, err.Error())
+					} else {
+						ymin, ymax = -value, value
+					}
+				}
+			}
 		}
+
+	} else {
+		fmt.Fprintf(os.Stderr, "Error: no parameters passed")
+		os.Exit(1)
 	}
-	png.Encode(writer, rotate90Right(img))
+
+	createFractal()
+	rotate90Right(img)
+	switch parametersToBeApplied[1] {
+	case "0":
+	case "1":
+		smooth()
+	}
+
+	png.Encode(writer, img)
+
 }
 
-func getAverageColor(method string, px, py int) color.RGBA {
-	var pixelEnvironmentColors []color.RGBA
-	for i := 0; i < 3; i++ {
-		px := px - 1 + i
+func createFractal() {
+
+	for px := 0; px < height; px++ {
 		// Scaling the current y coordinate so that it corresponds to location on complex plane
-		x := (float64(px)/width)*(xmax-xmin) + xmin
-		for j := 0; j < 3; j++ {
-			py := py - 1 + j
+		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
+		for py := 0; py < width; py++ {
 			// Scaling the current x coordinate so that it corresponds to location on complex plane
-			y := (float64(py)/height)*(ymax-ymin) + ymin
+			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
 			z := complex(-x, y)
-			switch method {
+			switch parametersToBeApplied[0] {
 			case "mandelbrot":
-				pixelEnvironmentColors = append(pixelEnvironmentColors, mandelbrot(z))
+				img.Set(px, py, mandelbrot(z))
 			case "newton":
-				pixelEnvironmentColors = append(pixelEnvironmentColors, newton(z))
+				img.Set(px, py, newton(z))
 			}
 		}
 	}
+}
 
+func smooth() {
+
+	for px := 0; px < height; px++ {
+		for py := 0; py < width; py++ {
+			pixelEnvironmentColors := getPixelEnvironmen(px, py)
+			// fmt.Println(pixelEnvironmentColors)
+			setAverageColor(px, py, pixelEnvironmentColors)
+			// fmt.Println(px, py)
+			pixelEnvironmentColors = make([]color.RGBA, 0)
+			// fmt.Println(pixelEnvironmentColors)
+		}
+	}
+}
+
+func getPixelEnvironmen(px, py int) []color.RGBA {
+	var pixels []color.RGBA
+	for i := -1; i < 2; i++ {
+		surroundingXPixel := px - 1*i
+		for j := -1; j < 2; j++ {
+			surroundingYPixel := py - 1*j
+			if (surroundingXPixel >= 0 || surroundingXPixel < width) &&
+				(surroundingYPixel >= 0 || surroundingYPixel < width) {
+				pixels = append(pixels, img.RGBAAt(surroundingXPixel, surroundingYPixel))
+			}
+		}
+	}
+	return pixels
+}
+
+func setAverageColor(px, py int, pixelEnvironment []color.RGBA) {
 	var r, g, b, a int
-	for _, color := range pixelEnvironmentColors {
+	for _, color := range pixelEnvironment {
 		r += int(color.R)
 		g += int(color.G)
 		b += int(color.B)
 		a += int(color.A)
 	}
 
-	return color.RGBA{uint8(r / 9), uint8(g / 9), uint8(b / 9), uint8(a / 9)}
-}
+	newColor := color.RGBA{
+		uint8(r / len(pixelEnvironment)),
+		uint8(g / len(pixelEnvironment)),
+		uint8(b / len(pixelEnvironment)),
+		uint8(a / len(pixelEnvironment)),
+	}
 
+	img.Set(px, py, newColor)
+}
 func mandelbrot(z complex128) color.RGBA {
 	const (
 		iterations = 200
@@ -78,19 +202,20 @@ func mandelbrot(z complex128) color.RGBA {
 	var v complex128
 	for n := uint8(0); n < iterations; n++ {
 		v = v*v + z
-		var r uint8 = 0 + n*contrast
-		var b uint8 = 255 - n*contrast
+		var r uint8 = uint8(rand.Intn(256))
+		var g uint8 = uint8(rand.Intn(256))
+		var b uint8 = uint8(rand.Intn(256))
 		//  If absolute value of complex number > 2 (the point is allocated out of circe that has r = 2)
 		// We'll color the pixel with shade of the gray color
-		if cmplx.Abs(v) > 2 {
+		if cmplx.Abs(v) > 2*math.Pow(zoom, 2) {
 			// 255 is the absolute value of white color.
 			// Subracting values from 255 we get shades of gray color
-			return color.RGBA{r, 0, b, 255 - n*contrast}
+			return color.RGBA{r, g, b, 255 - uint8(rand.Intn(256))}
 		}
 	}
 	// If absolute value of complex number <= 2 (the point is allocated inside the cirlce that has r = 2)
 	// We'll color the point with black
-	return color.RGBA{0, 255, 0, 255}
+	return color.RGBA{0, 0, 255, uint8(rand.Intn(256))}
 }
 
 func newton(initialGuess complex128) color.RGBA {
@@ -153,7 +278,7 @@ func fpr(z complex128) complex128 {
 	return 4 * cmplx.Pow(z, 3)
 }
 
-func rotate90Right(original *image.RGBA) *image.RGBA {
+func rotate90Right(original *image.RGBA) {
 	width := original.Bounds().Dx()
 	height := original.Bounds().Dy()
 
@@ -167,5 +292,5 @@ func rotate90Right(original *image.RGBA) *image.RGBA {
 		}
 	}
 
-	return rotated
+	img = rotated
 }

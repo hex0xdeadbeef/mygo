@@ -1,7 +1,6 @@
 package fractals
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -9,7 +8,6 @@ import (
 	"log"
 	"math/cmplx"
 	"net/http"
-	"os"
 )
 
 func Server() {
@@ -19,29 +17,28 @@ func Server() {
 }
 
 func getMandelbrotHandler(writer http.ResponseWriter, request *http.Request) {
-	createMandelbrotFractal(writer)
+	createFractal(writer, "mandelbrot")
 }
 func getNewtonHandler(writer http.ResponseWriter, request *http.Request) {
-	createNewtonsFractal(writer)
+	createFractal(writer, "newton")
 }
 
 const (
-	xmin, ymin, xmax, ymax = -2, -2, 2, 2
 	width, height          = 1024, 1024
+	xmin, ymin, xmax, ymax = -1, -1, 1, 1
 )
 
-func createMandelbrotFractal(writer io.Writer) {
-
+func createFractal(writer io.Writer, method string) {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	for py := 0; py < height; py++ {
 		for px := 0; px < width; px++ {
-			img.Set(px, py, getAverageColor(px, py))
+			img.Set(px, py, getAverageColor(method, px, py))
 		}
 	}
 	png.Encode(writer, rotate90Right(img))
 }
 
-func getAverageColor(px, py int) color.RGBA {
+func getAverageColor(method string, px, py int) color.RGBA {
 	var pixelEnvironmentColors []color.RGBA
 	for i := 0; i < 3; i++ {
 		px := px - 1 + i
@@ -51,7 +48,13 @@ func getAverageColor(px, py int) color.RGBA {
 			py := py - 1 + j
 			// Scaling the current x coordinate so that it corresponds to location on complex plane
 			y := (float64(py)/height)*(ymax-ymin) + ymin
-			pixelEnvironmentColors = append(pixelEnvironmentColors, mandelbrot(complex(-x, -y)))
+			z := complex(-x, y)
+			switch method {
+			case "mandelbrot":
+				pixelEnvironmentColors = append(pixelEnvironmentColors, mandelbrot(z))
+			case "newton":
+				pixelEnvironmentColors = append(pixelEnvironmentColors, newton(z))
+			}
 		}
 	}
 
@@ -63,7 +66,7 @@ func getAverageColor(px, py int) color.RGBA {
 		a += int(color.A)
 	}
 
-	return color.RGBA{uint8(r / 8), uint8(g / 8), uint8(b / 8), uint8(a / 8)}
+	return color.RGBA{uint8(r / 9), uint8(g / 9), uint8(b / 9), uint8(a / 9)}
 }
 
 func mandelbrot(z complex128) color.RGBA {
@@ -90,29 +93,15 @@ func mandelbrot(z complex128) color.RGBA {
 	return color.RGBA{0, 255, 0, 255}
 }
 
-func createNewtonsFractal(writer io.Writer) {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for px := 0; px < width; px++ {
-		x := (float64(px)/width)*(xmax-xmin) + xmin
-		for py := 0; py < height; py++ {
-			y := (float64(py)/height)*(ymin-ymax) + ymin
-			z := complex(x, y)
-			color := getColorByRoot(z)
-			img.Set(px, py, color)
-		}
-	}
-	if err := png.Encode(writer, img); err != nil {
-		fmt.Println("The error occured.")
-		os.Exit(1)
-	}
-}
+func newton(initialGuess complex128) color.RGBA {
+	const epsilon float64 = 1e-5 // Precision of float64
+	const maxIterations = 10000  // Max amount of iterations
 
-func getColorByRoot(initialGuess complex128) color.RGBA {
-	const epsilon float64 = 1e-15
-	const maxIterations = 1000
+	var countOfCycles int64 // We'll count this value
 
-	var countOfCycles int64
-	z := initialGuess
+	z := initialGuess // Initial point on the complex plane
+
+	// Depending of the found approximation we'll match the color
 	rootColors := []color.RGBA{
 		{255, 0, 0, 255},   // Red
 		{0, 255, 0, 255},   // Green

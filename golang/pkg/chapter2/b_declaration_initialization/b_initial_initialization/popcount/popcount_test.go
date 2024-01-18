@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// The benchmark test allows us to get the time during complete a task
 func BenchmarkPopCountSimple(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		PopCounSimple(32769)

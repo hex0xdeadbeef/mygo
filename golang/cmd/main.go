@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
-	c3f "golang/pkg/chapter3/f_constants"
 	"unsafe"
 )
+
+func main() {
+
+}
 
 func PresenceOfUnusedSliceElements() {
 
@@ -67,32 +70,15 @@ func RewritingElementsOfSlice() {
 	fmt.Println()
 }
 
-func main() {
-	// c3bth.LocalServer()
-	// c3c.Declaration_And_Printing()
-	// c3cm.Server()
-	// c3e.StringComparison()
-	// c3e.StringsImmutability()
-	// c3e.StringLiterals()
-	// c3e.EscapeSequences()
-	// c3e.DecodingUTF8()
-	// c3e.LenAndRunes()
-	// c3e.BasenameSimple("もちろん/もちろん/もちろん/もちろん.com")
-	// c3e.BasenameLastIndex("もちろん/もちろん/もちろん/もちろん.com")
-	// fmt.Println(c3e.IntegerComma("12345"))
-	// c3e.BytesSliceMutability()
-	// fmt.Println(c3e.IntsToString([]int{1, 2, 3}))
-	// c3e.LenAndRunes()
-	// c3e.IntegerCommaBuffer("5")
-	// c3e.FloatCommaBuffer("1111.e10")
-	// fmt.Println(c3e.IsAnagramTo("abcd", "dbca"))
-	// c3e.IntegerToStringAndBack()
-	// SliceTrick()
-	// PresenceOfUnusedSliceElements()
-	// c3f.UsingBigConstantsInExpressions()
-	// c3f.DivisionWithDifferentLiterals()
-	// c3f.ImplicitConversionToTargetType()
-	// c3f.RoundingAfterConversion()
-	// c3f.ImplicitVariableLiteralTypeDetermination()
-	c3f.ExplicitVariableTypeDeclaration()
+// After copying the second slice will have a new memory block different from the second
+func CopyingSlices() {
+
+	slice1 := []int{1, 2, 3}
+	slice2 := make([]int, 3, 10)
+	copy(slice2, slice1) //
+	fmt.Println("Before changes:\n", slice1, "\n", slice2)
+
+	slice2[0] = 10 // This change won't affect both slices
+	fmt.Println("After changes:\n", slice1, "\n", slice2)
+
 }

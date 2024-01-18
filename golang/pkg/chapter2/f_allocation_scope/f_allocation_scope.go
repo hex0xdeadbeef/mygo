@@ -1,11 +1,12 @@
 package f_allocation_scope
 
+// import is executed by compiler before all package
 import (
-	"fmt" // This is alias
+	"fmt"
 	"log"
-	"math/rand"
+	r "math/rand" // This is the alias
 	"os"
-) // import is executed by compiler before all package
+)
 
 // Allocation on heap/stack doesn't depend on using var/new(...)
 // It depends whether variable is reachable or not
@@ -42,7 +43,7 @@ func ScopeShadowingSecond() {
 }
 
 func xRet() int {
-	if value := rand.Intn(100); value > 50 {
+	if value := r.Intn(100); value > 50 {
 		return 1
 	} else {
 		return 0
@@ -50,7 +51,7 @@ func xRet() int {
 }
 
 func yRet(x int) int {
-	if value := rand.Intn(100); value > 50 {
+	if value := r.Intn(100); value > 50 {
 		return 0
 	} else {
 		return 1
@@ -70,7 +71,7 @@ func ScopeShadowingThird() {
 }
 
 func ScopeShadowingFourth(fileNames ...string) {
-	if file, err := os.Open(fileNames[0]); err != nil {
+	if file, err := os.Create(fileNames[0]); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	} else {
@@ -91,7 +92,7 @@ func ScopeShadowingFourth(fileNames ...string) {
 
 var cwd string
 
-func DefeatingShadingOfGlobalVariableAssignment() {
+func DefeatGlobalVarShadowing() {
 
 	fmt.Println("BEFORE | The address in memory of cwd:", &cwd)
 	/* Here's the local cwd shades the upper declared global cwd */
@@ -99,7 +100,7 @@ func DefeatingShadingOfGlobalVariableAssignment() {
 
 	/* Here's a method that defeats this problem */
 	var err error
-	cwd, err = os.Getwd() // cwd has assigned, but hasn't declared
+	cwd, err = os.Getwd() // cwd has assigned, but hasn't declared. It's
 
 	// cwd, err := os.Getwd() // Here's the local cwd shades the upper declared global cwd
 	if err != nil {

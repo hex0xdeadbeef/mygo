@@ -16,6 +16,6 @@ func incompatibleTypesOperation() {
 	var apples uint32 = 1
 	var oranges uint16 = 2
 	// var compote int = apples + oranges it'll be considere by compiler as error
-	var compote int = int(uint(oranges) + uint(apples)) // This is implicit conversion
+	var compote int = int(uint(oranges) + uint(apples)) // This is explicit conversion
 	fmt.Println(compote)
 }

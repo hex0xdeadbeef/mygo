@@ -1,4 +1,4 @@
-package declarationinitialization_test
+package b_declaration_initialization
 
 import (
 	"fmt"
@@ -32,8 +32,13 @@ func InitializingWithFunctionCall() {
 		return
 	}
 
-	io.Copy(os.Stdout, file)
-	fmt.Println()
+	numberOfWrittenBytes, err := io.Copy(os.Stdout, file)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	} else {
+		fmt.Println(numberOfWrittenBytes)
+	}
 
 	defer file.Close()
 }
@@ -45,7 +50,7 @@ func shortVariableDeclaration() {
 
 func tupleAssignment() {
 	i, j := 1, 0
-	i, j = j, i
+	i, j = j, i // Easy swapping
 	fmt.Println(i, j)
 }
 
@@ -72,16 +77,17 @@ func shortDeclaringRepeat(fileName string) {
 	// file, err := os.Open(fileName) // There must be just assignment
 
 	// Like this
-	file, err = os.Open(fileName)
+	file, err = os.Open(fileName) // There is no colon here
 	defer file.Close()
 }
 
 func DeclaringInInnerLexicalBlock(fileName string) {
+	// Outer variables (They will not be used in the inner scope, so we can redeclare the there)
 	var file *os.File
 	var err error
 	fmt.Printf("Old values: %s, %v\n", file, err)
 	{
-		file, err := os.Open(fileName) // These ones are local variables
+		file, err := os.Open(fileName) // These ones are local inner variables
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)

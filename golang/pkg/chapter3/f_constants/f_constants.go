@@ -23,16 +23,18 @@ These types are:
 */
 
 const (
-	e       = 2.718281
-	pi      = 3.141592
-	IPv4LEn = 4 // For example it'll be used during an array declaring/initializing as a capacity value
+	e       = 2.718281 // untyped float
+	pi      = 3.141592 // untyped float
+	IPv4LEn = 4        // For example it'll be used during an array declaring/initializing as a capacity value
 )
 
 /* Constants may specify a type as well as a value, but in the absence of an explicit type the type is inferred from
 the expression on the right hand */
 
-const noDelay time.Duration = 0 // noDelay is a constant that represents a value 0 of the time.Duration type
-const timeout = 5 * time.Minute // timeout is a constant that represents a value 5 minutes of the time.Minute type
+const (
+	noDelay time.Duration = 0               // noDelay is a constant that represents a value 0 of the time.Duration type
+	timeout               = 5 * time.Minute // timeout is a constant that represents a value 5 minutes of the time.Minute type
+)
 
 func PrintingConstantsValues() {
 	fmt.Printf("%T %[1]v\n", noDelay) // There is %T verb allows to print the type of a value
@@ -126,7 +128,7 @@ const (
 	YB = ZB * 10e3
 )
 
-// The result is: 1024. The type of the result value will be intyped int :)
+// The result is: 1024. The type of the result value will be untyped int :)
 func UsingBigConstantsInExpressions() {
 	fmt.Printf("Some huge untyped constants are computed in expressions (YiB/ZiB).\nThe result of this statement: %[1]v, %[1]T",
 		YiB/ZiB)
@@ -195,6 +197,8 @@ func RoundingAfterConversion() {
 	// e = uint(-1) compile error: constant underflows uint
 }
 
+// The integers will have untyped types after assignment but float/complex variables will have particular sized types
+// such as float64 or complex128
 func ImplicitVariableLiteralTypeDetermination() {
 	i := 0 // It'll be untyped integer. Implicit: int(0)
 	fmt.Printf("%[1]T %[1]d\n", i)
@@ -206,9 +210,13 @@ func ImplicitVariableLiteralTypeDetermination() {
 	fmt.Printf("%[1]T %[1]v\n", c)
 }
 
+// So that we can explicitly inform the compiler that a varible must have the particular type, we should specify the
+// type we need variable to have explicitly
 func ExplicitVariableTypeDeclaration() {
 	var i1 = int8(0)
 	var i2 int8 = 0
-	fmt.Printf("%[1]T %[1]d\n", i1)
-	fmt.Printf("%[1]T %[1]d\n", i2)
+	fmt.Printf("%[1]T %[1]d\n", i1) // int8
+	fmt.Printf("%[1]T %[1]d\n", i2) // int8
 }
+
+// It's important when converting an untyped constant to an interface value since they determine its dynamic type

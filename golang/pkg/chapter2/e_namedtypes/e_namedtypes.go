@@ -39,13 +39,18 @@ func FToC(f Farenheit) Celsius {
 // Named types behave as their underlying types, but operations between two types that have the same underlying
 // types are forbidden (We should converse one type to another)
 func NamedTypesStatements() {
+
+	var (
+		c Celsius
+		f Farenheit
+	)
+
 	fmt.Printf("%g\n", BoilingC-FreezingC) // This operation is equal to float64-float64 (underlying types are the same)
 	boilingF := CToF(BoilingC)
 	fmt.Printf("%g\n", boilingF-CToF(FreezingC))
 	// fmt.Printf("%g\n" boilboilingF - BoilingC) compile error: types mismatch
 
-	var c Celsius
-	var f Farenheit
+	// Comparison
 	fmt.Println(c == 0)
 	fmt.Println(f >= 0)
 	// fmt.Println(c == f) compile error: types mismatch
@@ -55,23 +60,24 @@ func NamedTypesStatements() {
 
 	// When we declare String() function for a named type, there is no need to call it explicitly
 	fmt.Println(c.String())
-	fmt.Printf("%v\n", c) // no need to call String() explicitly
+
 	fmt.Printf("%s\n", c)
 	fmt.Println(c)
-	fmt.Println("%g\n", c)
+
+	fmt.Printf("%g\n", c)
 	fmt.Println(float64(c))
 }
 
 func Package_Using() {
-	fmt.Println("Brrrr! %v\n", tempconv.AbsoluteZeroC)
+	fmt.Printf("Brrrr! %v\n", tempconv.AbsoluteZeroC)
 	fmt.Println(tempconv.CToF(tempconv.BoilingC))
 }
 
 func ParseCmdArgConvertToCorF() {
-	for _, arg := range os.Args[1:] {
+	for _, arg := range os.Args[1:] { // Index is skipped
 		temperature, err := strconv.ParseFloat(arg, 64)
 		if err != nil {
-			fmt.Fprint(os.Stderr, "cf %v\n", err)
+			fmt.Fprintf(os.Stderr, "cf %v\n", err)
 			os.Exit(1)
 		}
 		f := tempconv.Farenheit(temperature)
@@ -83,33 +89,33 @@ func ParseCmdArgConvertToCorF() {
 
 func GeneralPurposeUnitConversion() {
 	if len(os.Args) > 1 {
-		for _, arg := range os.Args[1:] {
-			unit, err := strconv.ParseFloat(arg, 64)
+		for _, arg := range os.Args[1:] { // Read cmd args
+			unit, err := strconv.ParseFloat(arg, 64) // Parse float value
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "The error is: %v\n", err)
 				os.Exit(1)
 			}
-			unitsConvertation(unit)
+			unitsConvertation(unit) // Print converted values
 		}
 	} else {
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
+		scanner := bufio.NewScanner(os.Stdin) // Create scanner
+		scanner.Scan()                        // Scan a cmd input
 
-		userInput := scanner.Text()
-		userInputArgs := strings.Split(userInput, " ")
+		userInput := scanner.Text()                    // Get a text from the input
+		userInputArgs := strings.Split(userInput, " ") // Split and put into a string array the args we got as a string
 
 		for _, arg := range userInputArgs {
-			unit, err := strconv.ParseFloat(arg, 64)
+			unit, err := strconv.ParseFloat(arg, 64) // Try to parse the next float value
 			if err != nil {
-				errorPrintAndExit(err)
+				errorPrintExit(err)
 			}
-			unitsConvertation(unit)
+			unitsConvertation(unit) // // Print converted values
 		}
 
 	}
 }
 
-func errorPrintAndExit(err error) {
+func errorPrintExit(err error) {
 	fmt.Fprintf(os.Stderr, "The error is: %v\n", err)
 	os.Exit(1)
 }

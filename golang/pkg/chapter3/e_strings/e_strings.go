@@ -3,6 +3,7 @@ package e_strings
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -96,18 +97,18 @@ func LenAndRunes() {
 		fmt.Printf("%c ", s[i])
 	}
 
-	for i := 0; i < len(s); {
-		r, size := utf8.DecodeRuneInString(s[i:]) // Function checks the amount of bytes of each symbol, returns the rune
+	for initUnicodeByte := 0; initUnicodeByte < len(s); {
+		r, size := utf8.DecodeRuneInString(s[initUnicodeByte:]) // Function checks the amount of bytes of each symbol, returns the rune
 		// that can be represented as (a/an) character/unicode point
-		fmt.Printf("%d\t%c\t%d\t%x\t%d\n", i, r, r, r, size)
-		i += size
+		fmt.Printf("initUnicodeByte:%6d\tchar:%6c\trune:%6d\thex:%6x\tsize of rune:%6d\n", initUnicodeByte, r, r, r, size)
+		initUnicodeByte += size
 	}
 	fmt.Println()
 
 	// Bytes reading occurs implicitly
-	for i, unicodePoint := range s {
-		fmt.Printf("%d\t", i)
-		fmt.Printf("%[1]c\t%[1]d\t%[1]x\t%[1]o\n", unicodePoint)
+	for initUnicodePoint, unicodePoint := range s {
+		fmt.Printf("initUnicodeByte:%6d\t", initUnicodePoint)
+		fmt.Printf("char:%6[1]c\trune:%6[1]d\thex:%6[1]x\t\n", unicodePoint)
 
 	}
 	fmt.Println()
@@ -126,26 +127,33 @@ func LenAndRunes() {
 
 	// MEGAXXL convinient method to count the number of runes
 	fmt.Printf("The number of runes is: %d\n", utf8.RuneCountInString(s))
+	fmt.Println()
 
 	// If UTF-8 decoder meets an unexpected input byte it prints replacement character '\uFFFD' = �
 	fmt.Println("Replacement symbol: '\uFFFD'")
+	fmt.Println()
 
 	/* []rune conversion applied to a UTF-8 encoded string returns the sequence of unicode points */
 	s = "もちろん、喜んで"
 	// "% x" makes the space between each pair of operands
-	fmt.Printf("% x\n", s)                  // This statement prints the hexadecimal UTF-8 codes of the string
-	stringToRunesArray := []rune(s)         // []runes(str string) returns Unicode code points
-	fmt.Printf("%x \n", stringToRunesArray) // This statements prints the hexadecimal Unicode code points
+	fmt.Printf("Hex UTF-8 codes: % x\n", s) // This statement prints the hexadecimal UTF-8 codes of the string
+	fmt.Println()
+
+	stringToRunesArray := []rune(s)                             // []runes(str string) returns Unicode code points
+	fmt.Printf("Hex unicode points: %x \n", stringToRunesArray) // This statements prints the hexadecimal Unicode code points
+	fmt.Println()
 
 	/* The opposite conversion from []rune(Unicode code points) to string will return UTF-8 codes string */
 	fmt.Println(string(stringToRunesArray))
+	fmt.Println()
 
 	/* During conversion from int value to string value the first one is perceived as a rune (unicode code point) */
 	fmt.Printf("%c\n", 65)     // It prints "A"
 	fmt.Printf("%c\n", 0x3eac) // It prints 㺬
+	fmt.Println()
 
 	/* Very big codes will produce returning the replacement symbol (�) */
-	fmt.Printf("%c", 1234567) // It prints �
+	fmt.Printf("The replacement symbol: %c", 1234567) // It prints �
 
 }
 
@@ -180,12 +188,12 @@ func BasenameLastIndex(str string) {
 	fmt.Println(str)
 }
 
-func IntegerComma(number string) string {
+func IntegerCommaRecursive(number string) string {
 	curLen := len(number)
 	if curLen <= 3 {
 		return number
 	}
-	return IntegerComma(number[:curLen-3]) + "," + number[curLen-3:]
+	return IntegerCommaRecursive(number[:curLen-3]) + "," + number[curLen-3:]
 }
 
 func BytesSliceMutability() {
@@ -209,6 +217,7 @@ func BytesSliceMutability() {
 
 		IT PREVENTS SYSTEM FROM EXTRA CONVERSIONS AND UNNECESSARY MEMORY ALLOCATION
 	*/
+
 }
 
 func IntsToString(values []int) string {
@@ -220,10 +229,108 @@ func IntsToString(values []int) string {
 		if i > 0 {
 			buffer.WriteString(", ") // It converts the string to byte implicitly
 		}
-		fmt.Fprintf(&buffer, "%d", value) // It converts the string to byte implicitly
+		fmt.Fprintf(&buffer, "%d", value) // It converts the string to byt(e/s) implicitly
 	}
 	// buffer.WriteByte(']') // It converts the rune to byte implicitly
 	buffer.WriteRune(']') // It's preferable
 
 	return buffer.String()
+}
+
+func IntegerCommaBuffer(number string) []byte {
+	var buffer bytes.Buffer
+	counter := 1
+	index := len(number) - 1
+
+	// Write the bytes separated with commas in reverse order
+	for ; index >= 0; index-- {
+		buffer.Write([]byte(string(number[index])))
+
+		if index != 0 && counter == 3 {
+			buffer.WriteByte(',')
+			counter = 0
+		}
+
+		counter++
+	}
+
+	// Reverse received byte slice
+	return reverseBytes(buffer.Bytes())
+}
+
+func reverseBytes(byteSlice []byte) []byte {
+	// Take a length of the byte slice
+	l := len(byteSlice)
+	for i := 0; i < l/2; i++ {
+		// Swap elements
+		byteSlice[i], byteSlice[l-1-i] = byteSlice[l-1-i], byteSlice[i]
+	}
+	return byteSlice
+}
+
+func FloatCommaBuffer(number string) {
+	// Creating a buffer obj
+	var buffer bytes.Buffer
+
+	// Find the index of dot
+	dotByte := []byte(".")
+
+	if dotIndex := bytes.Index([]byte(number), dotByte); dotIndex != -1 {
+		// Separate the part before the dot with commas
+		left := IntegerCommaBuffer(number[:dotIndex])
+
+		// Take the part after the dot
+		right := []byte(number)[dotIndex:]
+
+		// Join the right part to the left part
+		result := append(left, right...)
+
+		// Write a received bytes sequence into buffer
+		buffer.Write(result)
+	} else {
+		buffer.Write(IntegerCommaBuffer(number))
+	}
+
+	fmt.Println(buffer.String())
+}
+
+func IsAnagramTo(str1 string, str2 string) bool {
+	for _, run := range str1 {
+		if !strings.Contains(str2, string(run)) {
+			return false
+		}
+	}
+	for _, run := range str2 {
+		if !strings.Contains(str1, string(run)) {
+			return false
+		}
+	}
+	return true
+}
+
+/* 3.5.5 Convertions between strings and numbers */ // strconv
+func IntegerToStringAndBack() {
+	x := 123
+	y := fmt.Sprintf("%d", x)
+	z := strconv.Itoa(x) // Integer to ASCII
+
+	fmt.Println(y, z)
+
+	// Formatting numbers in a different base
+	fmt.Println(strconv.FormatInt(int64(x), 16)) // Returns a string that contains the 2/10/8/16 representation of int64
+
+	// Formatting verbs
+	fmt.Printf("x = %b\n", x)
+
+	// From string to integer strconv.Atoi / strconv.ParseInt / strconv.ParseUint
+	q, err := strconv.Atoi("42141") // Returns int32 value and error if conversion is impossible
+	if err == nil {
+		fmt.Printf("Received with Atoi int value from string: %d\n", q)
+	}
+
+	w, err := strconv.ParseInt("124", 10, 64)
+	if err == nil {
+		fmt.Printf("Received with ParseInt int value from string: %d", w)
+	}
+
 }

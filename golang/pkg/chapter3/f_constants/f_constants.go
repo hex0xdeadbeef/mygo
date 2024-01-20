@@ -42,7 +42,7 @@ func PrintingConstantsValues() {
 	fmt.Printf("%T %[1]v\n", time.Minute)
 }
 
-/* When a sequence of constants are declared as a group, the right-hand side expression may be ommited*/
+/* When a sequence of constants are declared as a group, the right-hand side expression may be ommited */
 const (
 	a = 1 // This value descends
 	b     // It'll be assigned the value of the upper constant
@@ -134,15 +134,15 @@ func UsingBigConstantsInExpressions() {
 		YiB/ZiB)
 }
 
-/* Another example of untyped values. The right side statements are assignment a untyped corresponding value */
+/* Another example of untyped values. The right side statements are assignment an untyped corresponding value */
 var (
-	x float32    = math.Pi
-	y float64    = math.E
-	z complex128 = math.Phi
+	x float32    = math.Pi  // This value will be cast down to float32 type
+	y float64    = math.E   // This value will be cast donw to float64 type
+	z complex128 = math.Phi // This value will be cast down to complex128 type (phi + 0i)
 )
 
 /*
-When we bind an untyped value to a typed value the following expressions will require an corresponding explicit type
+When we bind an untyped value to a typed variable the following expressions will require an corresponding explicit type
 conversion
 */
 const Pi64 float64 = math.Pi
@@ -169,8 +169,7 @@ func DivisionWithDifferentLiterals() {
 }
 
 /*
-	When an untyped constant occurs on the right hand side of a variable, it's implicitly converted to the target type
-
+When an untyped constant occurs on the right hand side of a variable, it's implicitly converted to the target type
 (to the left hand variable type)
 */
 func ImplicitConversionToTargetType() {
@@ -189,7 +188,7 @@ func RoundingAfterConversion() {
 	const deadbeef = 0xdeadbeef // this is untyped int with the high precision 2^31.798819721089007
 	fmt.Printf("The original deadbeef value: %v | power of two: %g\n", deadbeef, math.Log2(deadbeef))
 	fmt.Printf("The uint32 deadbeef value: %d\n", uint32(deadbeef))   // The original value will be saved
-	fmt.Printf("The float32 deadbeef value: %g\n", float32(deadbeef)) /* The 7th digit will get up (float32 provides
+	fmt.Printf("The float32 deadbeef value: %g\n", float32(deadbeef)) /* The 7th digit will round up (float32 provides
 	only 6-digit precision) */
 	fmt.Printf("The float64 deadbeef value: %g\n", float64(deadbeef)) // The precision will be saved
 	// const d = int32(deadbeef) compile error: constant overflows int32
@@ -197,8 +196,8 @@ func RoundingAfterConversion() {
 	// e = uint(-1) compile error: constant underflows uint
 }
 
-// The integers will have untyped types after assignment but float/complex variables will have particular sized types
-// such as float64 or complex128
+// The integers will have untyped types after short declaration but float/complex variables will have particular sized
+// types such as float64 or complex128
 func ImplicitVariableLiteralTypeDetermination() {
 	i := 0 // It'll be untyped integer. Implicit: int(0)
 	fmt.Printf("%[1]T %[1]d\n", i)

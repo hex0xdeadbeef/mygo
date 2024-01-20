@@ -8,11 +8,11 @@ import (
 	"unicode/utf8"
 )
 
-/* ALL SOURCE FILES ARE CONCIDERED AS UTF-8 CODED TEXT */
+/* ALL SOURCE FILES ARE CONCIDERED AS UTF-8 CODED TEXT SO THAT STORE LESS DATA*/
 
 func declarationAndInitialization() {
 	s := "hello, world"
-	fmt.Println(len(s))
+	fmt.Println(len(s)) // Get an amount of bytes
 
 	/* When we reference to a string by an index, we require two or more bytes */
 	// We can access the elements of string referencing by index and getting a rune value
@@ -63,22 +63,22 @@ func StringLiterals() {
 }
 
 func EscapeSequences() {
-	char1 := '\xaa'
-	char2 := '\377'
+	char1 := '\xaa' // Hex
+	char2 := '\377' // Octal
 	fmt.Printf("The characters are: %c %c\n", char1, char2) // ª ÿ
-	fmt.Printf("The runes are: %d %d\nx", char1, char2)     // 170 255
+	fmt.Printf("The runes are: %d %d\nx", char1, char2)     // 170 255 - Unicode points
 }
 
 func RawStringLiteral() {
 	fmt.Println(`Это сырая строка здесь мы можем делать спуск вниз без \n
-	и писать управляющие символы, которые не будут восприняты как урпавляющие.`)
+	и писать управляющие символы, которые не будут восприняты как управляющие.`)
 }
 
 func DecodingUTF8() {
-	fmt.Println("\xe4\xb8\x96\xe7\x95\x8c") // This is UTF-8 notation
+	fmt.Println("\xe4\xb8\x96 \xe7\x95\x8c") // This is UTF-8 notation
 	/*Additionally, \xe4\xb8\x96 is not a legal rune literal */
-	fmt.Println("\u4e16\u754c")         // This is Unicode notation (We should convert from hex to binary)
-	fmt.Println("\U00004e16\U0000754c") // This is extended Unicode notation (We should convert from hex to binary)
+	fmt.Println("\u4e16 \u754c")         // This is Unicode notation (We should convert from hex to binary)
+	fmt.Println("\U00004e16 \U0000754c") // This is extended Unicode notation (We should convert from hex to binary)
 
 	// We can hold unicode escapes in the rune type directly
 	var a rune = '世'
@@ -95,7 +95,7 @@ func LenAndRunes() {
 	// This representation isn't valid because of reading each byte partially
 	for i := 0; i < len(s); i++ {
 		fmt.Printf("%c ", s[i])
-	}
+	} // Will print a balderdash
 
 	for initUnicodeByte := 0; initUnicodeByte < len(s); {
 		r, size := utf8.DecodeRuneInString(s[initUnicodeByte:]) // Function checks the amount of bytes of each symbol, returns the rune
@@ -106,8 +106,8 @@ func LenAndRunes() {
 	fmt.Println()
 
 	// Bytes reading occurs implicitly
-	for initUnicodePoint, unicodePoint := range s {
-		fmt.Printf("initUnicodeByte:%6d\t", initUnicodePoint)
+	for initUnicodeByte, unicodePoint := range s {
+		fmt.Printf("initUnicodeByte:%6d\t", initUnicodeByte)
 		fmt.Printf("char:%6[1]c\trune:%6[1]d\thex:%6[1]x\t\n", unicodePoint)
 
 	}
@@ -320,7 +320,7 @@ func IntegerToStringAndBack() {
 	fmt.Println(strconv.FormatInt(int64(x), 16)) // Returns a string that contains the 2/10/8/16 representation of int64
 
 	// Formatting verbs
-	fmt.Printf("x = %b\n", x)
+	fmt.Printf("x = %b\n", x) // %b - Binary form
 
 	// From string to integer strconv.Atoi / strconv.ParseInt / strconv.ParseUint
 	q, err := strconv.Atoi("42141") // Returns int32 value and error if conversion is impossible

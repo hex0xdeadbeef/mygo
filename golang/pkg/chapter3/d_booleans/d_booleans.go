@@ -2,6 +2,8 @@ package d_booleans
 
 import "fmt"
 
+/* 1. %t verb allows to shows the boolean type in a formatted output */
+
 func shortCircuitForms() {
 	str := ""
 	fmt.Println(str != "" && str[0] == 'x') // The right side won't be evaluated

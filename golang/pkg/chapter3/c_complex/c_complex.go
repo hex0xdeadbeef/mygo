@@ -6,9 +6,9 @@ import (
 )
 
 func Declaration_And_Printing() {
-	var z complex128
+	var z complex128 // 0 + 0i
 	var x complex128 = complex(1, 2) // 1 + 2i
-	var y complex128 = complex(3, 4) // 3 + 4
+	var y complex128 = complex(3, 4) // 3 + 4i
 	fmt.Println(z)
 	fmt.Println(x * y)       // (1, 2) * (3, 4) = ((1*3 - 2*4), (2*3 + 1*4)) = -5 + 10i
 	fmt.Println(real(x * y)) // -5
@@ -19,6 +19,7 @@ func Declaration_And_Printing() {
 	fmt.Println(pi, two)
 
 	fmt.Println(1i * 1i) // It's -1 + 0i
+
 	// math/cmplx using
 	fmt.Println(cmplx.Sqrt(-1)) // It's 0 + 1i
 
@@ -26,7 +27,6 @@ func Declaration_And_Printing() {
 	q := 1 + 2i
 	w := 3 + 4i
 	fmt.Println(q, w)
-
 }
 
 func Comparison() {

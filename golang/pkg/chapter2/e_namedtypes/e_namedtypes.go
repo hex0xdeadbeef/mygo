@@ -11,14 +11,14 @@ import (
 	"strings"
 )
 
-type Celsius float64 // This is the "Named Type"
-type Farenheit float64
-
 const (
 	AbsoluteZeroC Celsius = -273.15
 	FreezingC     Celsius = 0
 	BoilingC      Celsius = 100
 )
+
+type Celsius float64 // This is the "Named Type"
+type Farenheit float64
 
 func (c Celsius) String() string {
 	return fmt.Sprintf("%g*C", c)
@@ -33,7 +33,8 @@ func CToF(c Celsius) Farenheit {
 }
 
 func FToC(f Farenheit) Celsius {
-	return Celsius((f - 32) * 5 / 9)
+	return Celsius((f - 32) * 5 / 9) // (f - 32) is placed on the left-hand side of the expression for casting the result
+	// up to float64
 }
 
 // Named types behave as their underlying types, but operations between two types that have the same underlying
@@ -59,13 +60,13 @@ func NamedTypesStatements() {
 	c = FToC(212.0)
 
 	// When we declare String() function for a named type, there is no need to call it explicitly
-	fmt.Println(c.String())
+	fmt.Println(c.String()) // The explicit call of the String() function
 
-	fmt.Printf("%s\n", c)
-	fmt.Println(c)
+	fmt.Printf("%s\n", c) // The implicit call of the String() function
+	fmt.Println(c)        // Another implicit call
 
-	fmt.Printf("%g\n", c)
-	fmt.Println(float64(c))
+	fmt.Printf("%g\n", c)   // Printing the value as float64 number with "g" verb implicitly
+	fmt.Println(float64(c)) // Printing the value as float64 number with "g" verb explicitly
 }
 
 func Package_Using() {
@@ -74,7 +75,7 @@ func Package_Using() {
 }
 
 func ParseCmdArgConvertToCorF() {
-	for _, arg := range os.Args[1:] { // Index is skipped
+	for _, arg := range os.Args[1:] { // Indexes are skipped
 		temperature, err := strconv.ParseFloat(arg, 64)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "cf %v\n", err)

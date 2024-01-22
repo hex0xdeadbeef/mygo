@@ -8,7 +8,7 @@ import (
 
 /*
 Many computations on constants can be completely evaluated at compile time, reducing the work necessary at runtime
-and enabling other compiler optimisations
+and enabling other compiler optimizations
 */
 
 /* Constants can be uncommited to a particular type. This mechanism lets use arithmetic operations on some values with

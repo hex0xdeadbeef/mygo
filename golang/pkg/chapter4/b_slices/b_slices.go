@@ -7,40 +7,43 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 	"unsafe"
 )
 
 /*
 1. A slice is a lightweight data structure that gives access to a subsequence (or perhaps all) elements of an array,
-which is known as as the slice's underlying array.
-2. A slice has three components: a pointer, a length, a capacity.
+   which is known as as the slice's underlying array.
+2. A slice has three components: a pointer to an underlying array, a length, a capacity.
 3. The pointer points to the first element of the array that is reachable through the slice, which is not necessarily
-the array's first element.
+   the array's first element.
 4. The length is the number of slice elements. It can't exceed the capacity.
 5. The capacity is an amount of elements underlying array can store generally.
 6. s[i,j) can be applied to: an array variable, a pointer to an array, another slice
 7. Since a slice contains a pointer to an underlying array, passing a slice to a function permits the function to modi-
-fy the underlying array elements
+   fy the underlying array elements
 8. Slices aren't comparable, but []byte slices can be compared. We can create our own comparisons, but IT'S FORBIDDEN.
 	1) The elemets of slices are indirect (they can contain other types as slices and so on), making it possible for a slice
 	to contain itself.
-	2) We must recursively compare elements, because slices can contain other slices as well.
+	2) We must recursively compare elements, because slices can contain other slices, strucures, interfaces as well.
 	3) Because slice elements are indirect, a fixed slice value may contain different elements at different times as the
 	contents of the underlying array are modified.
 	DUE TO THE ABOVE POINTS WE MUST NOT COMPARE SLICES
 9. The only thing we can compare slice with is nil.
 10. The zero value of a slice is nil. When slice is a nil value it hasn't an underlying array and has length and capacity
-zero.
+0.
 11. To find out whether a slice is empty we should call the len([]T) function.
-12. Functions whose signature includes a slice parameter should contain a logic processing this behaving.
+12. Functions whose signature includes a slice parameter should contain a logic processing len([T] = 0) behaving.
 13. Similar to the previous point functions should treat all zero-length slices the same way whether nil or non-nil
 14. Slice can be created with make([]T, len, {capacity}) operator. If capacity is omitted, it's equal to the declared length.
-Under the hood make creates unnamed array variable and returns a slice of it.
-15. Built-in append(dst, src) operator appends items to slices. If a new length is bigger than the available capacity,
-capacity of the result slice doubles up, elements from the source slice copies into the result slice and it's returned.
+	Under the hood make creates unnamed array variable and returns a slice of it.
+15. Built-in append(dst, src) operator appends items to slices.
+	1) If a new length is bigger than the available capacity, capacity of the result slice doubles up, elements from the
+	source slice copies into the result slice and it's returned.
+	2) After appending the amount of elements that is bigger that destiny capacity, the new destiny capacity will be
+	equal to (old capacity + amount of added elements)
 16. Build-in copy(dst, src) operator copies element from left to right rewriting elements within len(dst)
-17. After adding the amount of elements that is bigger that destiny capacity, the new destiny capacity will be equal to
-(old capacity + amount of added elements )
 */
 
 func SliceOverlapping() {
@@ -52,8 +55,8 @@ func SliceOverlapping() {
 	}
 
 	// Capacity will be len(underlyingArray) - startIndex
-	q2 := months[4:7]     // 4: "April", 5: "May", 6: "June", len = 3, cap = 7
-	summer := months[6:9] // 6: "June", 7: "July", 8: "August" len = 3,
+	q2 := months[4:7]     // 4: "April", 5: "May", 6: "June", len = 3, cap = 9
+	summer := months[6:9] // 6: "June", 7: "July", 8: "August" len = 3, cap = 7
 	fmt.Printf("q2: % s\t| summer: % s\n", q2, summer)
 
 	if strings.Contains(strings.Join(q2, ""), "June") == strings.Contains(strings.Join(summer, ""), "June") {
@@ -105,9 +108,9 @@ func Reverse() {
 func Rotation() {
 	slice := []int{1, 2, 3, 4, 5}
 
-	fmt.Printf("Array before left 3 elements rotation: %d\n", slice)
+	fmt.Printf("Array before 3 elements left rotation: %d\n", slice)
 	easyRightRotation(3, slice)
-	fmt.Printf("Array after left 3 elements rotation: %d\n", slice)
+	fmt.Printf("Array after 3 elements left rotation: %d\n", slice)
 	easyLeftRotation(3, slice)
 	fmt.Printf("Array after left 3 elements rotation: %d\n", slice)
 
@@ -143,9 +146,17 @@ func swapSlice(slice []int) {
 	}
 }
 
-func SlicesComparison(sl1, sl2 []int) bool {
+func SlicesComparisonInt(sl1, sl2 []int) bool {
 	if len(sl1) == len(sl2) {
 		return bytes.Equal(getBytes(sl1), getBytes(sl2))
+	} else {
+		return false
+	}
+}
+
+func SlicesComparisonString(sl1, sl2 []string) bool {
+	if len(sl1) == len(sl2) {
+		return bytes.Equal([]byte(strings.Join(sl1, "")), []byte(strings.Join(sl2, "")))
 	} else {
 		return false
 	}
@@ -174,7 +185,7 @@ func NilSliceDeclaration() {
 	fmt.Printf("slice = %v, cap(slice) = %d, len(slice) = %d", slice, cap(slice), len(slice))
 }
 func NilSliceComparison() {
-	slice := []int(nil) // len(slice) == 0, s == nil
+	slice := []int(nil) // len(slice) == 0, slice == nil
 
 	if slice == nil {
 		fmt.Fprintf(os.Stderr, "The error occured: slice is nil\n")
@@ -265,11 +276,10 @@ func MultipleAppend() {
 
 func PresenceOfUnusedSliceElements() {
 	// Creating a slice that has the underlying array
-	sl1 := make([]int, 0, 4)
-	sl1 = append(sl1, 10, 20, 30, 40)
+	sl1 := []int{10, 20, 30, 40}
 
 	// Creating another slice based on the first slice
-	sl2 := sl1[1:3]
+	sl2 := sl1[1:3] // 20, 30
 
 	fmt.Println("BEFORE ADDING")
 	fmt.Println("sl1:")
@@ -295,8 +305,6 @@ func PresenceOfUnusedSliceElements() {
 		fmt.Printf("address: %x | value: %d\n", unsafe.Pointer(&sl1[i]), sl1[i])
 	}
 
-	fmt.Println()
-
 	fmt.Println("sl2:")
 	fmt.Printf("len: %d | cap: %d | slice: %v\n", len(sl2), cap(sl2), sl2)
 	for i := 0; i < len(sl2); i++ {
@@ -305,19 +313,19 @@ func PresenceOfUnusedSliceElements() {
 }
 
 func RewritingElementsOfSlice() {
-	slice1 := make([]int, 5, 8)
-	slice2 := []int{1}
+	slice1 := make([]int, 5, 8) // { | 0, 0, 0, 0, 0 | { _, _, _ } }
+	var slice2 []int            // {  }
 	fmt.Println(unsafe.SliceData(slice1), slice1, len(slice1), cap(slice1))
 	fmt.Println(unsafe.SliceData(slice2), slice2, len(slice2), cap(slice2))
 	fmt.Println()
 
-	slice2 = append(slice1, 1, 1, 1)
-	slice1[0] = 10
+	slice2 = append(slice1, 1, 1, 1) // { | 0, 0, 0, 0, 0, 1, 1, 1 }
+	slice1[0] = 10                   // sl1: { | 10, 0, 0, 0, 0 | { _, _, _ } }, sl2: { | 10, 0, 0, 0, 0, 1, 1, 1 }
 	fmt.Println(unsafe.SliceData(slice1), slice1, len(slice1), cap(slice1))
 	fmt.Println(unsafe.SliceData(slice2), slice2, len(slice2), cap(slice2))
 	fmt.Println()
 
-	slice1 = append(slice1, 7)
+	slice1 = append(slice1, 7) // sl1: { | 10, 0, 0, 0, 0, 7 | { _, _ } }, sl2: { | 10, 0, 0, 0, 0, 7, 1, 1 }
 	fmt.Println(unsafe.SliceData(slice1), slice1, len(slice1), cap(slice1))
 	fmt.Println(unsafe.SliceData(slice2), slice2, len(slice2), cap(slice2))
 	fmt.Println()
@@ -348,7 +356,6 @@ func NonEmptySimple(strings []string) []string {
 
 func NonEmptyPlumpy(strings []string) []string {
 	s := strings[:0]
-	fmt.Println(s, len(s), cap(s))
 	i := 0
 	for _, str := range strings {
 		if str != "" {
@@ -463,9 +470,9 @@ func RotationLeftSingle(slice []int, n int) []int {
 	l := len(slice)
 	if l != 0 {
 		if n > 0 && n != l {
-			result := make([]int, l)
-			copy(result, slice[n:])
-			copy(result[l-n:], slice[:n])
+			result := make([]int, 0)
+			result = append(result, slice[n:]...)
+			result = append(result, slice[:n]...)
 			return result
 		} else if n < 0 {
 			return RotationRightSingle(slice, int(math.Abs(float64(n))))
@@ -482,9 +489,9 @@ func RotationRightSingle(slice []int, n int) []int {
 	if l != 0 {
 		if n > 0 && n != l {
 			n %= l
-			result := make([]int, l)
-			copy(result, slice[l-n:])
-			copy(result[n:], slice[:l-n])
+			result := make([]int, 0)
+			result = append(result, slice[l-n:]...)
+			result = append(result, slice[:l-n]...)
 			return result
 		} else if n < 0 {
 			return RotationLeftSingle(slice, int(math.Abs(float64(n))))
@@ -495,4 +502,110 @@ func RotationRightSingle(slice []int, n int) []int {
 	} else {
 		return nil
 	}
+}
+
+func EliminateAdjacentDuplicates(strings []string) []string {
+	if len(strings) > 1 {
+		// Managing index of a slice
+		index := 0
+		// Running through the slice and matching adjacent strings
+		for ; index < len(strings)-1; index++ {
+			if bytes.Equal([]byte(strings[index]), []byte(strings[index+1])) {
+				/*
+					Reslice the original slice according to the following logic:
+					Append all the data before the index of repeated element after this indice.
+				*/
+				strings = append(strings[:index], strings[index+1:]...)
+				// Get started from the index you removed
+				index--
+			}
+		}
+	}
+	return strings
+}
+
+func SquashSpaces(sequenceUTF8 []byte) []byte {
+	left := 0
+	right := 0
+
+	// Running through a bytes array
+	for right < len(sequenceUTF8) {
+
+		outerRune, outerSize := utf8.DecodeRune(sequenceUTF8[right:])
+
+		if !unicode.IsSpace(outerRune) {
+			for i := 0; i < outerSize; i++ {
+
+				sequenceUTF8[left] = sequenceUTF8[right]
+				left++
+				right++
+			}
+			continue
+		}
+		sequenceUTF8[left] = ' '
+		left++
+
+		for right < len(sequenceUTF8) {
+			innerRune, innerSize := utf8.DecodeRune(sequenceUTF8[right:])
+			if !unicode.IsSpace(innerRune) {
+				break
+			} else {
+				right += innerSize
+			}
+		}
+
+	}
+
+	sequenceUTF8 = sequenceUTF8[:left]
+	return sequenceUTF8
+}
+
+func SquashSpacesSimple(sequenceUTF8 []byte) []byte {
+	// Get a new pointer that is out of memory of the underlying array
+	sl := sequenceUTF8[:0]
+	// Get a string representation of a bytes array
+	str := string(sequenceUTF8)
+
+	// Create the counter of the elements what will be added
+	counter := 0
+	// Create a flag that will be restrict repeated space symbols adding
+	isSpace := false
+
+	for _, run := range str {
+		if !unicode.IsSpace(run) {
+			// Get some rune bytes
+			runeBytes := []byte(string(run))
+			// Rewrite the bytes of the underlying array
+			sl = append(sl, runeBytes...)
+			// Increment the counter
+			counter += len(runeBytes)
+
+			// Reverse the flag
+			isSpace = false
+		} else if !isSpace {
+			// Append the byte os the space
+			sl = append(sl, ' ')
+			// Increment the counter
+			counter++
+			// Reverse the flag
+			isSpace = true
+		}
+	}
+
+	// Cut up the result so that it won't have balderdash
+	sl = sl[:counter]
+	return sl
+}
+
+func ReverseUTF8(sequenceUTF8 []byte) []byte {
+	runes := []rune(string(sequenceUTF8))
+	return swapRunes(runes)
+}
+
+func swapRunes(runesSlice []rune) []byte {
+	l := len(runesSlice)
+	for i := 0; i < l/2; i++ {
+		runesSlice[i], runesSlice[l-1-i] = runesSlice[l-1-i], runesSlice[i]
+	}
+	return []byte(string(runesSlice))
 }

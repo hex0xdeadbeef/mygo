@@ -21,9 +21,15 @@ func Dup_First() {
 	}
 }
 
-func Dup_Second(fileNames ...string) {
+func countLines(file *os.File, counts map[string]int) {
+	input := bufio.NewScanner(file)
+	for input.Scan() {
+		counts[input.Text()]++
+	}
+}
+
+func Dup_Second(filesNames ...string) {
 	counts := make(map[string]int)
-	filesNames := fileNames
 
 	if len(filesNames) == 0 {
 		countLines(os.Stdin, counts)
@@ -90,7 +96,7 @@ func Dup_Second_Modified(filesNames ...string) {
 		for i, fileName := range filesNames {
 			file, err := os.Open(fileName)
 			if err != nil {
-				fmt.Printf("Dup: %v\n", err)
+				fmt.Fprintf(os.Stderr, "Error ocurred: file doen't exist")
 				continue
 			} else {
 				counts := make(map[string]int) // Creates an empty map
@@ -133,11 +139,4 @@ func mapUnion(mapOfMaps map[int]map[string]int) map[string]int {
 
 	fmt.Println()
 	return unionedMap
-}
-
-func countLines(file *os.File, counts map[string]int) {
-	input := bufio.NewScanner(file)
-	for input.Scan() {
-		counts[input.Text()]++
-	}
 }

@@ -30,27 +30,29 @@ func PrintHexOctDec() {
 }
 
 func RunePrinting() {
-	ascii := 'a'    // It's an int value that's an equivalent to a corresponding unicode code point
-	unicode := '当'  // It's an int value that's an equivalent to a corresponding unicode code point
-	newline := '\n' // It's an int value that's an equivalent to a corresponding unicode code point
-	fmt.Printf("%d %[1]c %#[1]q\n", ascii)
+	ascii := 'a'                           // It's an int value that's an equivalent to a corresponding unicode code point
+	unicode := '当'                         // It's an int value that's an equivalent to a corresponding unicode code point
+	newline := '\n'                        // It's an int value that's an equivalent to a corresponding unicode code point
+	fmt.Printf("%d %[1]c %#[1]q\n", ascii) // Verb "q" means that printed value will be surrounded with
+	// double quotes
 	fmt.Printf("%d %[1]c %#[1]q\n", unicode)
 	fmt.Printf("%d %[1]c %#[1]q\n", newline)
 }
 
-func MaxFloatsValues() {
+func MaxMinNonzeroFloatsValues() {
 	fmt.Printf("Float32 min value is: 2pow(%.5g) | max: 2pow(%.5g)\n", math.Log2(math.SmallestNonzeroFloat32), math.Log2(math.MaxFloat32))
 	fmt.Printf("Float64 min value is: 2pow(%.5g) | max: 2pow(%.5g)\n", math.Log2(math.SmallestNonzeroFloat64), math.Log2(math.MaxFloat64))
 }
 
 func Float32ErrorAccumulation() {
 	var f float32 = 16777216 // 2pow32 167,772,(16) the part in brackets is unreachable
-	var logF = math.Log(float64(f))
+	var logF = math.Log2(float64(f))
 	var fincr = f + 1 // Inspite of incrementing f, it's the same value, because the exponential part of both numbers
 	// serves only 6 digits after point
-	var logfincr = math.Log(float64(fincr))
+	var logfincr = math.Log2(float64(fincr))
 
 	fmt.Printf("f == fincr: %t | pows of two: %g & %g", f == fincr, logF, logfincr) // true
+	// The verb "t" is used for printing bool values
 }
 
 func ScientificFloatNotation() {
@@ -60,7 +62,7 @@ func ScientificFloatNotation() {
 
 func FloatVerbsForPrinting() {
 	for x := 0; x < 8; x++ {
-		fmt.Printf("x = %d, E^x = %8.3f\n", x, math.Exp(float64(x))) // 8 makes the right bound of printing numbers will
+		fmt.Printf("x = %d, E^x = %8.3g\n", x, math.Exp(float64(x))) // 8 makes the right bound of printing numbers will
 		// bind to
 	}
 }
@@ -69,7 +71,7 @@ func InfinitiesAndResultsOfDubiousOperations() {
 	var z float64
 	fmt.Println(z, -z, 1/z, -1/z, z/z) // 0, -0, +inf, -inf, Nan
 
-	fmt.Println(math.IsNaN(z/z), math.IsInf(1/z, 0), math.IsInf(-1/z, 0))
+	fmt.Println(math.IsNaN(z/z), math.IsInf(1/z, 0), math.IsInf(1/z, -1), math.IsInf(-1/z, 1))
 	// The entity is NaN if the mantissa isn't empty and exponential part is filled with 1
 	// The entity is (+/-) infinity if the mantissa is empty and exponential part is filled with 1
 }
@@ -81,7 +83,7 @@ func ComparisonWithNan() {
 	fmt.Println(nan == nan, nan > nan, nan < nan) // false, false, false
 
 	// With infinities the same trick works
-	fmt.Println(f/f == f/f, -f/f == -f/f) // false, false
+	fmt.Println(f/f == f/f, -f/f == f/-f) // false, false
 }
 
 func NanHandling() {

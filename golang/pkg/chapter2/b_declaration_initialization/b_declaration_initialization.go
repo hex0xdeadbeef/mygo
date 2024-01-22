@@ -28,13 +28,14 @@ func multipleDeclaration() {
 func InitializingWithFunctionCall() {
 	file, err := os.Open("text.txt")
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error occured")
 		os.Exit(1)
 		return
 	}
 
 	numberOfWrittenBytes, err := io.Copy(os.Stdout, file)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintf(os.Stderr, "Error occured")
 		os.Exit(1)
 	} else {
 		fmt.Println(numberOfWrittenBytes)
@@ -70,10 +71,10 @@ func shortDeclaringAsAssignment() {
 func shortDeclaringRepeat(fileName string) {
 	file, err := os.Open(fileName)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintf(os.Stderr, "Error occured")
 		os.Exit(1)
 	}
-	defer file.Close()
+	file.Close()
 	// file, err := os.Open(fileName) // There must be just assignment
 
 	// Like this
@@ -82,7 +83,7 @@ func shortDeclaringRepeat(fileName string) {
 }
 
 func DeclaringInInnerLexicalBlock(fileName string) {
-	// Outer variables (They will not be used in the inner scope, so we can redeclare the there)
+	// Outer variables (They will not be used in the inner scope, so we can redeclare them there)
 	var file *os.File
 	var err error
 	fmt.Printf("Old values: %s, %v\n", file, err)

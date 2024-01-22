@@ -15,5 +15,4 @@ func BenchmarkEchos(b *testing.B) {
 			function()
 		}
 	}
-
 }

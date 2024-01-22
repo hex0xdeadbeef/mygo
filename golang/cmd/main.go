@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	s "golang/pkg/chapter4/b_slices"
+	a "golang/pkg/chapter4/b_slices"
 )
 
 func main() {
-	sl := []int{1, 2, 3, 4, 5}
-	fmt.Println(s.RotationRightSingle(sl, -3))
+	fmt.Print(string(a.ReverseUTF8([]byte("異х異ф"))))
 }

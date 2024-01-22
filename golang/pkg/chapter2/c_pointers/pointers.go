@@ -82,7 +82,7 @@ func EmptyObjectsComparison() {
 		nanValue1 = math.NaN()
 		nanValue2 = math.NaN()
 
-		z float64
+		z float64 // This variable is used for infinities creation
 
 		slice1 = new([]int)
 		slice2 = new([]int)

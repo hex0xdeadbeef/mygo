@@ -31,11 +31,12 @@ func gettingSubstring() {
 	fmt.Println(str[:])   // "hello world"
 
 	/*Here might be a panic error as well*/
+	fmt.Println(str[:20])
 }
 
 func concatenation() {
 	str := "hello world"
-	fmt.Println("goodbye, " + str[5:]) // "goodbye, world"
+	fmt.Println("goodbye," + str[5:]) // "goodbye, world"
 }
 
 func StringComparison() {
@@ -63,8 +64,8 @@ func StringLiterals() {
 }
 
 func EscapeSequences() {
-	char1 := '\xaa' // Hex
-	char2 := '\377' // Octal
+	char1 := '\xaa'                                         // Hex
+	char2 := '\377'                                         // Octal
 	fmt.Printf("The characters are: %c %c\n", char1, char2) // ª ÿ
 	fmt.Printf("The runes are: %d %d\nx", char1, char2)     // 170 255 - Unicode points
 }
@@ -233,7 +234,6 @@ func IntsToString(values []int) string {
 	}
 	// buffer.WriteByte(']') // It converts the rune to byte implicitly
 	buffer.WriteRune(']') // It's preferable
-
 	return buffer.String()
 }
 
@@ -244,8 +244,7 @@ func IntegerCommaBuffer(number string) []byte {
 
 	// Write the bytes separated with commas in reverse order
 	for ; index >= 0; index-- {
-		buffer.Write([]byte(string(number[index])))
-
+		buffer.WriteByte(number[index])
 		if index != 0 && counter == 3 {
 			buffer.WriteByte(',')
 			counter = 0
@@ -253,19 +252,19 @@ func IntegerCommaBuffer(number string) []byte {
 
 		counter++
 	}
-
+	reverseBytes(buffer.Bytes())
 	// Reverse received byte slice
-	return reverseBytes(buffer.Bytes())
+	return buffer.Bytes()
 }
 
-func reverseBytes(byteSlice []byte) []byte {
+func reverseBytes(byteSlice []byte) {
 	// Take a length of the byte slice
 	l := len(byteSlice)
 	for i := 0; i < l/2; i++ {
 		// Swap elements
 		byteSlice[i], byteSlice[l-1-i] = byteSlice[l-1-i], byteSlice[i]
 	}
-	return byteSlice
+
 }
 
 func FloatCommaBuffer(number string) {
@@ -273,9 +272,9 @@ func FloatCommaBuffer(number string) {
 	var buffer bytes.Buffer
 
 	// Find the index of dot
-	dotByte := []byte(".")
+	dotByte := byte('.')
 
-	if dotIndex := bytes.Index([]byte(number), dotByte); dotIndex != -1 {
+	if dotIndex := bytes.IndexByte([]byte(number), dotByte); dotIndex != -1 {
 		// Separate the part before the dot with commas
 		left := IntegerCommaBuffer(number[:dotIndex])
 

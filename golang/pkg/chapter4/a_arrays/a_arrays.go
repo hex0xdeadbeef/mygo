@@ -24,8 +24,9 @@ elements are equal. The != operator is negation.
 5. When a function is called a copy of each argument value is assigned to the corresponding parameter variable, so the
 function receives a copy, not the original.
 
-6. Passing large arrays into a function is inefficient, because of copying is required. Also no changes will reflected
-on an original array. So that defeat this problem we can pass a pointer to an original array as a argument of a function.
+6. Passing large arrays into a function is inefficient, because of copying is required. Also no changes will be
+reflected on an original array. So that defeat this problem we can pass a pointer to an original array as a argument
+of a function.
 */
 
 func Intoduction() {
@@ -73,7 +74,7 @@ func SpecifyPairsArray() {
 	fmt.Printf("% v \n", symbol)  // Only symbols will be printed
 	fmt.Println(RMB, symbol[RMB]) // 3 ¥
 
-	r := [...]int{99: -1} // Array that has the length 99 and the last index has -1 value
+	r := [...]int{99: -1} // Array that has the length 99 and the last element will have the value -1
 	fmt.Printf("% d", r)
 
 }
@@ -102,7 +103,7 @@ func DigestsComparison() {
 		2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881 the digest(hash) of c1
 		4b68ab3847feda7d6c62c1fbcbeebfa35eab7351ed5e78f4ddadea5df64b8015 the digest(hash) of c2
 		false // the result of comparison of two arrays
-		[32]uint8 // Inspite of the initial type, the result type is [32]uint8 (byte is the alias of uint)
+		[32]uint8
 	*/
 
 }

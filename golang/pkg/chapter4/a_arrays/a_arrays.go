@@ -27,6 +27,8 @@ function receives a copy, not the original.
 6. Passing large arrays into a function is inefficient, because of copying is required. Also no changes will be
 reflected on an original array. So that defeat this problem we can pass a pointer to an original array as a argument
 of a function.
+
+7. Arrays can't contain itseld. Combined declaration for them is forbidden
 */
 
 func Intoduction() {

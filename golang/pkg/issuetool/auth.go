@@ -10,12 +10,13 @@ import (
 
 const (
 	validationURL       = "https://api.github.com/user"
-	githubTokenPrefix   = "ghp_"
+	classicPrefix       = "ghp_"
+	fineGrainedPrefix   = "github_pat_"
 	invalidSpaceSymbols = "\t\n\v\f\r \u0085\u00A0"
 )
 
 var (
-	testToken = "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"
+	testToken = ""
 )
 
 type User struct {
@@ -24,7 +25,9 @@ type User struct {
 
 func isTokenStyleValid(userInput string) (string, error) {
 	trimmedInput := strings.Trim(userInput, invalidSpaceSymbols)
-	if strings.HasPrefix(trimmedInput, githubTokenPrefix) && len(trimmedInput) < 50 {
+	if (strings.HasPrefix(trimmedInput, classicPrefix) ||
+		strings.HasPrefix(trimmedInput, fineGrainedPrefix)) &&
+		len(trimmedInput) < 400 {
 		return trimmedInput, nil
 	}
 

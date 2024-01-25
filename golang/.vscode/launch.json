@@ -9,7 +9,9 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "cmd/main.go"
+            "program": "cmd/main.go",
+            "stopOnEntry": false,
+
         }
         
 

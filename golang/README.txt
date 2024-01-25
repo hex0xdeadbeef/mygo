@@ -1,1 +1,1 @@
-It's my educational repos!
+It's my educational repo!

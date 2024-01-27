@@ -52,7 +52,7 @@ func (tockenChecker *TokenChecker) IsTokenValidForQuery() bool {
 
 func (tokenChecker *TokenChecker) isTokenStyleValid() bool {
 	if len(tokenChecker.token) != 0 &&
-		(strings.HasPrefix(tokenChecker.token, cfg.ClassicTokenPrefix) &&
+		(strings.HasPrefix(tokenChecker.token, cfg.ClassicTokenPrefix) ||
 			strings.HasPrefix(tokenChecker.token, cfg.FineGrainedPrefix)) &&
 		len(tokenChecker.token) < 100 {
 		return true

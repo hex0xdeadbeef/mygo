@@ -10,60 +10,61 @@ import (
 )
 
 /*
-1.The length is the part of an array type and it must be computable at compiling time
+1.The length is the part of an array type and it must be computated at compiling time
+	1) After declaring an array, it'll filled with zero elements of the corresponding type.
 
-2. We can match int keys (indices) with target type expicitly. Keys can be enumerator's value with int underlying type.
-The max value of indice defines a len of array.
+2. We can map int keys (indices) to values of the target type expicitly.
+	1) Due to the fact of mapping we can omit following the order of indices
 
-3.If elements of an array are comparable and theirs lengths (types are different [n]type and [m]type) have the same
-value, that's in itself is comparable => we can compare two arrays using == which reports whether all corresponding
-elements are equal. The != operator is negation.
+	2) Keys can be enumerator's value with int underlying type.
 
-4. %x verb allows to print all the elements of an array or slice of bytes in hexadecimal
+	3) The max value of indice defines a len of array.
+
+3. If elements of an array are comparable and theirs lengths too (types are different [n]type and [m]type) have the same
+value, that's in itself is comparable => we can compare two arrays using == which reports whether all corresponding elements
+are equal. The != operator is negation.
+
+4. %x verb allows to print all the elements of an array or slice of bytes in hexadecimal other verbs work as well.
 
 5. When a function is called a copy of each argument value is assigned to the corresponding parameter variable, so the
-function receives a copy, not the original.
+function receives a copy, not the original array.
 
 6. Passing large arrays into a function is inefficient, because of copying is required. Also no changes will be
-reflected on an original array. So that defeat this problem we can pass a pointer to an original array as a argument
-of a function.
+reflected on the original array. So that defeat this problem we can pass a pointer to the original array as an argument of a
+function.
 
-7. Arrays can't contain itseld. Combined declaration for them is forbidden
+7. Arrays can't contain itself. Combined declaration for them is forbidden.
 */
 
 func Intoduction() {
-	var a [3]int             // [ 0, 0 , 0]
-	fmt.Println(a[0])        // 0
-	fmt.Println(a[len(a)-1]) // 0
+	var a [3]int
+	fmt.Println(a[0])
+	fmt.Println(a[len(a)-1])
 
-	// Prints the indices and values
 	for index, value := range a {
 		fmt.Printf("index: %d \t| value: %d\n", index, value)
 	}
 
-	// Prints the values only
 	for _, value := range a {
 		fmt.Printf("value: %d\n", value)
 	}
 }
 
-// Initially arrays are filled with zero-values of a base type
 func ArrayLiteralInitialization() {
-	var q [3]int = [3]int{1, 2, 3} // [1, 2, 3]
-	var r [3]int = [3]int{1, 2}    // [1, 2, 0]
+	var q [3]int = [3]int{1, 2, 3}
+	var r [3]int = [3]int{1, 2}
 
-	fmt.Printf("q[2]: %d\t|r[2]: %d", q[2], r[2]) // 3 | 0
+	fmt.Printf("q[2]: %d\t|r[2]: %d", q[2], r[2])
 }
 
 func EllipsisInitialization() {
-	q := [...]int{1, 2, 3} // The length will be recongized based on an amount of literals
+	q := [...]int{1, 2, 3}
 	fmt.Printf("% d, ", q)
 }
 
 func SpecifyPairsArray() {
 	type Currency int
 
-	// It can be used as an index because of the underlying int type
 	const (
 		USD Currency = iota
 		EUR
@@ -71,27 +72,25 @@ func SpecifyPairsArray() {
 		RMB
 	)
 
-	// Each index is assigned to a string value
 	symbol := [...]string{USD: string('\U00000024'), EUR: string('\U000020AC'), GBP: string('\U000000A3'), RMB: string('\U000000A5')}
-	fmt.Printf("% v \n", symbol)  // Only symbols will be printed
-	fmt.Println(RMB, symbol[RMB]) // 3 ¥
+	fmt.Printf("% v \n", symbol)
+	fmt.Println(RMB, symbol[RMB])
 
-	r := [...]int{99: -1} // Array that has the length 99 and the last element will have the value -1
+	r := [...]int{99: -1}
 	fmt.Printf("% d", r)
 
 }
 
-// So that we can compare two arrays they must have: the same types, the same lengths
 func ArrayComparing() {
 	a := [2]int{1, 2}
 	b := [...]int{1, 2}
 	c := [2]int{1, 3}
 
 	// d := [3]int{1, 2}
-	fmt.Printf("a == b: %v\n", a == b) // true
-	fmt.Printf("b == c: %v\n", b == c) // false
-	// The following array has the different length unlike others ones => comparison is impossible
+	fmt.Printf("a == b: %v\n", a == b)
+	fmt.Printf("b == c: %v\n", b == c)
 	// fmt.Printf("a == d: %v", a == d) invalid operation: a == d (mismatched types [2]int and [3]int)
+
 }
 
 // If encoded input strings digests are equal, it's extremely likely that the to messages are the same
@@ -111,31 +110,27 @@ func DigestsComparison() {
 }
 
 func ZeroArray(pointer *[32]byte) {
-	// The pointer is just the beginning of an array
 	for i := range pointer {
 		pointer[i] = 0
 	}
 }
 
 func ZeroArraySimple(pointer *[32]byte) {
-	*pointer = [32]byte{} // We just assign the {0, ..., 0} array to *pointer
+	*pointer = [32]byte{}
 }
 
 func CountDifferentBits(firstInput, secondInput string) int {
-	// Get bytes for each input string
 	firstStringBytes, secondStringBytes := sha256.Sum256([]byte(firstInput)), sha256.Sum256([]byte(secondInput))
 
-	// Declare and initialize the result value of the different bytes amount
-	total := 0
+	countOfDifferentBits := 0
 
-	// Run through the arrays and count a current bytes difference amount summing total up
 	for i := 0; i < len(firstStringBytes); i++ {
-		total += int(
+		countOfDifferentBits += int(
 			math.Abs(
 				float64(countUsedBits(firstStringBytes[i])) - float64(countUsedBits(secondStringBytes[i]))))
 	}
 
-	return total
+	return countOfDifferentBits
 }
 
 func countUsedBits(b byte) int {
@@ -150,11 +145,9 @@ func countUsedBits(b byte) int {
 var shaPointer = flag.String("sha", "256", "choose hash flavor")
 
 func PrintDigest() {
-	// Read all flags
 	flag.Parse()
 
-	// Read user input
-	var userInput []string = os.Args[1:]
+	var userInput []string = os.Args[1:] // The first argument of the os.Args[] if an executable file
 
 	if len(userInput) != 0 {
 		switch *shaPointer {
@@ -168,7 +161,7 @@ func PrintDigest() {
 			for _, arg := range userInput[2:] {
 				fmt.Fprintf(os.Stdout, "| string: %s\t| hash: %x\n", arg, sha512.Sum512([]byte(arg)))
 			}
-		case "256":
+		default:
 			fmt.Fprintf(os.Stdout, "The sha256 hash(es) are:\n")
 			for _, arg := range userInput[2:] {
 				fmt.Fprintf(os.Stdout, "| string: %s\t| hash: %x\n", arg, sha256.Sum256([]byte(arg)))

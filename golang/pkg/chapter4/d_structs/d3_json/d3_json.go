@@ -7,7 +7,8 @@ import (
 )
 
 /*
-1. JSON (Java Script Object Notation) - is a standart notation for sending and receiving structured information
+1. JSON (Java Script Object Notation) - is a standart notation for sending and receiving structured information with HTTP(s)
+protocol(s)
 
 2. The basic JSON types are:
 	- Numbers (decimal or scientific notation)

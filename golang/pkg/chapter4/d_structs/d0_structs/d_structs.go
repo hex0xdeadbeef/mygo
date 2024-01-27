@@ -14,20 +14,24 @@ import (
 4. If the first letter of a field begins with an uppercase letter, the field can be exported, on the other hand if
 the field begins with a lowercase letter it's not exportable and accessible only within current package.
 
-5. Each fild can be accessed using dot notation. Due to this fact we can:
+5. Each field can be accessed using dot notation. Due to this fact we can:
 	1) Get a field value
+
 	2) Change the value of a field
+
 	3) Take a pointer of field
 
 6. Every object of a struct is just a part of memory with a particular size. Due to this fact we can make the
    following conclusions:
 		1) When we get an OBJECT POINTER of a struct we get a pointer to the memory area.
+
 		2) When we get an OBJECT FIELD POINTER we get the shifted pointer in the same memory area of this object.
+
 	! FROM THE HOOD THIS PROCESSES TAKE PALCE IN THE COMPILER LEVEL WHILE IT TRANSLATES YOUR CODE TO MACHINE CODE. !
 
-7. If we have a []StructType slice and put an object into it consequently passing the slice into a function that re-
-turns a pointer to StructType and change its field, we won't change the original object, because while appending or
-putting with slice[index] the object into []StructType, the slice will have the copy of the object.
+7. If we have a []StructType slice and put an object into it consequently passing the slice into a function that changes
+a field of an object and re- turns a pointer to that object, we won't change the original object, because while appending
+or putting with slice[index] the object into []StructType, the slice will have the copy of the object.
 	! TO DEFEAT THIS WE SHOULD CREATE AN []*StructType SLICE TO STORE THE LINKS TO THE ORIGINAL OBJECTS. !
 
 8. An aggregate type S can't contain the field of type S, since recursive struct declaration is forbidden.
@@ -36,19 +40,20 @@ putting with slice[index] the object into []StructType, the slice will have the 
 
 9. The zero value of a struct is composed of each zero value of its fields.
 
-10. There is the empty struct in Go. It may be useful when we're working with maps and need to emphasize, that only
-keys are relevant
+10. There is the empty struct in Go. It may be useful when we're working with maps and need to emphasize only keys are
+relevant
 
 11. There are two flavors of struct literals:
-	1) point := Point(1, 2), color.RGBA{red, green, blue, alpha}. This kind of literals is used when struct fields
-	are obvious. We should follow the order of fields during initialization.
+	1) point := Point(1, 2), color.RGBA{red, green, blue, alpha}.
+	This kind of literals is used when struct fields are obvious. We should follow the order of fields during initialization.
 
-	2) anim := gif.GIF{LoopCount : nframes}. Literals like this are used in the situations when a struct is more so-
-	phisticated. In this case we need'n take care of the order of fields because names are provided.
+	2) anim := gif.GIF{LoopCount : nframes}.
+	Literals like this are used in the situations when a struct is more sophisticated. In this case we need'n take care of
+	the order of fields because names are provided.
 
 	! IF AN FIELD ASSIGNMENT IS OMITTED, THIS FIELD WILL HAVE A CORRESPONDING TO IT ZERO VALUE !
 
-! THESE FORMS CAN'T BE COMBINED WITHIN A SINGLE LITERAL !
+	! THESE FORMS CAN'T BE COMBINED WITHIN A SINGLE LITERAL !
 
 	! WE CAN'T SNEAK AROUND THE RULE THAT UNEXPORTED LITERALS CAN'T BE REFFERED TO FROM ANOTHER PACKAGE USING THE
 	SECOND FORM OF A STRUCT LITERAL. UNEXPORTED FIELD WILL BE AVAILABLE TO WORKING WITH ONLY USING EMBEDDED METHODS. !
@@ -56,7 +61,7 @@ keys are relevant
 12. Struct values can be passed to functions and returned from them.
 	1) For efficiency programmers pass large structures as a pointer.
 
-	2) When struct object is passed to a function as a pointer, the rutine has a possibility of changing some object
+	2) When struct object is passed to a function as a pointer, the rutime has a possibility of changing some object
 	data.
 
 	3) There are two short forms of declaring struct pointers:
@@ -76,8 +81,8 @@ keys are relevant
 	2) Create inside the new structure an anonymous field of other structure (it's a field without name)
 		1) An anonymous field should be either StructureName or *StructureName !
 
-		2) Thanks to anonymous field we can refer to the names of fields/methods at the leaves of the implicit tree without giving the
-		interveining names. For example: rightWheel.X (it's a filed of the senior type "Point")
+		2) Thanks to anonymous field we can refer to the names of fields/methods at the leaves of the implicit tree without
+		giving the interveining names. For example: rightWheel.X (it's a filed of the senior type "Point")
 
 		3)
 		rightWheel := Wheel{Circle{Point{1, 2}, 10}, 15}
@@ -190,8 +195,8 @@ func GetFieldPointer() {
 	ChangeFieldWithPointer(managerIdPointer)
 	fmt.Printf("Bob's ManagerId field after changing it with a pointer: %d\n", Bob.ManagerId)
 }
-func ChangeFieldWithPointer(parameter *int) {
-	*parameter = rand.Intn(10e5)
+func ChangeFieldWithPointer(field *int) {
+	*field = rand.Intn(10e5)
 }
 
 func GetStructObjectPointer() {
@@ -297,7 +302,7 @@ func Scale(point Point, factor int) Point {
 }
 
 func Bonus(employee *Employee, percent int) int {
-	return employee.Salary * percent
+	return employee.Salary*percent - employee.Salary
 }
 
 // This function will work with a copy of a pointer -> it can modify the field of an object

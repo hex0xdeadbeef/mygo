@@ -2,7 +2,7 @@ package d1_sneakingsecondliteralform
 
 import (
 	"fmt"
-	a "golang/pkg/chapter4/d_structs/d0_structs"
+	a "golang/pkg/chapters/chapter4/d_structs/d0_structs"
 )
 
 func AttemptToSneakAroundRule() {

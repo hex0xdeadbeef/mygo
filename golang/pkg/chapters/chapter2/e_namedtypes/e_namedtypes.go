@@ -3,9 +3,9 @@ package e_namedtypes
 import (
 	"bufio"
 	"fmt"
-	"golang/pkg/chapter2/e_namedtypes/convertions/lengthconv"
-	"golang/pkg/chapter2/e_namedtypes/convertions/tempconv"
-	"golang/pkg/chapter2/e_namedtypes/convertions/weightconv"
+	"golang/pkg/chapters/chapter2/e_namedtypes/convertions/lengthconv"
+	"golang/pkg/chapters/chapter2/e_namedtypes/convertions/tempconv"
+	"golang/pkg/chapters/chapter2/e_namedtypes/convertions/weightconv"
 	"os"
 	"strconv"
 	"strings"

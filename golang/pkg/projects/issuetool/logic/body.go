@@ -283,7 +283,7 @@ func tokenValidation() error {
 }
 
 func methodValidation() error {
-	for existingMethod, _ := range methods {
+	for existingMethod := range methods {
 		if existingMethod == *method {
 			return nil
 		}

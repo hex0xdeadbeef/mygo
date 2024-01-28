@@ -11,5 +11,6 @@ func LoggerInit() *log.Logger {
 	if err != nil {
 		log.Fatal("Failed to open log file:", err)
 	}
-	return log.New(file, "[issuetool] ", log.Ldate|log.Ltime|log.Lmicroseconds)
+
+	return log.New(file, "- ", log.Ldate|log.Ltime)
 }

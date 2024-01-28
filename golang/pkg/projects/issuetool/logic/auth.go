@@ -19,44 +19,41 @@ func (tokenChecker *TokenChecker) getFormattedToken(inputToken string) string {
 	return strings.Trim(inputToken, cfg.SpaceCutSet)
 }
 
-func (tockenChecker *TokenChecker) IsTokenValidForQuery() bool {
-	if tockenChecker.isTokenStyleValid() {
-		Logger.Printf("While checking style error occured: %s\n", errors.New("invalid token style"))
-		return false
+func (tockenChecker *TokenChecker) IsTokenValidForQuery() error {
+	err := tockenChecker.isTokenStyleValid()
+	if err != nil {
+		return errors.New("invalid token style")
 	}
 
 	client := http.Client{}
 	tokenValidationRequest, err := http.NewRequest("GET", cfg.TokenValidationURL, nil)
 	if err != nil {
-		Logger.Printf("While creating request error occured: %s\n", err)
-		return false
+		return err
 	}
 
 	tokenValidationRequest.Header.Set("Authorization", "Bearer "+tockenChecker.token)
 
 	response, err := client.Do(tokenValidationRequest)
 	if err != nil {
-		Logger.Printf("While making request error occured: %s\n", err)
-		return false
+		return err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		Logger.Printf("Response status code: %s\n", response.Status)
-		return false
+		return errors.New(response.Status)
 	}
 
-	Logger.Printf("User was successfully authorized\n")
-	return true
+	Logger.Println("User was successfully authorized")
+	return nil
 }
 
-func (tokenChecker *TokenChecker) isTokenStyleValid() bool {
+func (tokenChecker *TokenChecker) isTokenStyleValid() error {
 	if len(tokenChecker.token) != 0 &&
 		(strings.HasPrefix(tokenChecker.token, cfg.ClassicTokenPrefix) ||
 			strings.HasPrefix(tokenChecker.token, cfg.FineGrainedPrefix)) &&
 		len(tokenChecker.token) < 100 {
-		return true
+		return nil
 	}
 
-	return false
+	return errors.New("no valid token")
 }

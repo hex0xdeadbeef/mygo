@@ -1,9 +1,9 @@
 package main
 
 import (
-	body "golang/pkg/projects/issuetool/logic"
+	o "golang/pkg/projects/c_ombdtool/logic"
 )
 
 func main() {
-	body.Execute()
+	o.Execute()
 }

@@ -1,0 +1,62 @@
+- 2024/01/29 20:52:53 Session created
+- 2024/01/29 20:52:53 USER DATA: 
+key: fa5d8s8f
+method: title
+method value: batman
+- 2024/01/29 20:52:53 401 Unauthorized
+- 2024/01/29 20:52:53 Session closed
+
+- 2024/01/29 20:52:59 Session created
+- 2024/01/29 20:52:59 USER DATA: 
+key: fa5d848f
+method: title
+method value: batman
+- 2024/01/29 20:52:59 info is written
+- 2024/01/29 20:53:00 poster is saved
+- 2024/01/29 20:53:00 Session closed
+
+- 2024/01/29 20:54:18 Session created
+- 2024/01/29 20:54:18 USER DATA: 
+key: fa5d848f
+method: title
+method value: batman2
+- 2024/01/29 20:54:19 info is written
+- 2024/01/29 20:54:19 Get "": unsupported protocol scheme ""
+- 2024/01/29 20:54:19 Session closed
+
+- 2024/01/29 20:54:26 Session created
+- 2024/01/29 20:54:26 USER DATA: 
+key: fa5d848f
+method: title
+method value: batman
+- 2024/01/29 20:54:26 info is written
+- 2024/01/29 20:54:26 poster is saved
+- 2024/01/29 20:54:26 Session closed
+
+- 2024/01/29 20:54:31 Session created
+- 2024/01/29 20:54:31 USER DATA: 
+key: fa5d848f
+method: title
+method value: spiderman
+- 2024/01/29 20:54:32 info is written
+- 2024/01/29 20:54:32 Get "N/A": unsupported protocol scheme ""
+- 2024/01/29 20:54:32 Session closed
+
+- 2024/01/29 20:55:51 Session created
+- 2024/01/29 20:55:51 USER DATA: 
+key: fa5d848f
+method: id
+method value: tt0111161
+- 2024/01/29 20:55:51 info is written
+- 2024/01/29 20:55:51 poster is saved
+- 2024/01/29 20:55:51 Session closed
+
+- 2024/01/29 20:56:49 Session created
+- 2024/01/29 20:56:49 USER DATA: 
+key: fa5d848f
+method: id
+method value: tt0068646
+- 2024/01/29 20:56:49 info is written
+- 2024/01/29 20:56:50 poster is saved
+- 2024/01/29 20:56:50 Session closed
+

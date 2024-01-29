@@ -1,9 +1,6 @@
 package main
 
-import (
-	o "golang/pkg/projects/c_ombdtool/logic"
-)
+import ()
 
 func main() {
-	o.Execute()
 }

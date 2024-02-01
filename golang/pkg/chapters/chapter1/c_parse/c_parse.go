@@ -53,11 +53,8 @@ func fetch_Uploading_Channel(url string, channel chan<- string) {
 	channel <- fmt.Sprintf("%.2fs %d %s", secs, numberOfWrittenBytes, url)
 }
 
-func fetch(urls ...string) {
+func Fetch(urls ...string) {
 	for _, url := range urls {
-		if !isHTTPPrefixed(url) {
-			addHTTPPrefix(&url)
-		}
 		response, err := http.Get(url)
 		if err != nil {
 			fmt.Println(err)
@@ -81,6 +78,7 @@ func fetch(urls ...string) {
 			os.Exit(1)
 		}
 	}
+
 }
 
 func isHTTPPrefixed(url string) bool {

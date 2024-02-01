@@ -1,0 +1,26 @@
+package e_functions
+
+import (
+	"fmt"
+	"math"
+)
+
+func hypot(x, y float64) float64 {
+	return math.Sqrt(x*x + y*y)
+}
+
+func singeTypeDeclaration(q, w, e, r, t, y int) int {
+	return q + w + e + r + t + y
+}
+
+func add(x, y int) int        { return x + y }
+func sub(x, y int) (z int)    { z = x - y; return }
+func first(x, int, _ int) int { return x }
+func zero(int, int) int       { return 0 }
+
+func PrintTypes() {
+	fmt.Printf("%T\n", add)
+	fmt.Printf("%T\n", sub)
+	fmt.Printf("%T\n", first)
+	fmt.Printf("%T\n", zero)
+}

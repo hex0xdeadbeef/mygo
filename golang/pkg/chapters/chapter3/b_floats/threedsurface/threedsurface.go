@@ -85,7 +85,7 @@ func getSurface(writer http.ResponseWriter, request *http.Request) {
 }
 
 // Find points to be reflected on 2D canvas
-func corner(i, j int) (float64, float64) {
+func corner(i, j int) (a float64, b float64) {
 	// Find point (x,y) at corner of cell (i,j)
 	x := xyrange * (float64(i)/float64(cells) - 0.5)
 	y := xyrange * (float64(j)/float64(cells) - 0.5)
@@ -97,9 +97,9 @@ func corner(i, j int) (float64, float64) {
 	}
 
 	// Project (x,y,z) isometrically onto 2-D SVG canvas (sx, sy)
-	sx := float64(width/2) + (x-y)*cos30*xyscale
-	sy := float64(height/2) + (x+y)*sin30*xyscale - z*zscale
-	return sx, sy
+	a = float64(width/2) + (x-y)*cos30*xyscale
+	b = float64(height/2) + (x+y)*sin30*xyscale - z*zscale
+	return
 }
 
 // Find the z respective coorditate

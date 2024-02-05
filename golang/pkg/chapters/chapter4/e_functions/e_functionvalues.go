@@ -34,7 +34,7 @@ func FunctionAssigning() {
 func NilFunction() {
 	var foo func(int) int
 	// foo(3) /* "runtime error: invalid memory address or nil pointer dereference" */
-	fmt.Println(foo) // nil
+	fmt.Println(foo) /* nil */
 }
 
 func NilFunctionComparing() {
@@ -103,7 +103,6 @@ func applyToEachNode(node *html.Node, id string, pre, post func(*html.Node, stri
 
 func startElement(node *html.Node) {
 	if node.Type == html.ElementNode {
-		fmt.Print(depth)
 		fmt.Printf("%*s<%s>\n", depth*2, "", node.Data)
 		depth++
 	}
@@ -111,9 +110,7 @@ func startElement(node *html.Node) {
 func endElement(node *html.Node) {
 	if node.Type == html.ElementNode {
 		depth--
-		fmt.Print(depth)
 		fmt.Printf("%*s<%s>\n", depth*2, "", node.Data)
-
 	}
 }
 
@@ -128,7 +125,6 @@ func headElement(node *html.Node) {
 		}
 	}
 	if (node.Type == html.TextNode ||
-		node.Type == html.DoctypeNode ||
 		node.Type == html.CommentNode ||
 		node.Type == html.DoctypeNode) && strings.Trim(node.Data, "\t\n\v\f\r \u0085\u00A0") != "" {
 		fmt.Printf("%*s%s\n", depth*2, "", node.Data)

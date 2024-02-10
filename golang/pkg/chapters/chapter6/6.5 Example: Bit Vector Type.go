@@ -21,7 +21,7 @@ type IntSet struct {
 /*
 String returns a string representation of bitset
 */
-func (s *IntSet) String() string {
+func (s IntSet) String() string {
 	var buf bytes.Buffer
 
 	buf.WriteByte('{')

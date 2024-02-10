@@ -20,8 +20,8 @@ const (
 type Celsius float64 // This is the "Named Type"
 type Farenheit float64
 
-func (c Celsius) String() string {
-	return fmt.Sprintf("%g*C", c)
+func (c *Celsius) String() string {
+	return fmt.Sprintf("%g*C", *c)
 }
 
 func (f Farenheit) String() string {

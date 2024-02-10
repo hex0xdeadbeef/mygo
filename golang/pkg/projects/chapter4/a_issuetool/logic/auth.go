@@ -2,7 +2,7 @@ package issuetool
 
 import (
 	"errors"
-	cfg "golang/pkg/projects/a_issuetool/config"
+	cfg "golang/pkg/projects/chapter4/a_issuetool/config"
 	"net/http"
 	"strings"
 )

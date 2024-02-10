@@ -5,13 +5,13 @@ FUNCTIONS-----------------------------------------------------------------------
 1. Function results may be also named. In this case, each name declares a local variable initialized to the zero value
 of its type.
 
-2. We can omit type declaration for each parameter substitution it with the single right type declaration
+2. We can omit type declaration for each parameter with substitution it with the single right type declaration
 
 3. A blank parameter "_" may be used to emphasize that a parameter is unused.
 
 4. The type of functions is also called as signature. Two functions have the same type if they have the same sequence
-of parameter types and the same sequence of result types. The names of parameters and results don't affect the type,
-nor does whether or not they were declared using factored form.
+of parameter types and the same sequence of result types, put another way, they have the same signature. The names of parameters and
+results don't affect the type, nor does whether or not they were declared using factored form.
 
 5. Parameters are local variables within the body of the function, with their initial values set to the arguments sup
 plied by the caller.
@@ -20,13 +20,13 @@ plied by the caller.
 affect the caller.
 ! If an argument has some arguments contain some kind of reference, like a pointer, slice, map, function or channel,
 then the caller may be affected by any modifications the function makes to variables indirectly referred to by the ar
-gument
+gument, BUT WE CANNOT REDIRECT THE CALLER'S INITIAL LINK BY REDIRECTION THE PARAMETER !
 
 7. If a function hasn't got a body, it means that it's implemented in a language other than Go:
 	func Sin(x float64) float64 - implemented in assembly language
 
 8. Call stack size is running from 64 KB to 2MB.
-! Go uses variable-size stacks that start small and grow as needed up to a limit on the order of a gigabyte.
+! Go uses variable-size stack that start small and grow as needed up to a limit on the order of a gigabyte.
 
 9. A function can return more than one result.
 	1) The result of calling a multiple-valued function is a tuple and it must be explicitly assigned to variables.
@@ -54,7 +54,7 @@ ERROR HADNLING------------------------------------------------------------------
 should be handled by a caller.
 
 5. Error handling flavors are:
-	1) Propagating the error, so that a failure in a subroutine becomes a failure of the calling routine. If the subroutine
+	1) Propagating the error up, so that a failure in a subroutine becomes a failure of the calling routine. If the subroutine
 	with failure doesn't provide sufficient information, we need to add descriptive information to an error and return it.
 	Also we must create a chain of errors from "the depths to the surface".
  		! DUE TO CHAINED ERRORS HANDLING ERRORS SHOULDN'T BE CAPITALIZED AND NEWLINES SHOULD BE AVOIDED !
@@ -72,7 +72,7 @@ should be handled by a caller.
 		3) Time spent trying before giving up entirely
 
 	Finally if progress is impossible, the caller can print the error and stop the program gracefully. But this course of
-	action should generally be reserved for the main package of a program (in particular int the main function.
+	action should generally be reserved for the main package of a program (in particular int the main function).
 
 	! LIBRARY FUNCTIONS SHOULD USUALLY PROPAGATE ERRORS TO THE CALLER, UNLESS THE ERROR IS A SIGN OF AN INTERNAL
 	INCONSISTENCY !
@@ -120,8 +120,7 @@ FUNCTION VALUES-----------------------------------------------------------------
 	1) We can't compare functions
 	2) We can't put functions into a map as keys
 
-7. Functions let us to parameterize our functions over not just data, but behavior too. It allows us to separate portions
-of logic.
+7. Functions let us parameterize our functions over not just data, but behavior too. It allows us to separate portions of logic.
 
 8."%*s" verb is used to indent the output using "*" argument to set a symbols count and "%s" as a symbol to be indented with.
 
@@ -130,16 +129,16 @@ ANONYMOUS-----------------------------------------------------------------------
 
 2. Every function isn't just a code. The function has a state.
 
-3. When we return a function from another one, the result function saves inner function state. So, with a call
+3. When we return a function from another one, the result function has the inner function memory pool. So, with a call
 of returned function we can change the state of parent's function.
 
 4. When an anonymous fuction requires the recursion call to itself, we must declare it before assigning. In this
-case trying to combine these two steps in a single one the compiler tries to detect the named function thoughout a
+case trying to combine these two steps in a single one, the compiler tries to detect the named function throughout a
 source file and due to the fact of impossibility of this action the compiler marks the statement as an error.
 
 CAPTURING LOOPS VARIABLE-------------------------------------------------------------------------------------------------------------------------
 1. When we capture a particular variable within another function, in fact we force the recepient function to
-refer to the local memory pool. Due to this fact while capturing iterable variable we must assign this variable
+refer to the local memory pool. Due to this fact while capturing iterable variables we must assign its value
 to another new variable with shorthand in order to create another mempool and our function refers to it.
 
 VARIADIC FUNCTIONS--------------------------------------------------------------------------------------------------------------------------------------------
@@ -147,11 +146,11 @@ VARIADIC FUNCTIONS--------------------------------------------------------------
 
 2. An variadic argument implies the slice of arguments.
 
-3. In the case when arguments are passed directly the following actions happen.
+3. In the case when arguments are passed directly the following actions happen:
+	Implicitly, the caller allocates an array, copies the arguments into it, and passes a slice of the entire array to the
+	function.
 
-Implicitly, the caller allocates an array, copies the arguments into it, and passes a slice of the entire array to the
-function.
-4. When arguments are already placed in slice: place an ellipsis after the final argument.
+4. When arguments are already placed in slice: we should place an ellipsis after the argument when calling the variadic function.
 
 5. Although a variadic argument behaves like a slice within the body of the function the type of a function with this
 parameter is different from the function with an explicit slice parameter.
@@ -173,21 +172,21 @@ sfully acquired.
 6. We should remember about extra parentheses after the declared deferred function.
 
 7. If we defer the function that returns another one, the body of first function will be executed and
-on the other hand the result will be deferred.
+consequently the returned function will be deferred.
 
-8. Deferred functions run AFTER return statement
+8. Deferred functions run AFTER return statement in the reverse order they were deferred.
 
-9. Deferred anonymous function can observe the function's named results. It may be useful in functions
+9. Deferred anonymous function can observe and change the function's named results. It may be useful in functions
 with many return statements.
 
 10. Deferred functions can even change the values that the ecnlosing function returns to its caller.
 
-11. Before deferring the values that interact with a loop variable we should fix a the loop variable in order to capture
-a new one mempool.
+11. Before deferring the values that interact with a loop variable within a function we should fix the loop variable in order to capture
+a new one mempool by assignment its value to the new variable.
 
-12. While working with some files opening them into a loop scope and deferring their closing in the same place, we can run
+12. While working with some files opening them in a loop scope and deferring their closing within a function in the same place, we can run
 out of all the file descriptors. To defeat this exhaustion we should enclose all work with file in a function.
-	1) A file descriptor is a number a system uses to make an identification of an opened file.
+	1) A file descriptor is a number the system uses to make identification of an opened file.
 	! THE DEFAULT NUMBER OF SIMULTANEOUS OPENED FILE DESCRIPTORS IS 1024 ON THE UNIX/LINUX SYSTEMS !
 
 13. The io.Copy() function postpones any copying errors until the file is closed, so we should explicitly close the file and
@@ -199,7 +198,7 @@ PANIC---------------------------------------------------------------------------
 2. Panic steps:
 	1) The execution stops.
 	2) All the deferred function calls in that goroutine are executed.
-	3) The program crashes witg a log message. This value is usually an error message of some sort, and for
+	3) The program crashes with a log message. This value is usually an error message of some sort, and for
 	each goroutine, a stack trace showing the stack of function calls that were active at the time of panic.
 
 3. Not all panics come from the runtime.
@@ -218,7 +217,7 @@ on the stack and proceeding up to main.
 8. It's possible for a function to recover from a panic so that it doesn't terminate the program.
 
 9. For diagnostic purposes the runtime package lets the programmer dump the stack using the same machinery. By
-deferring a call to printStack in main.
+deferring a call to printStack() in main.
 
 10. Go's panic mechanism runs the deferred functions before it unwinds the stack.
 

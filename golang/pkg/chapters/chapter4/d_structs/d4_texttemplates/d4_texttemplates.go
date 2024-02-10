@@ -4,7 +4,6 @@ import (
 	"golang/pkg/chapters/chapter4/d_structs/d3_json/github"
 	h "html/template"
 	"log"
-	"net/http"
 	"os"
 	t "text/template"
 	"time"
@@ -21,7 +20,7 @@ import (
 3. Producing output with a template is a two-step process.
 	1) We must parse the template into a suitable internal representation.
 	2) Execute specific inputs.
-4. Template creation methods chain
+4. Template creation methods chain is:
 	1) "template.New" creates and returns a template
 	2) "Funcs" adds all the provided functions to the set of functions accessible within this template
 	3) "Parse" is called on the result
@@ -78,9 +77,8 @@ var (
 						<tr>
 							<td><a href='{{.HTMLURL}}'>{{.Number}}</td>
 							<td>{{.State}}</td>
-							<td><a href='{{.User.HTMLURL}}'>{{.User.Login}}</a>
-						</td>
-						<td><a href ='{{.HTMLURL}}'>{{.Title}}</a></td>
+							<td><a href='{{.User.HTMLURL}}'>{{.User.Login}}</a></td>
+							<td><a href ='{{.HTMLURL}}'>{{.Title}}</a></td>
 						</tr>
 						{{end}}
 						</table>
@@ -133,21 +131,4 @@ func StringAndHTMLTemplate() {
 	if err := t.Execute(os.Stdout, data); err != nil {
 		log.Fatal(err)
 	}
-}
-
-const (
-	bugReportsURL = "https://github.com/"
-)
-
-func GetBugReports() {
-	request, err := http.NewRequest("GET", bugReportsURL, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	response, err := http.DefaultClient.Do(request)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer response.Body.Close()
 }

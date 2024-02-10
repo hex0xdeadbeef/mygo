@@ -2,7 +2,7 @@ package logger
 
 import (
 	"errors"
-	cfg "golang/pkg/projects/b_xkcdtool/config"
+	cfg "golang/pkg/projects/chapter4/b_xkcdtool/config"
 	"log"
 	"os"
 )

@@ -160,7 +160,7 @@ applications it's convinient to define the logic for each case in a separate fun
 For these reasons "net/http" provides ServeMux (request multiplexer), to simplify the association between URLs and handlers.
 	1) ServeMux aggregates a collection of http.Handler into a single http.Handler.
 
-	2) So that we can pass the function/method we should explicitly convert it with http.HandleFunc() so that it satisfies the http.Handler
+	2) So that we can pass a function/method we should explicitly convert it with http.HandleFunc() so that it satisfies the http.Handler
 	interface.
 		type HandlerFunc func(w ResponseWriter, r *Request)
 
@@ -189,7 +189,267 @@ For these reasons "net/http" provides ServeMux (request multiplexer), to simplif
 
 6. We can pass errors messages to a client using fmt.Fprintf(responseWriter, format, ...).
 
-7. There's the equal to 5+6 steps function:Error(w ResponseWriter, error string, code int). It sets the header, writes a given message to the client side.
+7. There's the equal to 5+6 steps function: Error(w ResponseWriter, error string, code int). It sets the header, writes a given message to the client side.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+7.8 THE error INTERFACE---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. The error is just an interface type with a single method that returns an error message.
+	type error interface {
+		Error() string
+	}
+
+2. The simplest way to create an error is by calling errors.New(), which returns a new error for a given error message.
+
+3.
+package error
+
+func New(text string) error { return &errorString{text} }
+
+type errorString struct {
+	text string
+}
+
+func (e *errorString ) Error() string {
+	return e.text
+}
+
+	1) The underlying type of errorString is a struct, not a string, to protect its representation from inadvertent(or premediated) updates
+	2) The reason of the pointer type *errorString satisfies the error interface so that every call to New allocates a distinct error instance
+	that is equal to no other.
+
+4. Calls to errors.New is relatively infrequent because there's a convenient wrapper function: fmt.Errorf() that does string formatting too.
+	package fmt
+
+	import "errors"
+
+	func Errorf(format string, args ... interface{}) error {
+			return errors.New(Sprintf(format, args...))
+	}
+
+5. "syscall" package provides Go's low-level system call API. It provides programmers with system errors as well. It defines a numeric type
+"Errno" that satisfies error interface, and on Unix platforms, Errno's Error() method does a lookup in a table of strings.
+
+6. Errno is an efficient representation of system call errors drawn from a finit set, and it satisfies the standart error interface.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+7.9 THE error INTERFACE---------------------------------------------------------------------------------------------------------------------------------------------------------------
+CHECK THE CODE
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+7.9 TYPE ASSERTIONS---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. An assertion is an operation applied to an interface value. Syntactically it looks like x.(T) where "x" is an expression of
+an interface type and "T" is a type called the "asserted" type.
+
+2. A type assertion checks that the dynamic type of its operands matches the asserted type. There are two possibilities:
+	1) If the asserted type "T" is a concrete type, then the type assertion checks whether x's dynamic type is identical to T.
+		1) If this check succeeds, the result of the type assertion is x's dynamic value, whose type is of course T.
+		2) If this check fails, then the operation panics.
+
+	2) If instead the asserted type T is an interface type, then the type assertion checks wheter x's dynamic type satisfies T.
+		1) If this check succeeds, the dynamic value isn't extracted. The result is still an interface value with the same type and
+		value components, but the result has the interface type T.
+		In other words, a type assertion to an interface type changes the type of the expression, making a different (and usually larger)
+		set of methods accessible, but it preserves the dynamic type and value components inside the interface value.
+
+		2) No matter what type was asserted, if the operand is a nil interface value, the type assertions fails.
+
+		3) A type assertion to a less restrictive interface type (one with fewer methods) is rarely needed, as it behaves just like
+		an assignment, except the nil case ( 2) )
+
+3. Often we're not sure of the dynamic type of an interface value, and we'd like to test whether it's some particular type. So that
+check the validity of a type we use the following logic:
+
+	var w io.Writer = os.Stdout
+	f, ok := w.(*os.File) // success: ok, f == os.Stdout
+	b, ok := w.(*bytes.Buffer) // failure: !ok, b == nil
+
+if the test is passed, "ok" is given true and the left side variable is accepted the dynamic value and the type of an interface variable, otherwise
+the "ok" variable takes false and the left side variable turns into nil value.
+	1) The second result is conventionally assigned to a variable named "ok"
+
+	2) The result is often immediately used to decide what to do next. The extended form of the if statement makes this quiet compact.
+
+	3) When the operand of a type assertion is a variable, rather than invent another name for the new local variable, you'll sometimes
+	see the original name reused, shadowing the original.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+7.11 DISCRIMINATING ERROR WITH TYPE ASSERTIONS---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. The "os" package defines a type called "PathError" to describe failures involving an operation on a file path, like open or delete
+and a variant called LinkError to desctibe failures of operations involving two file paths.
+	package os
+	type PathError struct {
+		Op string
+		Path string
+		Err error
+	}
+
+	func (e *PathError) Error() string {
+		return e.Op + " " + e.Path + ": " + e.Err.Error()
+	}
+
+2. Clients that need to distinguish one kind of failure from another can use a type assertion to detect the specific of the error. The
+specific type provides more detail than a simple string.
+
+3. Error discrimination must usually be done immediately after the failing operation, before an error is propagated to the caller.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+7.12 QUERYING BEHAVIORS WITH INTERFACE TYPE ASSERTIONS---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. Consider we have a consumer that has a crate which can be filled with a data using method of the interface io.Writer or any else,
+but the parameter of enclosing function is io.Writer that only has the method Write:
+
+	Wtite(p []byte) (n int, err error)
+
+but we want put the strings into the crate because conversion from a string to the corresponding byte slice isn't efficient because of
+allocating new data and copying it. And the argument has the method WriteString(s string). What should we do in order to avoid the tem
+porary copying?
+
+2. We cannot assume that an arbitrary io.Writer "w" also has the WriteString() method, but we can create the new interface that has only
+the method WriteString() and use assertion to test whether the dynamic type of "w" satisfies this new interface.
+
+3. The technique above relies on the assumption that IF a type satisfies the interface below, THEN WriteString(s) must have the same
+effect as Write([]byte(s))
+	interface {
+		io.Write
+		WriteString(s string) (n int, err error)
+	}
+
+4. Assumption like the above one should be documented properly, so that clients won't be confused.
+
+5. The WriteString() function above uses a type assertion to see whether a value of a general interface type also satisfies a more
+specific interface type, and if so, it uses the behaviors of the specific interface. It's the same how fmt.Fpringf distinguishes va
+lues that satisfy error or fmt.Stringer from all other values. Within fmt.Fprintf, there's a step that converts a single operand to
+a string, something like this:
+
+	package fmt
+
+	func formatOneValue(x interface{}) string {
+		if err, ok := x.(Stringer); ok {
+			return str.String()
+		}
+		...
+	}
+
+5. To avoid repeating ourselves we can move the check into the utility function.
+
+6. The standart library provides the function io.WriteString() and it's recommended way to write a string to an io.Writer.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+7.13 TYPE SWITCHES---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. Interfaces are used in two distinct styles:
+
+	SUBTYPE POLYMORPHISM
+	1) THE METHODS EMPHASIS. Interfaces express the similarities of the concrete types that satisfy the interface but hide
+	the representation details and intrinsic operations of those concrete types.
+
+	AD HOC POLYMORPHISM
+	2) THE ARBITRARY TYPES HOLDING EMPHASIS. The second style exploits the ability of an interface values to hold values of a variety
+	of concrete type and considers the interface to be the union of those types. Type assertions are used to discriminate among these
+	types dynamically and treat each case differently. In this case, the emphasis is on the concrete types that satisfy the interface,
+	not on the interface's methods (if indeed it has any), and there's no hiding of information. These interfaces are called as "disc-
+	riminated unions"
+
+2. Instead of the consequent checks in "if" statements we can switch of the values of interface{} function parameter. It simplifies
+an if-else chain that performs a series of value equality tests. An analogous "type switch" statement simplifies an if-else chain of
+type assertions.
+	1) x.(type) - that's literally the keyword type
+	2) Each case has one or more types.
+	3) A type switch enables a multi-way branch based on the interface value's dybamic type.
+	4) The nil case matches if x == nil
+	5) default case matches if no other case does.
+
+3. As with an ordinary switch statement, cases are considered in order and, when a match is found, the case's body is executed.
+
+4. Case order becomes significant when one or more case types are interfaces, since the there's a possibility of two cases matching.
+
+5. The position of the "default" case relative to the others is immaterial.
+
+6. No fallthrough is allowed.
+
+7. We can extend the switch statement in the situation when we need the value of a parameter to be processed. The extension is:
+	switch x := x.(type) {
+		...
+	}
+
+	1) In this case we reuse "x" name to use it in switch statement. Because a switch implicitly creates a new lexical block the decla
+	ration of the new variable called x doesn't conflict with a variable x in an outer block.
+
+	2) Each case also implicitly creates a separate lexical block.
+
+	3) In this version, within the block of each single-type case, the variable x has the same type as the case.
+
+8. Although the type of x is interface{}, we consider it a discriminated union of the types are placed in cases.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+7.14 EXAMPLE: TOKEN-BASED XML DECODING---------------------------------------------------------------------------------------------------------------------------------------------------------------
+XML - Extensible Markup Language
+
+The example of XML data:
+<bookstore> // <Name>
+    <book category="cooking"> <Name Attr.Name = Attr.Value>
+        <title lang="en">Everyday Italian</title>
+        <author>Giada De Laurentiis</author>
+        <year>2005</year>
+        <price>30.00</price>
+    </book>
+    <book category="children">
+        <title lang="en">Harry Potter</title>
+        <author>J.K. Rowling</author>
+        <year>2005</year>
+        <price>29.99</price>
+    </book>
+</bookstore>
+
+package xml
+
+type Name struct {
+	Local string // e.g. "Title", "id"
+}
+
+type Attr struct { // e.g. name="value"
+	Name Name
+	Value string
+}
+
+type Token interface{} // includes StartElement, EndElement, CharData and Comment
+
+type StartElement struct { // e.g. <name>
+	Name Name
+	Attr []Attr
+}
+
+type EndElement struct { // e.g. </name>
+	Name Name
+}
+
+type CharData []byte // <p>CharData</p>
+
+type Comment []byte // e.g. <!-- Comment -->
+
+type Decoder struct { ... }
+
+func NewDecoder(io.Reader) *Decoder
+func (*Decoder) Token() (Token, error) // returns next Token in sequence
+
+1. The "encoding/xml" package proved a similar to the "encoding/json" API. This API is convenient when we want to construct a
+representation of the document tree, but that's unnecessary for many programs.
+
+2. The "encoding/xml" package also provides a lower-level token-based API for decoding XML. In the token-based style, the parser con
+sumes the input and produces a stream of tokens, primarily of four kinds: "StartElement", "EndElement", "CharData", "Comment".
+
+3. Each call to (*xml.Decoder).Token returns a token.
+
+4. The "Token" interface, which has no methods, is also an example of a descriminated union.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 */

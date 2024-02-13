@@ -2,45 +2,27 @@ package threedsurface
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"net/http"
-	"os"
-	"strconv"
-	"strings"
 )
 
 var (
-	width, height        = 600, 320                     // canvas size in pixels
-	cells                = 100                          // number of grid
-	xyrange              = 30.0                         // axis ranges (-xyrange...+xyrange)
-	xyscale              = float64(width) / 2 / xyrange // pixels per x or y unit
-	zscale               = float64(height) * 0.4        // pixels per z unit
-	angle                = math.Pi / 6                  // angle of x, y axes (=30*)
-	sin30, cos30         = math.Sin(angle), math.Cos(angle)
-	fuction       string = "sin"
+	width, height = 600, 320                     // canvas size in pixels
+	cells         = 100                          // number of grid
+	xyrange       = 30.0                         // axis ranges (-xyrange...+xyrange)
+	xyscale       = float64(width) / 2 / xyrange // pixels per x or y unit
+	zscale        = float64(height) * 0.4        // pixels per z unit
+	angle         = math.Pi / 6                  // angle of x, y axes (=30*)
+	sin30, cos30  = math.Sin(angle), math.Cos(angle)
+	function      func(x, y float64) float64
 )
 
-func getSurface(writer http.ResponseWriter, request *http.Request) {
-	parameters := request.URL.Query()
+func GetSurface(writer http.ResponseWriter, fn func(x, y float64) float64) {
 
-	// Initialize request parameters
-	for parameter := range parameters {
-		switch parameter {
-		case "height":
-			parseNumberParameter(parameters[parameter][0], &height)
-		case "width":
-			parseNumberParameter(parameters[parameter][0], &width)
-		case "function":
-			parseStringParameter(parameters[parameter][0])
-		default:
-			break
-		}
-	}
+	function = fn
 
 	// Write type of content we'll write
 	writer.Header().Set("Content-Type", "image/svg+xml")
-
 	// Set the scale factor (adjust as needed)
 	scale := 1.0
 
@@ -68,10 +50,10 @@ func getSurface(writer http.ResponseWriter, request *http.Request) {
 			dy *= scale
 
 			// Calculate average height for the polygon
-			h1, _ := findZCoordinate(fuction, ax, ay)
-			h2, _ := findZCoordinate(fuction, bx, by)
-			h3, _ := findZCoordinate(fuction, cx, cy)
-			h4, _ := findZCoordinate(fuction, dx, dy)
+			h1 := function(ax, ay)
+			h2 := function(bx, by)
+			h3 := function(cx, cy)
+			h4 := function(dx, dy)
 			avgHeight := (h1 + h2 + h3 + h4) / 4
 
 			// Map the height to a color from blue to red
@@ -91,43 +73,12 @@ func corner(i, j int) (a float64, b float64) {
 	y := xyrange * (float64(j)/float64(cells) - 0.5)
 
 	// Compute surface height z
-	z, err := findZCoordinate(fuction, x, y)
-	if err != nil {
-		return 0, 0 // handle the error, for now, just return (0, 0)
-	}
+	z := function(x, y)
 
 	// Project (x,y,z) isometrically onto 2-D SVG canvas (sx, sy)
 	a = float64(width/2) + (x-y)*cos30*xyscale
 	b = float64(height/2) + (x+y)*sin30*xyscale - z*zscale
 	return
-}
-
-// Find the z respective coorditate
-func findZCoordinate(f string, x, y float64) (float64, error) {
-	r := math.Hypot(x, y) // distance from (0, 0)
-	var result float64
-
-	switch f {
-	case "sin":
-		result = math.Sin(r) / r
-	case "cos":
-		result = math.Cos(r) / r
-	case "tan":
-		result = math.Tan(r) / r
-	case "atan":
-		result = math.Atan(r) / r
-	case "sin^2":
-		result = math.Pow(math.Sin(r), 2) / r
-	case "cos^2":
-		result = math.Pow(math.Cos(r), 2) / r
-	case "sin*cos":
-		result = math.Cos(r) * math.Sin(r) / r
-	}
-
-	if math.IsInf(result, 0) {
-		return 0, fmt.Errorf("invalid result for z coordinate")
-	}
-	return result, nil
 }
 
 // Returns the color that depends on the height
@@ -139,40 +90,4 @@ func colorMap(height float64) string {
 	g := 0                                 // Green component (you can customize this)
 
 	return fmt.Sprintf("#%02x%02x%02x", r, g, b)
-}
-
-// Parse and set the reques parameters if it's possible
-func parseNumberParameter(parameter string, ptr *int) {
-	if parameter != "" {
-		if value, err := strconv.ParseFloat(parameter, 64); err != nil {
-			fmt.Fprintf(os.Stdout, "The error occured: ", err)
-			os.Exit(1)
-		} else {
-			*ptr = int(value)
-		}
-	}
-}
-
-// Parse and set the reques parameters if it's possible
-func parseStringParameter(parameter string) {
-	if parameter != "" &&
-		(strings.Contains(parameter, "sin")) || (strings.Contains(parameter, "cos")) ||
-		(strings.Contains(parameter, "tan")) || (strings.Contains(parameter, "atan")) ||
-		(strings.Contains(parameter, "sin^2")) || (strings.Contains(parameter, "cos^2")) {
-		fuction = parameter
-	} else {
-		fmt.Fprintf(os.Stdout, "Server does not have this parameter")
-		os.Exit(1)
-	}
-}
-
-// Start the local server and catches errors if they occur
-func LocalServer() {
-	http.HandleFunc("/getsurface", surfaceHandler)
-	log.Fatal(http.ListenAndServe("localhost:8000", nil))
-}
-
-// Handle the /getsurface request
-func surfaceHandler(writer http.ResponseWriter, request *http.Request) {
-	getSurface(writer, request)
 }

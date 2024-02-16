@@ -6,14 +6,17 @@ import (
 	"log"
 	"net"
 	"strings"
+	"sync"
 	"time"
 )
 
 func StartEchoServer() {
+
 	listener, err := net.Listen("tcp", "localhost:8000")
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -26,14 +29,29 @@ func StartEchoServer() {
 }
 
 func handleFunc(conn net.Conn) {
+
+	var wg sync.WaitGroup
 	// Extract the input from the connection
 	input := bufio.NewScanner(conn)
 
 	// Scan the content
 	for input.Scan() {
-		echo(conn, input.Text(), 1*time.Second)
+		wg.Add(1)
+		// echo(conn, input.Text(), 1*time.Second) // reverb1
+		go func() {
+			wg.Done()
+			echo(conn, input.Text(), 1*time.Second) // reverb2
+		}()
+
 	}
-	conn.Close()
+
+	go func() {
+		wg.Wait()
+		if netConn, ok := conn.(*net.TCPConn); ok {
+			netConn.CloseWrite()
+		}
+	}()
+
 }
 
 func echo(conn net.Conn, shout string, delay time.Duration) {

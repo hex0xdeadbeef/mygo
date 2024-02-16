@@ -236,4 +236,60 @@ the problem, we could hire another cook to help the second, performing the same 
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+8.5 LOOPING IN PARALLEL---------------------------------------------------------------------------------------------------------------------------------------------------------------
+! CHECK THE CODE !
+
+1.
+	// Wait for all the goroutines
+	func makeThumbnail(filenames []string) {
+		done := make(chan bool)
+		for _, f := range filenames {
+			go func(f string) { // Defines the anonymous function that takes only one argument.
+				ImageFile(f)
+				done <- true
+			}(f) 				// Catch the current value, so that each goroutine works with each own value.
+		}
+
+		for range filenames {
+			<-done
+		}
+	}
+
+2. If we don't know the count of the data entries we can use "sync.WaitGroup" to know when the last goroutine has finished. It blocks the goroutine
+it were called in increments the number of working goroutines when a new goroutine has launched and decrement the counter when its work done.
+	1) wg.Add(1) must be called before starting a new goroutine (worker). Otherwise we wouldn't be sure that the wg.Add() happens before
+	the "closer" goroutine calls wait.
+
+	2) wg.Done() must be called when the goroutine finished its work. We can use defer wg.Done(). It's implicit argument to be incremented
+	with is -1.
+
+	3) We should declare the goroutine where the wg.Wait() and close(channel) will be placed.
+
+		func MakeThumbnails6(filenames <-chan string) (size int64) {
+			sizes := make(chan int64)
+			var wg sync.WaitGroup // The number of working goroutines at a moment
+
+			for f := range filenames {
+				wg.Add(1) // Increment the current amount of workers
+				// worker
+				go func(f string) {
+					defer wg.Done() // Decrement the current amount of workers after all goroutine's activities done
+					...
+				}(f)
+
+			// closer
+			go func() {
+				wg.Wait() // Wait for the moment when all the goroutines finished its work
+				close(sizes) // close the channel
+			}()
+
+			...
+			return
+		}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 */

@@ -13,13 +13,13 @@ import (
 var global *int
 
 func f() {
-	var x int // It's heap-allocated 'cause it's still reachable from the variable global
+	var x int // It's heap-allocated 'cause it's still reachable from the variable "global"
 	x = 1
 	global = &x
 }
 
 func g() {
-	var y = new(int) // It's stack allocated 'case it won't be reacable after g() has returned
+	var y = new(int) // It's stack allocated 'cause it won't be reacable after g() has returned
 	*y = 10
 }
 
@@ -35,7 +35,7 @@ func ScopeShadowingFirst() {
 }
 
 func ScopeShadowingSecond() {
-	x := "hello"          // "function" scope x, it'll be shadowed by the "for" scape implicit variable
+	x := "hello"          // "function" scope x, it'll be shadowed by the "for" scope implicit variable
 	for _, x := range x { // The value that is fetched from string x is the new variable
 		x := x + 'A' - 'a'  // This x is the new variable that is assigned with expression
 		fmt.Printf("%c", x) // This statement uses the last mentioned x (x := x + 'A' - 'a' // "if" scope x)

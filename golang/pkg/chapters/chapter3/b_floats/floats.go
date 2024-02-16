@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-func PrecisionLose() {
+func PrecisionLoss() {
 	f := 3.141        // its type is float64
 	i := int(f)       // Now it has value 3
 	fmt.Println(f, i) // 3.141. 3

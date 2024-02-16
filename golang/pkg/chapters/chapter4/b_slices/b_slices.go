@@ -33,7 +33,7 @@ import (
 6. s[i,j) can be applied to: an array variable, a pointer to an array, another slice
 
 7. Since a slice contains a pointer to an underlying array, passing a slice to a function permits the function to modi-
-   fy the underlying array elements
+   fy the underlying array elements, but we should remember, that the parameter of the fuction cannot redirect the initial pointer.
 
 8. Slices aren't comparable, but []byte type slices can be compared. We can create our own comparisons, but IT'S FORBIDDEN.
 	1) The elemets of slices are indirect (they can contain other types as slices and so on), making it possible for a slice

@@ -25,7 +25,7 @@ These types are:
 const (
 	e       = 2.718281 // untyped float
 	pi      = 3.141592 // untyped float
-	IPv4LEn = 4        // For example it'll be used during an array declaring/initializing as a capacity value
+	IPv4Len = 4        // For example it'll be used during an array declaring/initializing as a capacity value
 )
 
 /* Constants may specify a type as well as a value, but in the absence of an explicit type the type is inferred from
@@ -201,7 +201,7 @@ func RoundingAfterConversion() {
 func ImplicitVariableLiteralTypeDetermination() {
 	i := 0 // It'll be untyped integer. Implicit: int(0)
 	fmt.Printf("%[1]T %[1]d\n", i)
-	r := '\000' // It'll be untyped rune. Implicit: rune('\000') or int32('\000')
+	r := '\000' // It'll be rune. Implicit: rune('\000') or int32('\000')
 	fmt.Printf("%[1]T %[1]c\n", r)
 	f := 0.0 // It'll be untyped float. Implicit float64(0.0)
 	fmt.Printf("%[1]T %[1]g\n", f)

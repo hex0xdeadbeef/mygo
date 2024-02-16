@@ -452,4 +452,25 @@ sumes the input and produces a stream of tokens, primarily of four kinds: "Start
 4. The "Token" interface, which has no methods, is also an example of a descriminated union.
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+7.15 A FEW WORDS OF ADVICE---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. While desinging a new package we shouldn't initially create the interfaces consequently create some impletmenters, because it leads
+to the big amount of interfaces. These interfaces are unnecessary abstractions, they also have a run-time cost.
+
+2. Interfaces are only needed when there are two or more concrete types that must be dealt with in a uniform way.
+
+3. We make an exception to this rule when an interface is satisfied by a single conrecete type but that type cannot live in the same
+package as the interface because of its dependencies. In this case, an interface is a good way to decouple two packages.
+
+4. Because interfaces are used in Go only when they're satisfied by two or more types, they necessarily abstract away frow the deta
+ils of any particular implementation.
+
+5. Small interfaces are easier to satisfy when new types come along.
+
+6. A good rule of thumb for interface design is "ask only for what you need". It means the code must require only the real valuable
+interfaces.
+
+7. Not everything need to be an object. Standalone functions have their place, as do unencapsulated data types.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 */

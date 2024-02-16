@@ -47,7 +47,7 @@ func incrementWithPointer(pointer *int) {
 
 // Echo() prints command-line arguments
 // We can find out what "n" and "s" do with calling go run main.go -help
-// So that set command line arguments we shoul write -n {true/false} or -s {separator}
+// So that set command line arguments we should write -n={true/false} or -s={separator}
 var newLine = flag.Bool("n", false, "omit trailing newline") // the type is *bool
 var separator = flag.String("s", " 0===3 ", "separator")     // the type is *string
 

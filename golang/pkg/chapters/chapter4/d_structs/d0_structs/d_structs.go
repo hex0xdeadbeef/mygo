@@ -7,12 +7,12 @@ import (
 )
 
 /*
-1. A struct is an aggregate data type that groups ZERO or more named values of arbitrary types within a single entity
+1. A struct is an aggregate data type that groups ZERO or more named/unnamed values of arbitrary types within a single entity
 
 2. Each value of a struct is called field
 
-4. If the first letter of a field begins with an uppercase letter, the field can be exported, on the other hand if
-the field begins with a lowercase letter it's not exportable and accessible only within current package.
+3. If the first letter of a field begins with an uppercase letter, the field can be exported, on the other hand if
+the field begins with a lowercase letter it's not exported and accessible only within current package.
 
 5. Each field can be accessed using dot notation. Due to this fact we can:
 	1) Get a field value
@@ -21,7 +21,7 @@ the field begins with a lowercase letter it's not exportable and accessible only
 
 	3) Take a pointer of field
 
-6. Every object of a struct is just a part of memory with a particular size. Due to this fact we can make the
+6. Every instance of a struct is just a part of memory with a particular size. Due to this fact we can make the
    following conclusions:
 		1) When we get an OBJECT POINTER of a struct we get a pointer to the memory area.
 
@@ -30,11 +30,11 @@ the field begins with a lowercase letter it's not exportable and accessible only
 	! FROM THE HOOD THIS PROCESSES TAKE PALCE IN THE COMPILER LEVEL WHILE IT TRANSLATES YOUR CODE TO MACHINE CODE. !
 
 7. If we have a []StructType slice and put an object into it consequently passing the slice into a function that changes
-a field of an object and re- turns a pointer to that object, we won't change the original object, because while appending
+a field of an object and returns a pointer to that object, we won't change the original object, because while appending
 or putting with slice[index] the object into []StructType, the slice will have the copy of the object.
 	! TO DEFEAT THIS WE SHOULD CREATE AN []*StructType SLICE TO STORE THE LINKS TO THE ORIGINAL OBJECTS. !
 
-8. An aggregate type S can't contain the field of type S, since recursive struct declaration is forbidden.
+8. An aggregate type "S" can't contain the field of type "S", since recursive struct declaration is forbidden.
 	! ON THE OTHER HAND IT CAN CONTAIN A FIELD WITH *S TYPE. THIS TRICK ALLOWS US TO CREATE THE DATA TYPES AS LINKED LIST
 	AND TREES. !
 
@@ -102,8 +102,8 @@ relevant
 
 			3. The POINT has the coordinates 1, 2
 
-		4) It's forbidden to declare two anonymous fields, because of names conflict and because the name of field is
-		implicitly determined by its type so too is the visibility of field. For example:
+		4) It's forbidden to declare two anonymous fields with the same types, because of names conflict and because the name of
+		field is implicitly determined by its type so too is the visibility of field. For example:
 
 			package "p"
 
@@ -117,7 +117,7 @@ relevant
 			2) Out of package level the value of capitalized fields may accessed with shorthand:
 				w.X = 100
 
-		5) We may omit any or all of the anonymous fields when selecting their subfields.
+		5) We may omit any or all the anonymous fields when selecting their subfields.
 			rightWheel.X = 100
 
 		6) An anonymous filed may represent a structure doesn't have any field, but contains a methods set. In effect,

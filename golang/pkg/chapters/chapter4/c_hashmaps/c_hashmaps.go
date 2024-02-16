@@ -33,7 +33,7 @@ no matter how large hash table.
 		2) Using value, flag := mapName[key], we get the current value corresponding to the key, if key isn't contained in
 		map, the ZERO value of its type and BOOL value
 	2) We can change the value using a key
-	3) We can delete a value using operator (from, key)
+	3) We can delete a value using operator delete(src, key)
 
 9. We can't take a pointer to a certain map element because of elements migration. Elements migration is the state when the
 average amount of a map values reachs 6.5 and data is moved gradually into new storage respectively. Another cause of this

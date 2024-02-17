@@ -8,9 +8,9 @@ import (
 
 /*
 Defer function stack:
-0. defer 1
+0. defer 3
 1. defer 2
-2. defer 3
+2. defer 1
 */
 func PressF(x int) {
 	fmt.Printf("f(%d)\n", x+0/x)

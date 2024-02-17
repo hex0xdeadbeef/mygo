@@ -13,10 +13,14 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
+	"time"
 )
 
 const (
-	width, height = 1024, 1024
+	width, height = 10e4, 10e4
+	iterations    = 200
+	contrast      = 15
 )
 
 var (
@@ -115,7 +119,7 @@ func fractalHandler(writer http.ResponseWriter, request *http.Request) {
 		os.Exit(1)
 	}
 
-	createFractal()
+	parallelMandelbrot4()
 	rotate90Right(img)
 	switch parametersToBeApplied[1] {
 	case "0":
@@ -128,7 +132,7 @@ func fractalHandler(writer http.ResponseWriter, request *http.Request) {
 }
 
 func createFractal() {
-
+	timer := time.Now()
 	for px := 0; px < height; px++ {
 		// Scaling the current y coordinate so that it corresponds to location on complex plane
 		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
@@ -144,6 +148,143 @@ func createFractal() {
 			}
 		}
 	}
+
+	log.Println(time.Since(timer))
+}
+
+type vector struct {
+	px, py int
+	colour color.RGBA
+}
+
+func parallelMandelbrot1() {
+	timer := time.Now()
+
+	colorChan := make(chan vector)
+	var wg sync.WaitGroup
+
+	for px := 0; px < height; px++ {
+		// Scaling the current y coordinate so that it corresponds to location on complex plane
+		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
+		for py := 0; py < width; py++ {
+			// Scaling the current x coordinate so that it corresponds to location on complex plane
+			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
+			z := complex(-x, y)
+			wg.Add(1)
+			go func(px, py int) {
+				defer wg.Done()
+				vector := vector{px: px, py: py, colour: mandelbrot(z)}
+				colorChan <- vector
+			}(px, py)
+		}
+	}
+
+	go func() {
+		wg.Wait()
+		close(colorChan)
+	}()
+
+	for vector := range colorChan {
+		img.Set(vector.px, vector.py, vector.colour)
+	}
+	log.Println(time.Since(timer))
+}
+
+func parallelMandelbrot2() {
+	timer := time.Now()
+
+	colorChan := make(chan vector, width*height)
+	var wg sync.WaitGroup
+
+	for px := 0; px < height; px++ {
+		// Scaling the current y coordinate so that it corresponds to location on complex plane
+		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
+		for py := 0; py < width; py++ {
+			// Scaling the current x coordinate so that it corresponds to location on complex plane
+			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
+			z := complex(-x, y)
+			wg.Add(1)
+			go func(px, py int) {
+				defer wg.Done()
+				vector := vector{px: px, py: py, colour: mandelbrot(z)}
+				colorChan <- vector
+			}(px, py)
+		}
+	}
+
+	go func() {
+		wg.Wait()
+		close(colorChan)
+	}()
+
+	for vector := range colorChan {
+		img.Set(vector.px, vector.py, vector.colour)
+	}
+	log.Println(time.Since(timer))
+}
+
+func parallelMandelbrot3() {
+	timer := time.Now()
+
+	sendColorChan := make(chan vector, width*height)
+
+	var wg sync.WaitGroup
+
+	for px := 0; px < height; px++ {
+		// Scaling the current y coordinate so that it corresponds to location on complex plane
+		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
+		for py := 0; py < width; py++ {
+			// Scaling the current x coordinate so that it corresponds to location on complex plane
+			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
+			z := complex(-x, y)
+			wg.Add(1)
+			go func(px, py int) {
+				defer wg.Done()
+				vector := vector{px: px, py: py, colour: mandelbrot(z)}
+				sendColorChan <- vector
+				// why not set img here?
+			}(px, py)
+		}
+	}
+
+	for v := range sendColorChan {
+		wg.Add(1)
+		go func(v vector) {
+			img.Set(v.px, v.py, v.colour)
+		}(v)
+	}
+
+	// sender
+	go func() {
+		wg.Wait()
+		close(sendColorChan)
+	}()
+
+	log.Println(time.Since(timer))
+}
+
+func parallelMandelbrot4() {
+	timer := time.Now()
+
+	var wg sync.WaitGroup
+
+	for px := 0; px < height; px++ {
+		// Scaling the current y coordinate so that it corresponds to location on complex plane
+		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
+		for py := 0; py < width; py++ {
+			// Scaling the current x coordinate so that it corresponds to location on complex plane
+			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
+			z := complex(-x, y)
+			wg.Add(1)
+			go func(px, py int) {
+				defer wg.Done()
+				img.Set(px, py, mandelbrot(z))
+			}(px, py)
+		}
+	}
+
+	wg.Wait()
+	log.Println(time.Since(timer))
 }
 
 func smooth() {
@@ -194,11 +335,6 @@ func setAverageColor(px, py int, pixelEnvironment []color.RGBA) {
 	img.Set(px, py, newColor)
 }
 func mandelbrot(z complex128) color.RGBA {
-	const (
-		iterations = 200
-		contrast   = 15
-	)
-
 	var v complex128
 	for n := uint8(0); n < iterations; n++ {
 		v = v*v + z

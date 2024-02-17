@@ -1,9 +1,7 @@
 package main
 
-import (
-	. "golang/pkg/chapters/chapter8"
-)
+import . "golang/pkg/chapters/chapter3/c_complex/fractals"
 
 func main() {
-	StartEchoServer()
+	Server()
 }

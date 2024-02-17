@@ -35,8 +35,7 @@ func ReturnedFunctionUsing() {
 func returnFunction() func() int {
 	var x int
 
-	// The function below captures the state of x variable and after calling it with variable the x value
-	// will be changed.
+	// The function below captures the state of returnFunction()
 	return func() int {
 		x++
 		return x * x

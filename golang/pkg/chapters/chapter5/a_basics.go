@@ -13,10 +13,10 @@ func singeTypeDeclaration(q, w, e, r, t, y int) int {
 	return q + w + e + r + t + y
 }
 
-func add(x, y int) int        { return x + y }
-func sub(x, y int) (z int)    { z = x - y; return }
-func first(x, int, _ int) int { return x }
-func zero(int, int) int       { return 0 }
+func add(x, y int) int       { return x + y }
+func sub(x, y int) (z int)   { z = x - y; return }
+func first(x int, _ int) int { return x }
+func zero(int, int) int      { return 0 }
 
 func PrintTypes() {
 	fmt.Printf("%T\n", add)

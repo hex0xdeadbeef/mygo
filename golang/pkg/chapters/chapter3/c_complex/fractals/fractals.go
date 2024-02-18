@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	width, height = 10e4, 10e4
+	width, height = 919, 1903
 	iterations    = 200
 	contrast      = 15
 )
@@ -133,10 +133,10 @@ func fractalHandler(writer http.ResponseWriter, request *http.Request) {
 
 func createFractal() {
 	timer := time.Now()
-	for px := 0; px < height; px++ {
+	for px := 0; px < width; px++ {
 		// Scaling the current y coordinate so that it corresponds to location on complex plane
 		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
-		for py := 0; py < width; py++ {
+		for py := 0; py < height; py++ {
 			// Scaling the current x coordinate so that it corresponds to location on complex plane
 			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
 			z := complex(-x, y)
@@ -163,10 +163,10 @@ func parallelMandelbrot1() {
 	colorChan := make(chan vector)
 	var wg sync.WaitGroup
 
-	for px := 0; px < height; px++ {
+	for px := 0; px < width; px++ {
 		// Scaling the current y coordinate so that it corresponds to location on complex plane
 		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
-		for py := 0; py < width; py++ {
+		for py := 0; py < height; py++ {
 			// Scaling the current x coordinate so that it corresponds to location on complex plane
 			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
 			z := complex(-x, y)
@@ -196,10 +196,10 @@ func parallelMandelbrot2() {
 	colorChan := make(chan vector, width*height)
 	var wg sync.WaitGroup
 
-	for px := 0; px < height; px++ {
+	for px := 0; px < width; px++ {
 		// Scaling the current y coordinate so that it corresponds to location on complex plane
 		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
-		for py := 0; py < width; py++ {
+		for py := 0; py < height; py++ {
 			// Scaling the current x coordinate so that it corresponds to location on complex plane
 			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
 			z := complex(-x, y)
@@ -230,10 +230,10 @@ func parallelMandelbrot3() {
 
 	var wg sync.WaitGroup
 
-	for px := 0; px < height; px++ {
+	for px := 0; px < width; px++ {
 		// Scaling the current y coordinate so that it corresponds to location on complex plane
 		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
-		for py := 0; py < width; py++ {
+		for py := 0; py < height; py++ {
 			// Scaling the current x coordinate so that it corresponds to location on complex plane
 			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
 			z := complex(-x, y)
@@ -268,17 +268,18 @@ func parallelMandelbrot4() {
 
 	var wg sync.WaitGroup
 
-	for px := 0; px < height; px++ {
+	for px := 0; px < width; px++ {
 		// Scaling the current y coordinate so that it corresponds to location on complex plane
 		x := (float64(px)/width)*(xmax-xmin)*zoom + xmin
-		for py := 0; py < width; py++ {
+		for py := 0; py < height; py++ {
 			// Scaling the current x coordinate so that it corresponds to location on complex plane
 			y := (float64(py)/height)*(ymax-ymin)*zoom + ymin
 			z := complex(-x, y)
 			wg.Add(1)
 			go func(px, py int) {
-				defer wg.Done()
+				//defer wg.Done()
 				img.Set(px, py, mandelbrot(z))
+				wg.Done()
 			}(px, py)
 		}
 	}

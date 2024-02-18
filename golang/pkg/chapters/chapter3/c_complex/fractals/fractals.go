@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	width, height = 10e4, 10e4
+	width, height = 1024, 1024
 	iterations    = 200
 	contrast      = 15
 )
@@ -119,7 +119,7 @@ func fractalHandler(writer http.ResponseWriter, request *http.Request) {
 		os.Exit(1)
 	}
 
-	parallelMandelbrot4()
+	parallelMandelbrot3()
 	rotate90Right(img)
 	switch parametersToBeApplied[1] {
 	case "0":
@@ -157,6 +157,7 @@ type vector struct {
 	colour color.RGBA
 }
 
+// UNBUFFERED
 func parallelMandelbrot1() {
 	timer := time.Now()
 
@@ -190,6 +191,7 @@ func parallelMandelbrot1() {
 	log.Println(time.Since(timer))
 }
 
+// BUFFERED UNIDIRECTIONAL SEND
 func parallelMandelbrot2() {
 	timer := time.Now()
 
@@ -223,6 +225,7 @@ func parallelMandelbrot2() {
 	log.Println(time.Since(timer))
 }
 
+// BUFFERED BIDIRECTIONAL OPs
 func parallelMandelbrot3() {
 	timer := time.Now()
 
@@ -263,6 +266,7 @@ func parallelMandelbrot3() {
 	log.Println(time.Since(timer))
 }
 
+// WITHOUT CHANNEL
 func parallelMandelbrot4() {
 	timer := time.Now()
 

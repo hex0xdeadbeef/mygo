@@ -97,7 +97,7 @@ func topologicalSort(graph map[string][]string) []string {
 	return order
 }
 
-func extractLinksModified(url string) ([]string, error) {
+func ExtractLinksModified(url string) ([]string, error) {
 	// Make a request and get response
 	response, err := http.Get(url)
 	if err != nil {
@@ -182,25 +182,24 @@ func LinksBFS(sender func(string) []string, workspace []string) map[string]Empty
 
 // Filter and return children links
 func Crawler(url string) (links []string) {
-	fmt.Println(url)
 	// Get links
-	links, err := extractLinksModified(url)
+	links, err := ExtractLinksModified(url)
 
 	// Gather links with only one hostname
-	hostname := getHostname(url)
-	filtredLinks := linkFilter(hostname, links)
+	hostname := GetHostname(url)
+	filtredLinks := LinkFilter(hostname, links)
 	if err != nil {
 		log.Printf("while extracting links from %s; %s", url, err)
 	}
 
 	return filtredLinks
 }
-func linkFilter(hostname string, sublinks []string) []string {
+func LinkFilter(hostname string, sublinks []string) []string {
 	validLinks := sublinks[:0]
 	count := 0
 
 	for _, sublink := range sublinks {
-		subHostname := getHostname(sublink)
+		subHostname := GetHostname(sublink)
 		if hostname == subHostname {
 			validLinks = append(validLinks, sublink)
 			count++
@@ -208,7 +207,7 @@ func linkFilter(hostname string, sublinks []string) []string {
 	}
 	return validLinks[:count]
 }
-func getHostname(rawUrl string) string {
+func GetHostname(rawUrl string) string {
 	urlObj, err := url.Parse(rawUrl)
 	if err != nil {
 		log.Printf("while parsing %s; %s", rawUrl, err)

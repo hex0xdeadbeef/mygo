@@ -21,8 +21,6 @@ var (
 	validPromptArgsCount int
 )
 
-type Empty struct{}
-
 func setAddress(server interface{}) error {
 
 	validatedPort, err := isPortValid()

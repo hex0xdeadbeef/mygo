@@ -30,20 +30,42 @@ func StartEchoServer() {
 
 func handleFunc(conn net.Conn) {
 
-	var wg sync.WaitGroup
-	// Extract the input from the connection
-	input := bufio.NewScanner(conn)
+	const (
+		maxTimeForWaitingInSeconds = 3
+		echosTime                  = 3
+	)
 
-	// Scan the content
-	for input.Scan() {
-		wg.Add(1)
-		// echo(conn, input.Text(), 1*time.Second) // reverb1
-		go func() {
-			wg.Done()
-			echo(conn, input.Text(), 1*time.Second) // reverb2
-		}()
+	var (
+		shout = make(chan struct{})
+		wg    sync.WaitGroup
+	)
 
+	go func() {
+		input := bufio.NewScanner(conn)
+		for input.Scan() {
+
+			wg.Add(1)
+			shout <- struct{}{}
+
+			// echo(conn, input.Text(), 1*time.Second) // reverb1
+			go func() {
+				defer wg.Done()
+				echo(conn, input.Text(), 1*time.Second) // reverb2
+			}()
+		}
+	}()
+
+	// Wait for the client's shout. If it won't sound after 10 seconds waiting, the connection will be closed.
+	ticker := time.NewTicker(1 * time.Second)
+	for timeLeft := maxTimeForWaitingInSeconds; timeLeft > 0; timeLeft-- {
+		select {
+		case <-ticker.C:
+		case <-shout:
+			timeLeft = maxTimeForWaitingInSeconds + echosTime
+		}
 	}
+	ticker.Stop()
+	conn.Close()
 
 	go func() {
 		wg.Wait()

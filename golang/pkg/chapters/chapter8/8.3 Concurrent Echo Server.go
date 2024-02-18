@@ -36,17 +36,18 @@ func handleFunc(conn net.Conn) {
 	)
 
 	var (
+		input = bufio.NewScanner(conn)
 		shout = make(chan struct{})
 		wg    sync.WaitGroup
 	)
 
+	wg.Add(1)
 	go func() {
-		input := bufio.NewScanner(conn)
+		defer wg.Done()
 		for input.Scan() {
-
-			wg.Add(1)
 			shout <- struct{}{}
 
+			wg.Add(1)
 			// echo(conn, input.Text(), 1*time.Second) // reverb1
 			go func() {
 				defer wg.Done()

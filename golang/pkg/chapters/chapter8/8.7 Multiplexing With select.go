@@ -16,6 +16,7 @@ func RocketCountdown() {
 	}()
 
 	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 	for countdown := 3; countdown > 0; countdown-- {
 		fmt.Println(countdown)
 		select {
@@ -26,8 +27,6 @@ func RocketCountdown() {
 		}
 	}
 	launch()
-
-	ticker.Stop()
 
 }
 

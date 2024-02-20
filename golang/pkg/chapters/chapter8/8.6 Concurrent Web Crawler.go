@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
 func newLogger() (log.Logger, *os.File) {
@@ -22,9 +23,9 @@ func newLogger() (log.Logger, *os.File) {
 	return *log.New(file, "-> ", log.Ldate|log.Ltime), file
 }
 
-const maxGoroutinesNumber = 50
+const greedGoroutinesNumber = 50
 
-var tokens = make(chan struct{}, maxGoroutinesNumber)
+var tokens = make(chan struct{}, greedGoroutinesNumber)
 
 func ModifiedParallelLinksBFS() {
 	worklist := make(chan []string)
@@ -85,59 +86,75 @@ type Pair struct {
 	links []string
 }
 
-func AlternativelyModifiedCrawler() map[string]bool {
-	var passedWorkersNumber int
+func AlternativelyModifiedCrawler(depth, goroutinesNumber int) map[string]bool {
+	var (
+		// Initialized with arguments
+		maxDepth              = depth
+		greedGoroutinesNumber = goroutinesNumber
 
-	const maxDepth = 5
+		// Initialized
+		workPair        = make(chan *Pair)
+		unseenLinksPair = make(chan *Pair)
 
-	workPair := make(chan *Pair)
-	unseenLinksPair := make(chan *Pair)
+		seen = make(map[string]bool)
+
+		timeout = 3
+
+		// Uninitialized
+		passedWorkersNumber int
+	)
+
 	defer func() {
 		close(workPair)
 		close(unseenLinksPair)
 	}()
 
-	passedWorkersNumber++
 	go func() {
 		initialPair := &Pair{depth: 1, links: os.Args[1:]}
 		workPair <- initialPair
 	}()
 
-	for i := 0; i < maxGoroutinesNumber; i++ {
+	for i := 0; i < greedGoroutinesNumber; i++ {
 
 		// There will be 20 goroutines listen to the new unseenLinksPair
 		go func() {
+
 			for pairWithUnseenLinks := range unseenLinksPair {
 
 				foundLinks := Crawler(pairWithUnseenLinks.links[0])
 				newWorkPair := &Pair{depth: pairWithUnseenLinks.depth + 1, links: foundLinks}
 
 				go func() {
-					// Pass the new work pair on the channel
 					workPair <- newWorkPair
 				}()
 			}
 		}()
-
 	}
 
-	seen := make(map[string]bool)
-	for ; passedWorkersNumber > 0; passedWorkersNumber-- {
-		curWorkPair := <-workPair
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 
-		if curWorkPair.depth > maxDepth {
-			continue
-		}
+	for i := timeout; i > 0; i-- {
+		select {
 
-		for _, link := range curWorkPair.links {
-			if !seen[link] {
-				seen[link] = true
+		case <-ticker.C:
 
-				newUnseenLinksPair := &Pair{depth: curWorkPair.depth + 1, links: []string{link}}
-
-				passedWorkersNumber++
-				unseenLinksPair <- newUnseenLinksPair
+		case curWorkPair := <-workPair:
+			if curWorkPair.depth > maxDepth {
+				continue
 			}
+
+			for _, link := range curWorkPair.links {
+				if !seen[link] {
+					seen[link] = true
+
+					newUnseenLinksPair := &Pair{depth: curWorkPair.depth + 1, links: []string{link}}
+
+					passedWorkersNumber++
+					unseenLinksPair <- newUnseenLinksPair
+				}
+			}
+			i += timeout
 		}
 	}
 
@@ -149,8 +166,11 @@ func ResourceCopy(parsedLinks map[string]bool) error {
 		directoryPath = "/Users/dmitriymamykin/Desktop/"
 	)
 
-	logger, file := newLogger()
-	defer file.Close()
+	var (
+		logger, loggerFile       = newLogger()
+		fileDescriptorsSemaphore = make(chan struct{}, 32)
+	)
+	defer loggerFile.Close()
 
 	var err error
 	if len(parsedLinks) == 0 {
@@ -180,8 +200,14 @@ func ResourceCopy(parsedLinks map[string]bool) error {
 		wg.Add(1)
 		go func(url string) {
 			defer wg.Done()
+
 			fileName := fileName(url)
+
+			// Sets the limit on the number of concurrent launched file descriptors tokens.
+			fileDescriptorsSemaphore <- struct{}{}
 			file, err := fileDescriptor(fileName)
+			<-fileDescriptorsSemaphore
+
 			if err != nil {
 				logger.Printf("copying page (%s) content: %s\n", url, err)
 			}
@@ -190,11 +216,13 @@ func ResourceCopy(parsedLinks map[string]bool) error {
 				logger.Printf("copying page (%s) content: %s\n", url, err)
 			}
 		}(key)
+
 	}
 
 	go func() {
 		wg.Wait()
 		close(errorChan)
+		close(fileDescriptorsSemaphore)
 	}()
 
 	for err := range errorChan {

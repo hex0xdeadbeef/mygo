@@ -182,6 +182,7 @@ func LinksBFS(sender func(string) []string, workspace []string) map[string]Empty
 
 // Filter and return children links
 func Crawler(url string) (links []string) {
+	fmt.Println(url)
 	// Get links
 	links, err := ExtractLinksModified(url)
 

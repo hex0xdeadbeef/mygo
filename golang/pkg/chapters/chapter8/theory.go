@@ -362,7 +362,6 @@ statements. The other communications don't happen.
 
 3. A select without any cases "select{}" waits forever.
 
-
 4. Each case specifies communication (a send or receive operation on some channel) and an associated block of statements.
 	RECEIVE:
 	1) A receive expression can appear on its own
@@ -373,8 +372,8 @@ A select statement can do that too using "default" statement inside "select" bod
 can proceed immediately. The statements that are executed when there's no ability to send/receive are called "polling" because we wait a channel
 to get us an ability to make the operation needed.
 
-6. The zero value of a channel is nil. Perhaps surprisingly, nil channels are sometimes useful. Because send and receive operations on a nil
-channel block forever, a case in a "select" statement whose channel is nil IS NEVER SELECTED. This lets us use nil to enable or disable
+6. The zero value of a channel is "nil". Perhaps surprisingly, "nil" channels are sometimes useful. Because send and receive operations on a "nil"
+channel block forever, a case in a "select" statement whose channel is "nil" IS NEVER SELECTED. This lets us use "nil" to enable or disable
 cases that correspond to features like handling timeouts or cancellation responding to other input events, or emitting output.
 
 	select {
@@ -443,4 +442,13 @@ cases that correspond to features like handling timeouts or cancellation respond
 9. The time.Tick() function behaves as if it creates a goroutine that calls time.Sleep() in a loop, sending an event each time it wakes up.
 	1) When we've finished all the work with "ticker := time.NewTicker(1 * time.Second)" we should close it with "ticker.Stop()" operation.
 
+
+8.6 CONCURRENT WEB CRAWLER---------------------------------------------------------------------------------------------------------------------------------------------------------------
+! CHECK THE CODE !
+1. "os.ReadDir(dirName string)" reads the named directory returns all the directory entries sorted by filename. If an error occurs reading the
+directory returns the entries it was able to read before the errors, along with the error.
+
+2. We can provide a loop with a label and apply it to make "continue"/"break" statements. Without this trick an inner break of a case of
+select/switch will break out the all statement.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */

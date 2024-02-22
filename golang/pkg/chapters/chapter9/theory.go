@@ -7,7 +7,7 @@ package chapter9
 
 2. The function is concurrently-safe if it continues to work correctly even when called concurrently, that is, from two or more goroutines with no additional synchronization.
 
-3. A type if concurrently-safe if all its accessible methods and operations are concurrently-safe.
+3. A type if concurrently-safe is all its accessible methods and operations are concurrently-safe.
 
 4. We should access a variable concurrently only if the documentation for its type says that this is safe.
 

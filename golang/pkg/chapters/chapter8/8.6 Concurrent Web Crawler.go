@@ -1,6 +1,7 @@
 package chapter8
 
 import (
+	"context"
 	"fmt"
 	. "golang/pkg/chapters/chapter5"
 	"io"
@@ -11,154 +12,136 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 )
 
-func newLogger() (log.Logger, *os.File) {
-	file, err := os.OpenFile("abc.txt", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
+const (
+	greedGoroutinesNumber = 32
+)
 
-	return *log.New(file, "-> ", log.Ldate|log.Ltime), file
-}
+var (
+	tokens       = make(chan struct{}, greedGoroutinesNumber)
+	traverseDone = make(chan struct{})
+)
 
-const greedGoroutinesNumber = 50
-
-var tokens = make(chan struct{}, greedGoroutinesNumber)
-
-func ModifiedParallelLinksBFS() {
-	worklist := make(chan []string)
-	// Number of pending sends to worklist
-	var n int
-
-	// This statement is placed in its own goroutines because the goroutine would blocked after the operation
-	// and no reading would complete. After the operation main goroutine will be blocked and no operations would execute.
-	n++
-	go func() {
-		worklist <- os.Args[1:]
-	}()
-
-	seen := make(map[string]bool)
-
-	for ; n > 0; n-- {
-		list := <-worklist
-		for _, link := range list {
-			// Check whether the link was checked
-			if !seen[link] {
-				seen[link] = true
-				// Launch the crawling the environment of the link that wasn't checked
-				// and finally add its environment's links into the worklist
-				n++
-				go func(link string) {
-					worklist <- ModifiedCrawler(link, seen)
-				}(link)
-			}
-		}
-	}
-
-}
-
-// Filter and return children links
-func ModifiedCrawler(url string, seen map[string]bool) (links []string) {
-	fmt.Println(url)
-
-	// Only after one of the current goroutines releases the token other ones can access the expression
-	tokens <- struct{}{}
-
-	links, err := ExtractLinksModified(url)
-
-	// When a goroutine has finished ExtractLinksModified() it releases the token and allows others to get the resourse
-	<-tokens
-
-	// Gather links with only one hostname
-	hostname := GetHostname(url)
-	filtredLinks := LinkFilter(hostname, links)
-	if err != nil {
-		log.Printf("while extracting links from %s; %s", url, err)
-	}
-
-	return filtredLinks
-}
-
-type Pair struct {
-	depth int
-	links []string
-}
-
+// AlternativelyModifiedCrawler() gets input from the os.Args() and gathers all the links within depth argument.
 func AlternativelyModifiedCrawler(depth, goroutinesNumber int) map[string]bool {
+	// Pair is used in depth limiting.
+	type Pair struct {
+		depth int
+		links []string
+	}
+
 	var (
-		// Initialized with arguments
 		maxDepth              = depth
-		greedGoroutinesNumber = goroutinesNumber
+		eagerGoroutinesNumber = goroutinesNumber
 
-		// Initialized
-		workPair        = make(chan *Pair)
-		unseenLinksPair = make(chan *Pair)
+		wg               sync.WaitGroup
+		workPairs        = make(chan *Pair)
+		unseenLinksPairs = make(chan *Pair)
+		ctx, cancel      = context.WithCancel(context.Background())
 
-		seen = make(map[string]bool)
+		seenLinks = make(map[string]bool)
 
-		timeout = 3
-
-		// Uninitialized
 		passedWorkersNumber int
 	)
+	defer cancel()
 
-	defer func() {
-		close(workPair)
-		close(unseenLinksPair)
-	}()
-
+	wg.Add(1)
 	go func() {
-		initialPair := &Pair{depth: 1, links: os.Args[1:]}
-		workPair <- initialPair
+		defer wg.Done()
+		startPair := &Pair{depth: 1, links: os.Args[1:]}
+		workPairs <- startPair
 	}()
 
-	for i := 0; i < greedGoroutinesNumber; i++ {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		os.Stdin.Read(make([]byte, 1))
 
-		// There will be 20 goroutines listen to the new unseenLinksPair
+		cancel()
+		close(traverseDone)
+	}()
+
+	for i := 0; i < eagerGoroutinesNumber; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
+			for unseenLinkPair := range unseenLinksPairs {
+				if isTraverseCancelled() {
+					return
+				}
 
-			for pairWithUnseenLinks := range unseenLinksPair {
+				// After passing to the "unseenLinksPairs" channel a new pair the pair has only on link at 0 index
+				foundLinks, err := Crawler(ctx, unseenLinkPair.links[0])
+				if err != nil {
+					if urlErr, ok := err.(*url.Error); ok {
+						if urlErr.Err == context.Canceled {
+							log.Printf("\"%s\": request cancelled", unseenLinkPair.links[0])
+							return
+						}
+					} else {
+						log.Printf("crawling \"%s\": %s;", unseenLinkPair.links[0], err)
+						continue
+					}
+				}
 
-				foundLinks := Crawler(pairWithUnseenLinks.links[0])
-				newWorkPair := &Pair{depth: pairWithUnseenLinks.depth + 1, links: foundLinks}
+				if len(foundLinks) != 0 {
+					newWorkPair := &Pair{depth: unseenLinkPair.depth + 1, links: foundLinks}
+					wg.Add(1)
+					go func() {
+						defer wg.Done()
+						workPairs <- newWorkPair
+					}()
+				}
 
-				go func() {
-					workPair <- newWorkPair
-				}()
 			}
 		}()
 	}
 
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
+	go func() {
+		wg.Wait()
+		close(workPairs)
+		close(unseenLinksPairs)
+	}()
 
-	for i := timeout; i > 0; i-- {
+loop:
+	for {
 		select {
+		case <-traverseDone:
+			return seenLinks
 
-		case <-ticker.C:
+		case curWorkPair, ok := <-workPairs:
+			if !ok {
+				break loop
+			}
 
-		case curWorkPair := <-workPair:
 			if curWorkPair.depth > maxDepth {
 				continue
 			}
 
 			for _, link := range curWorkPair.links {
-				if !seen[link] {
-					seen[link] = true
+				if !seenLinks[link] {
+					seenLinks[link] = true
 
 					newUnseenLinksPair := &Pair{depth: curWorkPair.depth + 1, links: []string{link}}
 
 					passedWorkersNumber++
-					unseenLinksPair <- newUnseenLinksPair
+					unseenLinksPairs <- newUnseenLinksPair
 				}
 			}
-			i += timeout
 		}
 	}
 
-	return seen
+	return seenLinks
+}
+
+func isTraverseCancelled() bool {
+	select {
+	case <-traverseDone:
+		return true
+	default:
+		return false
+	}
 }
 
 func ResourceCopy(parsedLinks map[string]bool) error {
@@ -167,10 +150,8 @@ func ResourceCopy(parsedLinks map[string]bool) error {
 	)
 
 	var (
-		logger, loggerFile       = newLogger()
 		fileDescriptorsSemaphore = make(chan struct{}, 32)
 	)
-	defer loggerFile.Close()
 
 	var err error
 	if len(parsedLinks) == 0 {
@@ -209,11 +190,11 @@ func ResourceCopy(parsedLinks map[string]bool) error {
 			<-fileDescriptorsSemaphore
 
 			if err != nil {
-				logger.Printf("copying page (%s) content: %s\n", url, err)
+				log.Printf("copying page (%s) content: %s\n", url, err)
 			}
 
 			if err = websiteCopy(url, file); err != nil {
-				logger.Printf("copying page (%s) content: %s\n", url, err)
+				log.Printf("copying page (%s) content: %s\n", url, err)
 			}
 		}(key)
 
@@ -280,4 +261,58 @@ func websiteCopy(url string, file *os.File) error {
 		return fmt.Errorf("File doesn't exist")
 	}
 	return file.Close()
+}
+
+func ModifiedParallelLinksBFS() {
+	worklist := make(chan []string)
+	// Number of pending sends to worklist
+	var n int
+
+	// This statement is placed in its own goroutines because the goroutine would blocked after the operation
+	// and no reading would complete. After the operation main goroutine will be blocked and no operations would execute.
+	n++
+	go func() {
+		worklist <- os.Args[1:]
+	}()
+
+	seen := make(map[string]bool)
+
+	for ; n > 0; n-- {
+		list := <-worklist
+		for _, link := range list {
+			// Check whether the link was checked
+			if !seen[link] {
+				seen[link] = true
+				// Launch the crawling the environment of the link that wasn't checked
+				// and finally add its environment's links into the worklist
+				n++
+				go func(link string) {
+					worklist <- ModifiedCrawler(link, seen)
+				}(link)
+			}
+		}
+	}
+
+}
+
+// Filter and return children links
+func ModifiedCrawler(url string, seen map[string]bool) (links []string) {
+	fmt.Println(url)
+
+	// Only after one of the current goroutines releases the token other ones can access the expression
+	tokens <- struct{}{}
+
+	links, err := ExtractLinksModified(nil, url)
+
+	// When a goroutine has finished ExtractLinksModified() it releases the token and allows others to get the resourse
+	<-tokens
+
+	// Gather links with only one hostname
+	hostname := GetHostname(url)
+	filtredLinks := LinkFilter(hostname, links)
+	if err != nil {
+		log.Printf("while extracting links from %s; %s", url, err)
+	}
+
+	return filtredLinks
 }

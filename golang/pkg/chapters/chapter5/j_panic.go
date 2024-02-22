@@ -1,4 +1,4 @@
-package e_functions
+package chapter5
 
 import (
 	"fmt"
@@ -22,10 +22,10 @@ func PressF(x int) {
 The function holds the full information about called functions. They're piled in the reverse order. And the last
 function call will be at the top of the stack.
 */
-func PrintStack() {
+func PrintStack(isOtherGoroutinesNeeded bool) {
 	var buf []byte
 	// false - provides the result with information only about only the current goroutine trace
 	// true - provides extra information about all other goroutines after the trace of the current one
-	numberOfBytesWritten := runtime.Stack(buf, true)
+	numberOfBytesWritten := runtime.Stack(buf, isOtherGoroutinesNeeded)
 	os.Stderr.Write(buf[:numberOfBytesWritten])
 }

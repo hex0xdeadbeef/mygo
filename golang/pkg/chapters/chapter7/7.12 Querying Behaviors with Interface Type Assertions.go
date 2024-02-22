@@ -20,12 +20,13 @@ func writeString(w io.Writer, s string) (n int, err error) {
 
 	// The interface to check the type assertion result and apply the WriteString if the check is passed.
 	type StringWriter interface {
+		io.Writer
 		WriteString(string) (n int, err error)
 	}
 
 	// If type is asserted write the string directly
-	if sw, ok := w.(StringWriter); ok {
-		return sw.WriteString(s)
+	if multiWriter, ok := w.(StringWriter); ok {
+		return multiWriter.WriteString(s)
 	}
 
 	// If type isn't asserted, allocate the new mempool, make a copy of the string data and put it into the slice.

@@ -1,7 +1,7 @@
 package chapter8
 
 /*
-INTRODUCTION---------------------------------------------------------------------------------------------------------------------------------------------------------------
+INTRODUCTION-------------------------------------------------------------------------------------------------------------------------------------------------
 Concurrent programming, the expression of a program as a composition of several autonomous activities, has never been more important
 than it's today.
 
@@ -10,10 +10,10 @@ ties (goroutines) but variables are for the most part confined to a single activ
 
 2) There's another model is called Shared Memory Multithreading (SMM)
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-8.1 GOROUTINES---------------------------------------------------------------------------------------------------------------------------------------------------------------
+8.1 GOROUTINES---------------------------------------------------------------------------------------------------------------------------------------------------
 1. Each concurrent executing activity is called a goroutine
 
 2. When a program start, it's only goroutine is the one that calls the main function, so we call it the main goroutine.
@@ -53,7 +53,7 @@ operations of the parent goroutine.
 	}
 
 	The output will be arbitrary: 31254
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.2 EXAMPLE: CONCURRENT CLOCK SERVER---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,14 +64,14 @@ format a reference time, specifically Mon Jan 2 03:04:05PM 2006 UTC-0700. The re
 parsing a time using time.Parse.
 
 3. The "killall" command is a Unix utility that kills all processes with the given name.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.3 EXAMPLE: CONCURRENT ECHO SERVER---------------------------------------------------------------------------------------------------------------------------------------------------------------
 1. Dealing with "os.Stdin" and "os.Stdout" we should be aware of the blocking operations. If we initially connect "os.Stdin" sender we'll be writing data
 finitely because of the blocked consequent operations, so we should bind the "os.Stdout" recepient before binding the "os.Stdin" as a sender.
 	! CHECK THE CODE !
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.4 CHANNELS---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ Both operations are written using "<-" operator.
 		ch = make(chan int)    // unbuffered channel
 		ch = make(chan int, 0) // unbuffered channel
 		ch = make(chan int, 3) // buffered channel with capacity 3
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.4.1 UNBUFFERED CHANNELS---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ carries no additional information, that is, its sole purpose is synchronization,
 type is struct{}. Though it's common to use a channel of "bool" or "int" for the same purpose since done "<- 1" is shorter than done "<-
 struct{}{}".
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.4.2 PIPELINES---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ It's only necessary to close a channel when it's important to tell the receiving
 
 4. A channel that the garbage collector determines to be unreachable will have its resources reclaimed whether or not it's closed.
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.4.3 UNIDIRECTIONAL CHANNEL TYPES---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ It's only necessary to close a channel when it's important to tell the receiving
 you have a value of unidirectional type such as "chan <- int", there's no way to obtain from it a value of "chan int" that refers to the same
 channel data structure.
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.4.4 BUFFERED CHANNELS---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -253,7 +253,7 @@ If the second stage is more elaborate, a single cook may not be able to keep up 
 the problem, we could hire another cook to help the second, performing the same task, bit working independently.
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -308,7 +308,7 @@ it were called in increments the number of working goroutines when a new gorouti
 			return
 		}
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.6 CONCURRENT WEB CRAWLER---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -340,7 +340,7 @@ size zero.
 4. The second problem is that the program never terminates, even when it has discovered all the links reachable from the initial URLs. We
 can set up the counter of goroutines have been started by the main cycle and each time we're left the current iteration we decrement this
 variable by one.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 8.7 MULTIPLEXING WITH SELECT---------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -442,13 +442,74 @@ cases that correspond to features like handling timeouts or cancellation respond
 9. The time.Tick() function behaves as if it creates a goroutine that calls time.Sleep() in a loop, sending an event each time it wakes up.
 	1) When we've finished all the work with "ticker := time.NewTicker(1 * time.Second)" we should close it with "ticker.Stop()" operation.
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-8.6 CONCURRENT WEB CRAWLER---------------------------------------------------------------------------------------------------------------------------------------------------------------
+8.8 CONCURRENT DIRECTORY TRAVERSAL -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ! CHECK THE CODE !
-1. "os.ReadDir(dirName string)" reads the named directory returns all the directory entries sorted by filename. If an error occurs reading the
-directory returns the entries it was able to read before the errors, along with the error.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-2. We can provide a loop with a label and apply it to make "continue"/"break" statements. Without this trick an inner break of a case of
-select/switch will break out the all statement.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+8.9 CANCELLATION---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. There's no way for one goroutine to terminate another directly, since that would leave all its shared variables in undefined states.
+
+2. Recall that after a channel has been closed and drained of all sent values, subsequent receive operations proceed immediately, yielding zero values. We can exploit
+it this to create a broadcast mechanism: DON'T SEND A VALUE ON THE CHANNEL, CLOSE IT.
+
+3. We can add cancellation to the "DiskUtility()" program with a few simple changes:
+	1) Create a cancellation channel on which no values are ever sent, but whose closure indicates that is time for the program to stop what's doing.
+			go func() {
+				os.Stdin.Read(make([]byte, 1))
+
+				// When we close the channel, the zero values are sent on the channel, so cancelled starts getting values and returns "true" values after it's called somewhere.
+				close(done)
+			}()
+
+	2) Define a utility function "cancelled()", that checks or polls the cancellation state at the instant it's called.
+			func cancelled() bool {
+				select {
+					// When channel "done" is closed this case is executed, because it gets zero values and respectively returns "true"
+					case <-done:
+						return true
+					// When no byte is gotten, this function sends false
+					default:
+						return false
+				}
+			}
+
+	3) Create a goroutine that will read from the standart input, which is typically connected to the terminal. As soon as any input is read, this goroutine broadcasts the cancella
+	tion by closing the "done" channel
+			go func() {
+				os.Stdin.Read(make([]byte, 1))
+				//When we close the channel, the zero values are sent on the channel, so cancelled starts getting values and returns "true" values after it's called somewhere.
+				close(done)
+			}()
+
+	4) Now we need to make our goroutines respond to the cancellation. In the main goroutine, we add a third case to the select statement that tries to receive from the "done" channel. The function returns if this case is ever selected, but before it returns it must first drain the "rootInfos" channel, discarding all values until the channel is closed. It does this to ensure that any active calls to "walkDir()" can run to completion without getting stuck sending to "rootInfos"
+		// Always get zero values after "done" has been drained
+		case <-done:
+			// When all the values that were sent on the channel "rootInfos" reached the main goroutine we'll return from the function
+			for range rootInfos {
+			}
+			return
+
+	5) The "walkDir()" goroutine pools the cancellation status when it begins, and returns without doing anything if the status is set. this turns all goroutines created after cancellation into no-ops.
+			if entry.IsDir() {
+			subDir := filepath.Join(curDir, entry.Name())
+			chanPair.wg.Add(1)
+			go func() {
+				defer chanPair.wg.Done()
+					// When we get "true" the goroutine gets "true" and stops its execution respectively decrementing "wg" counter
+					if cancelled() {
+						return
+					}
+					walkDirCancellation(subDir, dirData, chanPair)
+			}()
+		}
+
+3. Of course, when "main()" returns, a program exits, so it can be hard to tell a "main()" function that cleans up after itself from one that doesn't. There's a handy trick we can use during testing:
+	1) If instead of returning from "main()" in the event of cancellation, we execute a call to "panic()"
+
+	2) Then the runtime will dump the stack of every goroutine in the program
+If the main goroutine is the only one left, then it has cleaned up after itself. But if other goroutines remain, they may not have been properly cancelled. or perhaps they have been cancelled but the cancellation takes time; a little investigation may be worthwhile. The panic dump often contains sufficient information to distinguish these cases.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 */

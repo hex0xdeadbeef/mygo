@@ -1,6 +1,7 @@
-package e_functions
+package chapter5
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -97,21 +98,29 @@ func topologicalSort(graph map[string][]string) []string {
 	return order
 }
 
-func ExtractLinksModified(url string) ([]string, error) {
-	// Make a request and get response
-	response, err := http.Get(url)
+func ExtractLinksModified(ctx context.Context, link string) ([]string, error) {
+
+	request, err := http.NewRequestWithContext(ctx, "GET", link, nil)
 	if err != nil {
-		return nil, fmt.Errorf("while requesting: %s; %s", url, err)
+		return nil, fmt.Errorf("while creating request with url: %s: %s", link, err)
 	}
+	// Sets the Cancel field
+
+	// Make a request and get response
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
 	// Check response status
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("server response code: %d", response.StatusCode)
 	}
 	// Get a root of HTML body
 	doc, err := html.Parse(response.Body)
-	response.Body.Close()
 	if err != nil {
-		return nil, fmt.Errorf("while parsing: %s; %s", url, err)
+		return nil, fmt.Errorf("while parsing: %s; %s", link, err)
 	}
 
 	var links []string
@@ -171,7 +180,11 @@ func LinksBFS(sender func(string) []string, workspace []string) map[string]Empty
 
 			if !isVisited {
 				visited[link] = Empty{}
-				workspace = append(workspace, Crawler(link)...)
+				links, err := Crawler(nil, link)
+				if err != nil {
+					log.Print(err)
+				}
+				workspace = append(workspace, links...)
 			}
 
 		}
@@ -181,19 +194,22 @@ func LinksBFS(sender func(string) []string, workspace []string) map[string]Empty
 }
 
 // Filter and return children links
-func Crawler(url string) (links []string) {
+func Crawler(ctx context.Context, url string) (links []string, err error) {
 	fmt.Println(url)
 	// Get links
-	links, err := ExtractLinksModified(url)
+	links, err = ExtractLinksModified(ctx, url)
+	if err != nil {
+		return nil, err
+	}
 
 	// Gather links with only one hostname
 	hostname := GetHostname(url)
 	filtredLinks := LinkFilter(hostname, links)
 	if err != nil {
-		log.Printf("while extracting links from %s; %s", url, err)
+		return nil, fmt.Errorf("filtering links for %s; %s", url, err)
 	}
 
-	return filtredLinks
+	return filtredLinks, nil
 }
 func LinkFilter(hostname string, sublinks []string) []string {
 	validLinks := sublinks[:0]
@@ -208,6 +224,7 @@ func LinkFilter(hostname string, sublinks []string) []string {
 	}
 	return validLinks[:count]
 }
+
 func GetHostname(rawUrl string) string {
 	urlObj, err := url.Parse(rawUrl)
 	if err != nil {

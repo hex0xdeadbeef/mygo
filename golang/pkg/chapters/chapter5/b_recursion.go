@@ -1,4 +1,4 @@
-package e_functions
+package chapter5
 
 import (
 	"fmt"

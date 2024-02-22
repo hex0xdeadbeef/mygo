@@ -47,7 +47,7 @@ func (lr *LimitReader) Read(p []byte) (n int, err error) {
 	return
 }
 
-func LimitedReader(r io.Reader, n int64) io.Reader {
+func NewLimitedReader(r io.Reader, n int64) io.Reader {
 	newLimitReader := &LimitReader{Reader: r, ByteLimit: n}
 
 	return newLimitReader

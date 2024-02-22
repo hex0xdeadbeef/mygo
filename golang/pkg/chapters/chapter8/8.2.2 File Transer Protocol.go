@@ -18,14 +18,6 @@ const (
 
 var serverLog *log.Logger
 
-func init() {
-	var err error
-	serverLog, err = NewLogger(serverLogFile)
-	if err != nil {
-		log.Fatalf("creating server logger; %s", err)
-	}
-}
-
 type ServerFTP struct {
 	address  string
 	location *time.Location

@@ -2,7 +2,6 @@ package chapter8
 
 import (
 	"flag"
-	"fmt"
 	"io/fs"
 	"log"
 	"os"
@@ -11,36 +10,35 @@ import (
 	"time"
 )
 
-const (
-	maxFileDescriptors = 32
-)
-
 var (
-	semaphore = make(chan struct{}, maxFileDescriptors)
-	mu        sync.Mutex
+	done = make(chan struct{})
 )
 
-type dirInfo struct {
-	root string
-
-	filesNumber int64
-	bytesNumber int64
+func cancelled() bool {
+	select {
+	// When channel "done" is closed this case is executed, because it gets zero values and respectively returns "true"
+	case <-done:
+		return true
+	// When no byte is gotten, this function sends false
+	default:
+		return false
+	}
 }
 
-type channelPair struct {
-	c  chan<- *dirInfo
-	wg *sync.WaitGroup
-}
-
-func walkDir(curDir string, dirData *dirInfo, chanPair *channelPair) {
-	for _, entry := range dirEntries(curDir) {
-
+func walkDirCancellation(curDir string, dirData *dirInfo, chanPair *channelPair) {
+	for _, entry := range dirEntriesCancellation(curDir) {
 		if entry.IsDir() {
 			subDir := filepath.Join(curDir, entry.Name())
 			chanPair.wg.Add(1)
 			go func() {
 				defer chanPair.wg.Done()
-				walkDir(subDir, dirData, chanPair)
+				/*
+					When we get "true" the goroutine gets "true" and stops its execution respectively decrementing "wg" counter
+				*/
+				if cancelled() {
+					return
+				}
+				walkDirCancellation(subDir, dirData, chanPair)
 			}()
 
 		} else {
@@ -61,12 +59,15 @@ func walkDir(curDir string, dirData *dirInfo, chanPair *channelPair) {
 
 }
 
-func dirEntries(dir string) []fs.DirEntry {
+func dirEntriesCancellation(dir string) []fs.DirEntry {
 	defer func() {
 		<-semaphore
 	}()
-
-	semaphore <- struct{}{}
+	select {
+	case <-done:
+		return nil
+	case semaphore <- struct{}{}:
+	}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		log.Printf("du: %s\n", err)
@@ -76,7 +77,7 @@ func dirEntries(dir string) []fs.DirEntry {
 	return entries
 }
 
-func DiskUsage() {
+func DiskUsageCancellation() {
 	const (
 		tickersDurationInMillis = 500
 	)
@@ -121,7 +122,9 @@ func DiskUsage() {
 
 	go func() {
 		os.Stdin.Read(make([]byte, 1))
-
+		/*
+			When we close the channel, the zero values are sent on the channel, so cancelled starts getting values and returns "true" values after it's called somewhere.
+		*/
 		close(done)
 	}()
 
@@ -133,6 +136,11 @@ func DiskUsage() {
 loop:
 	for {
 		select {
+		// Always get zero values after "done" has been drained
+		case <-done:
+			// When all the values that were sent on the channel "rootInfos" reached the main goroutine we'll return from the function
+			for range rootInfos {
+			}
 		case rootInfo, ok := <-rootInfos:
 			if !ok {
 				break loop
@@ -143,20 +151,5 @@ loop:
 		}
 	}
 	printDiskUsage(rootInfoCopy)
-}
 
-func getRoots() ([]string, error) {
-	if len(os.Args[1:]) == 0 {
-		return nil, fmt.Errorf("getting prompt's args: no arguments provided")
-	}
-
-	return os.Args[1:], nil
-
-}
-
-func printDiskUsage(rootData dirInfo) {
-	log.Printf("root \"%s\" has %d files %.3f GB\n",
-		filepath.Base(rootData.root),
-		rootData.filesNumber,
-		float64(rootData.bytesNumber)/1e9)
 }

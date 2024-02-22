@@ -95,7 +95,7 @@ func (cw *CountWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-func CountingWriter(w io.Writer) (io.Writer, *int64) {
+func NewCountingWriter(w io.Writer) (io.Writer, *int64) {
 	cr := &CountWriter{writer: w, bytesWritten: 0}
 
 	return cr, &cr.bytesWritten

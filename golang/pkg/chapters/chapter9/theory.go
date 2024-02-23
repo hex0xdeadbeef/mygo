@@ -7,7 +7,7 @@ package chapter9
 
 2. The function is concurrently-safe if it continues to work correctly even when called concurrently, that is, from two or more goroutines with no additional synchronization.
 
-3. A type is concurrently-safe if all its accessible methods and operations are concurrently-safe.
+3. A type if concurrently-safe if all its accessible methods and operations are concurrently-safe.
 
 4. We should access a variable concurrently only if the documentation for its type says that this is safe.
 
@@ -136,5 +136,91 @@ We can then express Withdraw in terms of deposit like this:
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9.3 READ/WRITE MUTEXES sync.RWMutex
+1. Since the "Balance()" function only needs to read the state of the variable, it would in fact safe for multiple Balance calls to run concurrently, so long as no "Deposit()" or
+"Withdraw()" call is running. In this scenario we need a special kind of lock that allows read-only multiple operations to proceed in parallel with each other, but write operations to have  fully exclusive access. This lock is called a "multiple readers", "single writer" lock.
+	1) "Rlock()" allows multple reading, but the writing data will be allowed only when all the goroutines that read this resource call the "RUnlock()"
+
+2. The "BalanceRWMutex()" function now calls the "RLock()" and "RUnclock()" methods to acquire and release a "readers" or "shared" lock. The Deposit function, which is unchanged, calls
+the mu.Lock and mu.Unlock methods to acquire and release a "writer" or "exclusive" lock. With this change, Balance requests run in parallel with each other and finish more quickly.
+
+3. A method that appears to be a simple accessor might also increment an internal usage counter, or update a cachee so that repeat calls are faster.
+
+4. It's profitable to use RWMutex when most of the goroutines that acquire the lock are readers, and the lock is under contention, that is, goroutines routinely have to wait to acquire
+it.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9.4 MEMORY SYNCHRONIZATION
+1.Two reasons we need a mutex in the "Balance()".
+	1) It's equaly important that "Balance()" not execute in the middle of some other operation like "Withdraw()".
+	2) Synchronization is about more than just order of execution of multiple goroutines; synctonization also affects memory.
+
+2. In a modern computer there may be dozens of processors, each with its own local cache of the main memory. For efficiency, writes to memory are buffered within each processor and
+flushed out to main memory only when necessary. They may even be commited to main memory in a different order than they were written by the writing goroutine. Synchronization primitives
+like "channel communications" and "mutex operations" cause the processor to flush out and commit all its accumulated writes up the the effects of goroutine execution up to that point are
+guaranteed to be visible to goroutines running on other processors.
+
+3. Goroutines are "sequentially consistent", that means:
+	1) ORDER. All the operations are executed in the order they were planned. This means if operation "A" were planned before "B", the "A" is always executed before "B"
+	2) VISIBILITY. All the changes were made by a single operation get clear and visible to other operations. This means that if the operation "A" changes the value of variable and then
+	the operation "B" reads this value, then this operation will see all the changes.
+	3) ATOMICITY. Operations that were supposed to be processed as the single thing are executed in the atomic way. This means that if the operation "A" includes some steps within itself,
+	all the steps will be executed as a single thing. And no operations can intervene inside it.
+
+4. CHECK THE CODE OF "DeterministicOutput()"
+	Operation sequence			Output
+		Sx Oy Sy Ox			y = 0	x = 1
+		Sy Ox Sx Oy			x = 0	y = 1
+		Sx Sy Ox Oy 		x = 1	y = 1
+		Sy Sx Oy Ox 		y = 1 	x = 1
+
+Side effects
+	1)
+	Operation sequence			Output
+		Sx Oy 					y = 0
+		Sy Ox					x = 0
+
+	2)
+	Operation sequence			Output
+		Sy Ox 					x = 0
+		Sx Oy					y = 0
+Although goroutine A must observe the effect of the write "x" before it reads the value of "y", it doesn't necessarily observe the write of "y" done by goroutine B, so A may print aa stale value
+of "y"
+
+5. Because the assignment and the Print refer to different variables, a compiler may conclude that the order of the two statements cannot affect the result and swap them. If the two
+goroutines execute on different CPUs, each with its own cache, writes by one goroutine are not visible to the other goroutine's Print() until the caches are synchronized with main memory.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9.5 Lazy Initialization: sync.Once
+1. It's good practice to defer an expensive initialization step until the moment its needed. Initializing a variable  up front increases the start-up latency of a program and is
+unnecessary if execution doesn't always reach the part of the program that uses that variable.
+
+2. CHECK THE CODE OF "RawLazyIcon()".
+	1) For a variable accessed by only a single goroutine, we can use the pattern of "loadIconsUnsafe()" but this pattern isn't safe if "RawLazyIcon()" is called concurrently.
+
+	2) Because of a possibility of swap states of main memory between the two goroutines by compiler and CPU at the moment when the first goroutine reached the statements of filling
+	the map and the second one reached only the statement of the check whether the map is nil and it really is:
+		1) The first goroutine will get the nil map and the program will panic.
+
+		2) The second goroutine will get non-nil map and the check will be passed.
+
+		3) However, the cost of enforcing mutually exclusive access to icons is that two goroutines cannot access the variable concurrently, even once the variable has been safely
+		initialized and will never be modified again. This suggests a multiple readers lock.
+
+		4. There is no way to upgrade a "shared lock" to an "exclusive" one without first releasing the "shared lock" so we must recheck the icons variable in case another goroutine
+		already initialized it in the interim. This pattern gives us pattern greater concurrency but is complex and error-prone.
+
+3. For an one-time initialization the package "sync" provides a specialized solution: "sync.Once". Conceptually, a "Once()" consists of a mutex and a boolean variable that records
+whether initialization has taken place. The mutex guards the boolean and the client's data structures.
+	1) The sole method "Do()" accepts the initialization function as its argument.
+
+	2) Each call to "Do()" locks the mutex and checks the boolean variable.
+		1) In the first call, in which the variable is false, "Do()" calls "loadIconsUnsafe()" and sets the variable to "true".
+
+		2) Subsequent calls do nothing, but the mutex synchronization ensures that the effects of "loadIconsUnsafe()" on memory (specifically icons) become visible to all goroutines.
+
+		3) Using "sync.Once" in this way, we can avoid sharing variables with other goroutines until they have been properly constructed.
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

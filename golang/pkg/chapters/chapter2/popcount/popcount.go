@@ -1,14 +1,23 @@
 package popcount
 
+import "sync"
+
 var (
-	pc [256]byte
+	pc           [256]byte
+	popCountOnce sync.Once
 )
 
 // pc[i] is the population count of i var pc [256]byte
-func init() {
+func initPopCount() {
 	for i := range pc {
 		pc[i] = pc[i/2] + byte(i&1)
 	}
+}
+
+func popCountAtomic(x uint64) int {
+	popCountOnce.Do(initPopCount)
+	return PopCountLoop(x)
+
 }
 
 // PopCount returns the population count (number of set bits) of x.

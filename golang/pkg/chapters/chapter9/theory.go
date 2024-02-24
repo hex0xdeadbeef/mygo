@@ -163,10 +163,11 @@ guaranteed to be visible to goroutines running on other processors.
 
 3. Goroutines are "sequentially consistent", that means:
 	1) ORDER. All the operations are executed in the order they were planned. This means if operation "A" were planned before "B", the "A" is always executed before "B"
+
 	2) VISIBILITY. All the changes were made by a single operation get clear and visible to other operations. This means that if the operation "A" changes the value of variable and then
 	the operation "B" reads this value, then this operation will see all the changes.
-	3) ATOMICITY. Operations that were supposed to be processed as the single thing are executed in the atomic way. This means that if the operation "A" includes some steps within itself,
-	all the steps will be executed as a single thing. And no operations can intervene inside it.
+
+	3) ATOMICITY. Operations that were supposed to be processed as the single thing are executed in the atomic way. This means that if the operation "A" includes some steps within itself, all the steps will be executed as a single thing. And no operations can intervene inside it.
 
 4. CHECK THE CODE OF "DeterministicOutput()"
 	Operation sequence			Output
@@ -223,4 +224,114 @@ whether initialization has taken place. The mutex guards the boolean and the cli
 
 		3) Using "sync.Once" in this way, we can avoid sharing variables with other goroutines until they have been properly constructed.
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9.6 THE RACE DETECTOR
+1. Go has the tool is named "Race Detector". This utility checks whether there's a race in our code.
+
+2. To use this tool we just add to the "go filename.go build/run/test" the flag "-race". For example: "go run -race main.go" This causes the compiler to build a modified version of our
+application or test with additional instrumentation that effectively records all accesses to shared variables that occured during execution, along with identity of the goroutine that
+read or wrote the variable.
+
+3. In addition, the modified program records all synchronization events, such as "go" statements, channel operations, and calls to "(*sync.Mutex).Lock()", "(*sync.WaitGroup).Wait()" and
+so on.
+
+4. The "race detector" studies this stream of events, looking for cases in which one goroutine reads or writes a shared variable that was most recently written by a different goroutine
+without an intervening synchronization operation. This indicates a concurrent access to the shared variable, and thus a data race. The tool prints a report that includes:
+	1)  An identity of the variable
+
+	2) 	Stacks of active function calls in the reading goroutine and the writing goroutine.
+
+This is usually sufficient to pinpoint the problem.
+
+5. Report example:
+
+➜  cmd git:(main) ✗ go run -race main.go
+x = 0 ==================
+WARNING: DATA RACE
+Write at 0x000102b0e098 by goroutine 7:
+  golang/pkg/chapters/chapter9.DeterministicOutput.func1()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/pkg/chapters/chapter9/9.4 Memory Synchronization.go:17 +0x70
+
+Previous read at 0x000102b0e098 by goroutine 8:
+  golang/pkg/chapters/chapter9.DeterministicOutput.func2()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/pkg/chapters/chapter9/9.4 Memory Synchronization.go:25 +0x8c
+
+Goroutine 7 (running) created at:
+  golang/pkg/chapters/chapter9.DeterministicOutput()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/pkg/chapters/chapter9/9.4 Memory Synchronization.go:15 +0x38
+  main.main()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/cmd/main.go:6 +0x20
+
+Goroutine 8 (running) created at:
+  golang/pkg/chapters/chapter9.DeterministicOutput()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/pkg/chapters/chapter9/9.4 Memory Synchronization.go:22 +0x54
+  main.main()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/cmd/main.go:6 +0x20
+==================
+==================
+WARNING: DATA RACE
+Read at 0x000102b0e0a0 by goroutine 7:
+  golang/pkg/chapters/chapter9.DeterministicOutput.func1()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/pkg/chapters/chapter9/9.4 Memory Synchronization.go:18 +0x8c
+
+Previous write at 0x000102b0e0a0 by goroutine 8:
+  golang/pkg/chapters/chapter9.DeterministicOutput.func2()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/pkg/chapters/chapter9/9.4 Memory Synchronization.go:24 +0x70
+
+Goroutine 7 (running) created at:
+  golang/pkg/chapters/chapter9.DeterministicOutput()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/pkg/chapters/chapter9/9.4 Memory Synchronization.go:15 +0x38
+  main.main()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/cmd/main.go:6 +0x20
+
+Goroutine 8 (running) created at:
+  golang/pkg/chapters/chapter9.DeterministicOutput()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/pkg/chapters/chapter9/9.4 Memory Synchronization.go:22 +0x54
+  main.main()
+      /Users/dmitriymamykin/Desktop/goprojects/golang/cmd/main.go:6 +0x20
+==================
+y = 1 Found 2 data race(s)
+exit status 66
+
+6. The race detector reports all data races that were acually executed. However, it can only detect race conditions that occur during a run.
+	1) it cannot prove that none will ever occur
+	2) For best results, make sure that your tests exercise your packages using concurrency.
+
+7. Due to extra bookkeeping a progrsm built with race detection needs more time and memory to run, but the overhead is tolerable. For infrequently occuring race conditions, letting the
+race detector do its job can save hours or days of debugging.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9.7 CONCURRENT NON-BLOCKING CACHE
+1. GetMutex(), GetTwoMutexes() provides us with the safe operations but have side effects. We want to have the cache that will be written once and accessible to read ftom after write
+operation. So that we can create it we need implement "duplicate suppression"
+
+2. In the fourth version of Memo:
+	1) Each map element is a pointer to an "entry" struct.
+
+	2) Each "entry" contains the memoized result of a call to the function "f()", as before, but it additionally contains a channel called "ready". Just after the entry's "result" has
+	been set, this channel will be closed.
+
+	3) We should notice that the variables "e.res.value" and "e.res.err" in the entry are shared among multiple goroutines. The goroutine that creates the entry sets their values, and
+	other goroutines read their values once the "ready" condition has been broadcast. Despite being accessed by multiple goroutines, no mutex lock is necessary. The closing of the
+	"ready" channel happens before any other goroutine receives the broadcast, so the write to those variables in the first goroutine happens before they are read by subsequent
+	goroutines. There's no data race.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9.8 GOROUTINES AND THREADS
+
+9.8.1 GROWABLE STACKS
+THREADS:
+1) Each OS thread has a fixed-size block of memory (often as large as 2MB) for its "stack". Stack is the work area where it saves the local variables of function calls that are in
+progress or temporarily suspended while another function is called. This fixed-size stack is simultaneously too much and too little.
+
+2) Changing the fixed size can improve space efficiency and allow more threads to be created, or it can more deeply recursive functions, but it cannot do both.
+
+GOROUTINES
+1) In contrast, a goroutine starts life with a small stack, typically 2KB. A goroutine's stack, like the stack of an OS thread, holds the local variables of active and suspended\
+function calls, but unlike an OS thread, a goroutine's stack is not fixed. It grows and shrinks as needed. The size limit for a goroutine stack may be as much as 1GB, orders of
+magnitude larger than a typical fixed-size thread stack, though of course few goroutines use that much.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

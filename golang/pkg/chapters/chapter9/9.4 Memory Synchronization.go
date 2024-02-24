@@ -1,17 +1,29 @@
 package chapter9
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
-var x, y int
+var (
+	wg   sync.WaitGroup
+	x, y int
+)
 
 func DeterministicOutput() {
+	wg.Add(1)
 	go func() {
-		x = 1                   // Sx
-		fmt.Printf("y = %d", y) // Oy
+		defer wg.Done()
+		x = 1                    // Sx
+		fmt.Printf("y = %d ", y) // Oy
 	}()
 
+	wg.Add(1)
 	go func() {
-		y = 1                   // Sy
-		fmt.Printf("x = %d", x) // Ox
+		defer wg.Done()
+		y = 1                    // Sy
+		fmt.Printf("x = %d ", x) // Ox
 	}()
+
+	wg.Wait()
 }

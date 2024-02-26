@@ -323,6 +323,7 @@ operation. So that we can create it we need implement "duplicate suppression"
 /*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 9.8 GOROUTINES AND THREADS
 
+
 9.8.1 GROWABLE STACKS
 THREADS:
 1) Each OS thread has a fixed-size block of memory (often as large as 2MB) for its "stack". Stack is the work area where it saves the local variables of function calls that are in
@@ -331,7 +332,50 @@ progress or temporarily suspended while another function is called. This fixed-s
 2) Changing the fixed size can improve space efficiency and allow more threads to be created, or it can more deeply recursive functions, but it cannot do both.
 
 GOROUTINES
-1) In contrast, a goroutine starts life with a small stack, typically 2KB. A goroutine's stack, like the stack of an OS thread, holds the local variables of active and suspended\
+1) In contrast, a goroutine starts life with a small stack, typically 2KB. A goroutine's stack, like the stack of an OS thread, holds the local variables of active and suspended
 function calls, but unlike an OS thread, a goroutine's stack is not fixed. It grows and shrinks as needed. The size limit for a goroutine stack may be as much as 1GB, orders of
 magnitude larger than a typical fixed-size thread stack, though of course few goroutines use that much.
+
+
+9.8.2 GOROUTINE SCHEDULING
+THREADS
+1) OS Threads are scheduled by the OS kernel. Every few milliseconds, a hardware timer interrupts the processor, which causes a kernel function called the "scheduler" to be
+invoked. This function suspends the currently executing thread and saves its registers in memory, looks over the list of threads and decides which one should run next, restores
+that thread's registers from memory, then resumes the execution of that thread. Because OS threads are scheduled by the kernel, passing control from one thread to another requires
+a full "context switch", that is, saving the state of one user thread to memory, restoring the state of another, and updating the scheduler's data structures. This operation is slow, due
+to its poor locality and the number of memory accesses required, and has historically only gotten worse as the number of CPU cycles required to access memory has increased.
+
+GOROUTINES
+1) The Go runtime contains its own scheduler that uses a technique known as "M:N scheduling", because it multiplexes (or schedules) M goroutines on N OS threads. The job of the Go scheduler
+is analogous to that of the kernel scheduler, but it's concerned only with the goroutines of a single Go program.
+
+2) Unlike the operating system's thread scheduler, the Go scheduler is not invoked periodically by a hardware timer, but implicitly by certain Go language constructs. For example, when
+a goroutine calls "time.Sleep()" or blocks in a channel or mutex operation, the scheduler puts it to sleep and runs another goroutine until it's time to wake the first one up. Because it
+doesn't need a switch to kernel context, rescheduling a goroutine is much cheaper than rescheduling a thread.
+
+
+9.8.3 GOMAXPROCS
+1) The Go scheduler uses a parameter called "GOMAXPROCS" to determine how many OS threads may be actively executing Go code simultaneously. Its default value is the number of CPUs on the
+machine, so on a machine with 8 CPUs, the scheduler will schedule Go Code on up to 8 OS threads at once (GOMAXPROCS is the N in "M:N scheduling")
+
+2) Operations that need or don't an OS thread
+	1) Goroutines that are sleeping or blocked in a communication don't need a thread at all.
+	2) Goroutines that are blocked in I/O or other system calls or are calling non-Go functions, do need an OS thread.
+But "GOMAXPROCS" needn't account for them.
+
+3) We can explicitly control this parameter using the "GOMAXPROCS" environment variable or the "runtime.GOMAXPROCS" function.
+
+
+9.8.3 GOROUTINES HAVE NO IDENTITY
+THREADS
+1) In most operating systems and programming languages that support multithreading, the current thread has a distinct "identity" that can be easily obtained as an ordinary value, typically an
+integer or pointer. This make it easy to buold an abstraction called "thread-local storage", which is essentially a global map keyed by thread identity, so that each thread can store and retrieve
+values independent of other threads.
+
+GOROUTINES
+1) Goroutines have no notion of "identity" that is accessible to the programmer.
+
+2) Go encourages a simpler style of programming in which parameters that affect the behavior of a function are explicit. Not only does this make programs easier to read, but it
+lets us freely assign subtasks of a given function to many different goroutines without worrying about their identity.
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

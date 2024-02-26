@@ -148,7 +148,9 @@ It's a build system that computes file dependencies and invokes: compilers, asse
 a test driver, as we'll see.
 
 2. To keep the need for configuration to a minimum, the "go" tool relies heavily on conventions.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 10.7.1 WORKSPACE ORGANIZATION
 1. The only configuration most users ever need is the "GOPATH" environment variable, which specifies the root of the workspace.
 
@@ -164,22 +166,142 @@ of "GOPATH". Users never need to set "GOROOT" since, by default the "go" tool wi
 4. "go env" prints the effective values of the environment variables relevant to the toolchain, including the default values for the missing ones.
 	1) "GOOS" specifies the target operating system ("android, linux, darwin, windows")
 	2) "GOARCH" specifies the target processor architecture
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 10.7.2 DOWNLOADING PACKAGES
 1. "go get" command can download a single package or an entire subrtree or repository using the "..." notation. The tool also computes and downloads all the dependencies of the initial
 packages, which is why the "golang.org/x/net/htnl" package appeared in the workspace in the previous example.
 
 2. Once "go get" has downloaded the packages, it builds them and then installs the libraries and commands. For example:
-	1) go get golang.org/x/lint/golint  
+	1) go get golang.org/x/lint/golint
 
 3. "go get" command has support for popular code-hosting sites like "GitHub", "Bitbucket", "Launchpad" and can make the appropriate requests to their version-control systems. For less
 known sites we have to indicate which version-control protocol to use in the import path, such as "Git" or "Mercurial".
 	1) Run "go help importpath" for details.
 
 4. The directories that "go get" creates are true client of the remote repository, not just copies of the files, so we can use version-control commands to see a difference of local edits
-we've made or to update to a different revision. The feature of the go tool lets packages use a custom domain in their import path while being hosted by a generic service such as 
+we've made or to update to a different revision. The feature of the go tool lets packages use a custom domain in their import path while being hosted by a generic service such as
 "googlesource.com" or any else. HTML pages beneath "https://golang.org/x/net/html" include the metadata which redirects the "go" tool to the git repository at the actual hosting site.
-	1) "go get -u" generally retrivies the latest version of each package, which is convenient when we're getting started but may be inappropriate for deployed projects where precise 
+	1) "go get -u" generally retrivies the latest version of each package, which is convenient when we're getting started but may be inappropriate for deployed projects where precise
 	control of dependencies is critical for release. The usual solution to this problem is to "vendor" the code, that is, to make a persistent local copy of all the necessary
 	dependencies, and to update this copy carefully and deliberately.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+10.7.3 BUILDING PACKAGES
+1. The "go build" command compiles each argument package. This merely checks that the package is free of compile errors.
+	1) If the package is a library, the result is discarded.
+
+	2) if the package is named "main" "go build" invokes the linker to create an executable file in the current directory. The name of executable is taken from the last segment
+	of the package's import path.
+
+2. Since each directory contains one package, each executable program or "command" in Unix terminology requires its own directory. These directories are sometimes children of a directory
+named "cmd" such as the "golang.org/x/tools/cmd/godoc" command which serves Go package documentation through a web interface.
+
+3. Packages may be specified by:
+	1) Their import paths
+
+	OR
+
+	2) By a relative directory name, which must start with "." or ".." segment even if this wouldn't ordinarily be required.
+
+	OR
+
+	3) As a list of file names, though it tends to be used only for small programs and one-off experiments. if the package name is "main" the executable name comes from the basename of the
+	first ".go" file.
+
+If no argument the current directory is assumed
+
+4. For throwaway programs we want to run the executable as soon as we've built it. The "go run" command combines two steps.
+
+5. BY DEFAULT, THE "go build" COMMAND BUILDS THE REQUESTED PACKAGE AND ALL ITS DEPENDENCIES, THEN THROWS AWAY ALL THE COMPILED CODE EXCEPT THE FINAL EXECUTABLE, IF ANY.
+
+6. Both the dependency analysis and the compilation are surprisingly fast, but as projects grow to dozens of packages and hundreds of thousands of line of code, the time to recompile
+dependencies can become noticable, potentially several seconds, even when those dependencies haven't changed at all.
+
+7. "go install" command is similar to "go build", except that it saves the compiled code for each package and command instead of throwing it away. many users put "GOPATH/bin" on their
+executable search path. Thereafter "go build" and "go install" don't run the compiler for those packages and commands if they haven't changed, making subsequent builds much faster.
+	1) For convenience "go build -i" installs the packages that are dependencies of the build target.
+
+8. Since compiled packages vary by platform and architecture, "go install" saves them beneath a subdirectory whose name incorporates the values of "GOOS" and "GOARCH" environment variables
+It's straightforward to "cross-compile" a Go program, that is, to build to build an executable intended for a different operating system or CPU. Just set the GOOS or GOARCH variables
+during the build. For example:
+	GOARCH = 386 go build golang/pkg/chapters/chapter10
+
+9. If a file includes an operating system or processor architecture name like "net_linux.go" or "asm_amd64.s" then the "go" tool will compile the file only when building for that target.
+
+10. Special comments called "build tags" give more fine-grained control. For example:
+	// +build linux darwin
+	Before the package declaration and its doc comment, "gp build" will compile it only when building for Linux or Mac OS X
+
+	// +build ignore
+	says: never compile the file
+For more details we should see the Build Constraints section of the go/build package's documentation.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+10.7.4 DOCUMENTING PACKAGES
+1. Each declaration of an exported package member and the package declaration itself should be immediately preceded by a comment explaining its purpose and usage.
+
+2. Go "doc comments" are always complete sentences
+	1) The first sentence is usually a summary that starts with the name being declared.
+
+	2) Function parameters and other identifiers are mentioned without quotation or markup
+For example:
+	// Fprintf formats according to a format specifier and writes to w.
+	// It returns the number of bytes written and any write error encountered.
+	func Fprintf(w io.Writer, format string, a ... interface{}) (int, error)
+
+3. Comments requires maintenance too.
+
+4. The "go doc" tool prints the declaration and doc comment of the entity specified on the command line, which may be a package.
+
+5. We should provide the package with comment after declaring package itself.
+
+6. The second tool named "godoc". It serves cross-linked HTML pages that provide the same information as "go doc" and much more.
+	1) Its -analysis=type and -analysis=pointer flags augment the documentation and the source code with the results of advanced static analysis.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+10.7.5 INTERNAL PACKAGES
+1. Sometimes we need a middle ground of packages. For example:
+	1) When we're breaking up a large package into more managable parts, we may not want to reveal the interfaces between those parts to other packages.
+
+	2) We may want to share utility functions across several packages of a project without exposing them more widely.
+
+	3) We just want to experiment with a new package without prematurely committing to its API, by putting it, "on probation" with a limited set of clients.
+
+2. "go build" treats a package specially if its import path contains a path segment "internal". Such packages are called "internal packages". An internal package may be imported only
+by another package that is inside the tree rooted at the parent of the internal direcory. For example there are the packages:
+	1. net/http
+	2. net/http/internal/chunked
+	3. net/http/httputil
+	4. net/url
+net/http/internal/chunked can be imported from  3 or 1 but not from 4. However, 4 may import 3.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+10.7.6 QUERYING PACKAGES
+1. "go list" reports information about available packages. In it simplest form, "go list" tests whether a package is present in the workspace and prints its import path.
+
+2. An argument to "go list" may contain "..." wildcard, which matches any substring of package's import path. We can use it to enumerate all the packages within a Go workspace. For example:
+	go list ./...
+
+	golang/pkg/chapters/chapter1/a_for_cycles
+	golang/pkg/chapters/chapter1/b_count_of_terminal_arguments
+	golang/pkg/chapters/chapter1/c_parse
+	golang/pkg/chapters/chapter1/d_servers
+	golang/pkg/chapters/chapter10
+	golang/pkg/chapters/chapter10/archivereader
+	...
+
+3. "go list" command obtains the complete metadata for each package, not just the import path and makes this information available to users or other tools in a variety of formats.
+	1) The "-json" flag causes "go list" to print the entire record of each package in json format. For example:
+		go list -json ./...
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

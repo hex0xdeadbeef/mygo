@@ -300,6 +300,24 @@ net/http/internal/chunked can be imported from  3 or 1 but not from 4. However, 
 3. "go list" command obtains the complete metadata for each package, not just the import path and makes this information available to users or other tools in a variety of formats.
 	1) The "-json" flag causes "go list" to print the entire record of each package in json format. For example:
 		go list -json ./...
+
+4. The "-f" flag lets users customize the output format using the template language of package "text/template". For example:
+	1)
+	go list -f '{{join .Deps "\n"}}' ./...  
+	...
+	vendor/golang.org/x/net/route
+	vendor/golang.org/x/text/secure/bidirule
+	vendor/golang.org/x/text/transform
+	vendor/golang.org/x/text/unicode/bidi
+	vendor/golang.org/x/text/unicode/norm
+
+	2) go list -f '{{.ImportPath}} -> {{join .Imports " "}}' ./...
+	...
+	golang/pkg/projects/chapter4/c_ombdtool/config -> 
+	golang/pkg/projects/chapter4/c_ombdtool/logger -> log os
+	golang/pkg/projects/chapter4/c_ombdtool/logic -> encoding/json errors flag fmt golang/pkg/projects/chapter4/c_ombdtool/config golang/pkg/projects/chapter4/c_ombdtool/logger io log net/http os
+	golang/pkg/projects/chapter7/mulitiersorttable -> fmt html/template log net/http os sort strconv
+	
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

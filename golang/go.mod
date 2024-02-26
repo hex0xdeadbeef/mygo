@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/goftp/server v0.0.0-20200708154336-f64f7c2d8a42 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

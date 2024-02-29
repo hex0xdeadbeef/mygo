@@ -3,12 +3,9 @@ package c_hashmaps
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"math/rand"
 	"os"
 	"sort"
-	"unicode"
-	"unicode/utf8"
 )
 
 /*
@@ -298,70 +295,6 @@ func convertListToString(list []string) string {
 	return fmt.Sprintf("%q", list)
 }
 
-// COUNT OF VARIETY TOKENS
-func CharCount(fileName string) {
-
-	quantities := make(map[string]map[rune]int)
-	quantities["Letters"] = make(map[rune]int)
-	quantities["Digits"] = make(map[rune]int)
-	quantities["Others"] = make(map[rune]int)
-
-	var utflen [utf8.UTFMax + 1]int
-	invalid := 0
-
-	file, err := os.Open(fileName)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "The error: | %v | occured ", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	input := bufio.NewReader(file)
-	for {
-		/*
-			1) Read a single rune, get its UTF-8 representation as []byte, get rune size.
-			2) If rune is invalid we get replacement symbol assigned to a run variable
-			3) err will be used to recognize the break condition
-		*/
-		run, bytesCount, err := input.ReadRune()
-
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			fmt.Fprintf(os.Stderr, "The error occured: %v\n", err)
-			os.Exit(1)
-		}
-
-		if run == unicode.ReplacementChar {
-			invalid++
-		}
-
-		if unicode.IsLetter(run) {
-			quantities["Letters"][run]++
-		} else if unicode.IsDigit(run) {
-			quantities["Digits"][run]++
-		} else {
-			quantities["Others"][run]++
-		}
-
-		utflen[bytesCount]++
-	}
-
-	for mapKey, subMap := range quantities {
-		fmt.Printf("\n------------ %s ------------\n", mapKey)
-		for runeKey, runeCount := range subMap {
-			fmt.Printf("%5c\t%5d\n", runeKey, runeCount)
-		}
-	}
-
-	for i := 1; i < len(utflen); i++ {
-		fmt.Printf("%d. byte(s) count: %5d\n", i, utflen[i])
-	}
-
-	if invalid != 0 {
-		fmt.Printf("Replacement symbol count: %d\n", invalid)
-	}
-}
 func WordFrequency(fileName string) {
 
 	wordsQuantities := make(map[string]int)

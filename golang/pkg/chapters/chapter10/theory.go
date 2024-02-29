@@ -303,7 +303,7 @@ net/http/internal/chunked can be imported from  3 or 1 but not from 4. However, 
 
 4. The "-f" flag lets users customize the output format using the template language of package "text/template". For example:
 	1)
-	go list -f '{{join .Deps "\n"}}' ./...  
+	go list -f '{{join .Deps "\n"}}' ./...
 	...
 	vendor/golang.org/x/net/route
 	vendor/golang.org/x/text/secure/bidirule
@@ -313,13 +313,9 @@ net/http/internal/chunked can be imported from  3 or 1 but not from 4. However, 
 
 	2) go list -f '{{.ImportPath}} -> {{join .Imports " "}}' ./...
 	...
-	golang/pkg/projects/chapter4/c_ombdtool/config -> 
+	golang/pkg/projects/chapter4/c_ombdtool/config ->
 	golang/pkg/projects/chapter4/c_ombdtool/logger -> log os
 	golang/pkg/projects/chapter4/c_ombdtool/logic -> encoding/json errors flag fmt golang/pkg/projects/chapter4/c_ombdtool/config golang/pkg/projects/chapter4/c_ombdtool/logger io log net/http os
 	golang/pkg/projects/chapter7/mulitiersorttable -> fmt html/template log net/http os sort strconv
-	
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

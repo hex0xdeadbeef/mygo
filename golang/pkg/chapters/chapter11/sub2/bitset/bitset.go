@@ -1,4 +1,4 @@
-package chapter6
+package bitset
 
 import (
 	"bytes"
@@ -58,11 +58,33 @@ func (s *IntSet) Elements() []int {
 	return elements[:addedElementsCount]
 }
 
+// subAdd adds the non-negative value x to the set
+func (s *IntSet) subAdd(x int) {
+	word, bit := x/blockSize, uint(x%blockSize)
+	// While the count of blocks is less than word, add new blocks.
+	for word >= len(s.words) {
+		s.words = append(s.words, 0)
+	}
+	// Set the bit at the number's index in the block
+	s.words[word] |= 1 << bit
+}
+
 // Add adds all the passed elements to the set
 func (s *IntSet) Add(values ...int) {
 	for _, value := range values {
 		s.subAdd(value)
 	}
+}
+
+// subRemove turns an element at words[blockIndex][indexInBlock] into 0
+func (s *IntSet) subRemove(x int) bool {
+	blockIndex, indexInBlock := s.getBlockAndIndex(x)
+	if blockIndex >= 0 {
+		s.words[blockIndex] &^= (1 << indexInBlock)
+		return true
+	}
+
+	return false
 }
 
 // Remove removes all the passed elements from the set
@@ -93,13 +115,16 @@ func (s *IntSet) Len() int {
 	return length
 }
 
-// Clear does a bitset empty
-func (s *IntSet) Clear() {
+// Clean does a bitset empty
+func (s *IntSet) Clean() {
 	s.words = nil
 }
 
 // Copy makes a copy of the initial bitset ane returns it
 func (s *IntSet) Copy() *IntSet {
+	if s == nil {
+		return nil
+	}
 	newWords := make([]uint, len(s.words))
 	copy(newWords, s.words)
 
@@ -108,7 +133,7 @@ func (s *IntSet) Copy() *IntSet {
 	return newBitSet
 }
 
-// UnionWith(t *IntSet) sets s to the union of s and t
+// UnionWith sets s to the union of s and t
 func (s *IntSet) UnionWith(t *IntSet) {
 	for i, tword := range t.words {
 		// Union blocks if the block at index i exists in the s.words
@@ -154,28 +179,6 @@ func (s *IntSet) SymmetricDifference(t *IntSet) *IntSet {
 	sWithoutT.UnionWith(tWithoutS)
 
 	return &IntSet{words: sWithoutT.words}
-}
-
-// subAdd adds the non-negative value x to the set
-func (s *IntSet) subAdd(x int) {
-	word, bit := x/blockSize, uint(x%blockSize)
-	// While the count of blocks is less than word, add new blocks.
-	for word >= len(s.words) {
-		s.words = append(s.words, 0)
-	}
-	// Set the bit at the number's index in the block
-	s.words[word] |= 1 << bit
-}
-
-// subRemove turns an element at words[blockIndex][indexInBlock] into 0
-func (s *IntSet) subRemove(x int) bool {
-	blockIndex, indexInBlock := s.getBlockAndIndex(x)
-	if blockIndex >= 0 {
-		s.words[blockIndex] &^= (1 << indexInBlock)
-		return true
-	}
-
-	return false
 }
 
 // getBlockAndIndex returns the block index and the index in this block if the element is consisted by set

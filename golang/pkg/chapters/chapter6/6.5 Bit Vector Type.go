@@ -6,12 +6,19 @@ import (
 )
 
 // blockSize defines the max blocksize size
-const blockSize = 32
+const blockSize = 64
 
 // An IntSet is a set of small non-negative integers.
 // Its zero value represents the empty set
 type IntSet struct {
 	words []uint
+}
+
+// Creates new bitset using the size argument
+func New() *IntSet {
+	// So that it'll be possible to union logic of the map implemetation New uses the variadic parameter size and takes the 0th element
+	set := &IntSet{words: make([]uint, 0)}
+	return set
 }
 
 // String returns a string representation of bitset
@@ -94,8 +101,12 @@ func (s *IntSet) Len() int {
 }
 
 // Clear does a bitset empty
-func (s *IntSet) Clear() {
-	s.words = nil
+func (s *IntSet) Clear() error {
+	if s != nil {
+		s.words = nil
+		return nil
+	}
+	return fmt.Errorf("the bitset ptr is nil")
 }
 
 // Copy makes a copy of the initial bitset ane returns it

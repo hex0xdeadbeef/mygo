@@ -188,7 +188,6 @@ This test defines no tests; it just declares the exported symbol "fmt.IsSpace()"
 some of the techniques of white-box testing.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-
 /*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 11.2.5 WRITING EFFECTIVE TESTS
 
@@ -200,8 +199,8 @@ maintainer shouldn't need to read the source code to decipher a test failure.
 
 3. A good test shouldn't give up after one failure but should try to report several errors in a single run, since the pattern of failures may itself be revealing.
 
-4. Using "TestSplitWithAssertion()" we forfeit the opportunity to provide meaningful context. Using a full context test function that reports we emphasize the significance of the 
-result. Full context function identifies the actual value and the expectation and it continues to execute even if this assertion should fail. 
+4. Using "TestSplitWithAssertion()" we forfeit the opportunity to provide meaningful context. Using a full context test function that reports we emphasize the significance of the
+result. Full context function identifies the actual value and the expectation and it continues to execute even if this assertion should fail.
 
 5. The key to a good test is to start by implementing the concrete behavior that you want and only then use function to simplify the code and eliminate repetition.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -211,12 +210,148 @@ result. Full context function identifies the actual value and the expectation an
 
 1. An application that often fails when it encounters new but valid inputs is called "buggy"
 
-2. A test that spuriously fails when a sound change was made to the program is called "brittle". The most brittle tests, which fail for almost any change to the production code are 
+2. A test that spuriously fails when a sound change was made to the program is called "brittle". The most brittle tests, which fail for almost any change to the production code are
 sometimes called "change detector" or "status quo" tests, and the time spent dealing with them can quickly deplete any benefit they once seemed to provide
 
-3. Just a buggy program frustrates its users, a brittle one exasperates 
+3. Just a buggy program frustrates its users, a brittle one exasperates
 
-4. The easiest way to avoid brittle tests is to check only the properties you care about. Test your program's simpler and more stable interfaces to its internal functions. Don't 
-check for exact string matches, but look for relevant substrings that will remain unchanged as the program evolves. It's often worth writing a substantial function to distill a 
-complex output down to its essence so that assertions will be reliable,
+4. The easiest way to avoid brittle tests is to check only the properties you care about. Test your program's simpler and more stable interfaces to its internal functions. Don't
+check for exact string matches, but look for relevant substrings that will remain unchanged as the program evolves. It's often worth writing a substantial function to distill a
+complex output down to its essence so that assertions will be reliable.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+11.3 COVERAGE
+1. No quantity of tests can even prove a package free of bugs. At best, they increased our confidence that the package works well in a wide range of important scenarious.
+
+2. The degree to which a test suite exercises the package under test is called "test's coverage". Coverage cannot be quantified directly - the dynamics of all but the most trivial
+programs are beyond precise measurement - but there are heuristics that can help us direct our testing efforts to where they are more likely to be useful.
+
+3. "Statement coverage" is the simplest and most widely used of these heuristics. The statement coverage of a test suite is the fraction of source statements that are executed at least
+once during the test.
+
+4. In this section we'll use Go's "cover" tool, which is integrated into "go test".
+
+5. The command "go tool cover" displays the usage message of the coverage tool. The "go tool command" runs one of the executables from the Go toolchain. These programs live in the directory $GOROOT/pkg/tool/${GOOS}_${GOARCH}. Thanks to "go buid", we rarely need to invoke them directly. In sum we can run the test with the "-coverprofile" flag:
+	go test -run=TestCoverage -coverprofile=c.out
+		1) When c.out - filename in which the data will be written out
+
+This flag enables the collection of coverage data by instrumenting the production code. That is, it modifies a copy of the source code so that before each block of statements is executed,
+a boolean variable is set, with ove variable per block. Just before the modified program exits, it writes the value of each variable to the specified log file "c.out" and prints a summary
+of the fraction of statements that were executed. If we need only a percent of coverage we should use:
+	go test -cover
+
+6. If "go test" is run with the "covermode=count" flag, the instumentation for each block increments a counter instead of setting a boolean. The resulting log of execution counts of
+each block enables quantitative comparisons between "hotter" blocks, which are more frequently executed, and "colder" ones.
+
+7. Having gathered the data, we run the cover tool, which processes the log, generates an HTML report, and opens a new browser window:
+	go tool cover -html=c.out
+		1) When c.out - filename in which the result data is located
+
+8. Achieving 100% statement coverage sounds like a noble goal, but it's not usually feasible in practice, nor is it likely to be a good use of effort.
+
+9. Testing is fundamentally a pragmatic endeavor, a trade-off between the cost of writing tests and the cost of failures that could have been prevented by tests.
+
+10. Coverage tools can help identify the weakest spots, but devising good test cases demands the same rigorous thinking as programming in general.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+11.4 BENCHMARK FUNCTIONS
+1. Benchmarking is the practise of measuring the performance of a program on a fixed workload.
+
+2. Benchmark fuction has the "Benchmark" prefix and "*testing.B" parameter that provides most of the same methods as a "*testing.T". It also exposes an integer field "N", which specifies
+the number of times to perform the operation being measured.
+
+3. Benchmarks are run with the command "go test -bench=.". By default o benchmarks are run. The argument to the "-bench" flag selects which benchmarks to run. It's a regular expression
+matching the names of "BenchmarkXxx" functions, with a default value that matches none of them.
+	1) The "." pattern causes it to match all benchmarks
+
+The outut is:
+	BenchmarkIsPalindtome-12         7797498               146.8 ns/op           160 B/op          2 allocs/op
+
+	1) BenchmarkIsPalindtome-12 - is a value of GOMAXPROCS (the number of CPUs)
+	2) 7797498 - the nubmer of operations. Since the benchmark runner initialyy has no idea how long the oreration takes, it makes some initial measurements using small values of N, and
+	then extrapolates to a value large enough for a stable timing measurement to be made.
+	3) 146.8 ns/op the time elapsed for each operation
+	4) 
+	5) 2 allocs/op - allocation statistic
+
+4. The reason the loop is implemented by the benchmark function, and not by the calling code in the test driver is so that the benchmark function has the opportunity to execute any 
+necessary one-time setup code outside the loop without this adding to the measured time of each iteration.
+	1) If this setup code is still perturbing the results, "the testing.B" parameters provides methods to stop, resume and reset the timer, but these are rarely needed.
+
+5. The "-benchmem" command-line flag will include memory allocation statistics in its report. 
+
+6. Consolidating the allocations in a single call to "make()" eliminates 75% of the allocations and halves the quantity of allocated memory.
+
+7. In many settings the interesting performance questions are about the relative timings of two different operations. 
+1) For example:
+	If a function takes 1ms to process 1000 elements, how long will it take to process 10,000 or 1,000,000?
+
+Such comparisons reveal the asymptotic growth of the running time of the function. 
+2) Another example:
+	What's the best size for an I/O buffer? Benchmarks of application throughput over a range of sizes can help us choose the smallest buffer that delivers satisfactory performance.
+
+3) A third example
+	Which algorithm performs best for a given job? Benchmarks that evaluate two different algorithms on the same data can often show the strengths and weakenesses of each one on important
+	and representative workloads.
+
+7. Comparative benchmarks are just regular code. They typically take the form of a single parameterized function, called from several "BenchmarkXxx" functions with different values, like
+this ones:
+	func benchmark(b *testing.B, size int) { ... }
+	Benchmark10(b *testing.B) { benchmark(b, 10) }
+	...
+	Benchmark1000(b *testing.B) { benchmark(b, 1000) }
+Resist the temptation to use the parameter "b.N" as the input size. Unless you interpret it as an iteration count for a fixed-size input, the results of your benchmark will be 
+meaningless.
+
+8. As the program evolves, or its imput grows, or it is deployed on new operating systems or processors with different characteristics, we can reuse the benchmarks to revisit design 
+decisions.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+11.5 PROFILING
+
+1. Donald Knuth's aphorism about premature optimisation: "Structured Programming with go to Statements". The meaning is:
+	There's no doubt that the grail (the blood of the Jesus's children) of efficiency leads to abuse. Programmers waste enormous amounts of time thinking about, or worrying the speed
+	of noncritical parts of their programs, and these attempts at efficiency actually have a strong negative impact when debugging and maintenance are considered. WE SHOULD FORGET 
+	ABOUT SMALL EFFICIENCIES, SAY ABOUT 97% OF THE TIME: PREMATURE OPTIMIZATION IS THE ROOT OF EVIL.
+
+	Yet we should not pass up our opportunities in that critical 3%. A good programmer won't be lulled into complacency by such reasoning, he'll be wise to look carefully at the
+	critical code, but only after that code has been identified, It's often a mistake to make priori judgments about what parts of a program are really critical, since the universal
+	experience of programmers who have been using measurement tool has been that their intuitive guesses fail.
+
+2. When we wish to look carefully st the speed of our programs, the best technique for identifying the critical code is "profiling". Profiling is an automated approach to performanse
+measurement based on sampling a number of profile events during execution, then extrapolating from them during post-processing step; the resulting statistical summary called "profile".
+
+3. Go supports many kinds of profiling, each concerned with a different aspect of performance, but all of them involve recording a sequence of interest, each of which has an accompanying
+stack trace. The "go tool" has buit in support for several kinds of profiling.
+	1) CPU PROFILE identifies the functions whose execution requires the most CPU time. The currently running thread on each CPU is interrupted periodically by the operating system every
+	few milliseconds, with each interruption recording one profile event before normal execution resumes.
+	2) HEAP PROFILE identifies the statements responsible for allocating the most memory. The profiling library samples calls to internal memory allocation routines so that on average, one
+	profile event is recorded per 512KB of allocated memory.
+	3) BLOCKING PROFILE identifies the operations responsible for blocking goroutines the longest, such as system calls, channel sends and receives, and acquisitions of locks. The profiling
+	library records an event every time a goroutine is blocked by one of these operations.
+
+4. So that we can use profiling we should enable some of these flags. But we must be careful when using more than one flag at a time, however: the machinery for gathering one kind of profile
+may skew the results of other.
+	1) go test -cpuprofile=cpu.out
+	2) go test -blockprofile=block.out
+	3) go test -memprofile=mem.out
+
+5. It's easy to add profiling support to non-test programs too, though the details of how we do that vary between short-lived command tools and long-running server applications. Profiling
+is especially useful in long-running applications, so the Go runtime's profiling features can be enabled under programmer control using the "runtime" API.
+
+6. Once we've gathered a profile, we need to analyze it using the "pprof" This is a standart part of the Go distribution, but since it's not an everyday tool, it's accessed indirectly using
+"go tool pprof". It has dozens of features an options, but basic use requires only two arguments:
+	1) The executable that produced the profile
+	2) Profile log. To make profiling efficient and to save space, the log doesn't include function names. Instead functions are identified by their addresses. This means that "pprof" needs
+	the executable in order to make sense of the log. Although "go test" usually discards the test executable once the test is complete, when profiling is enabled it saves the executable 
+	as "packageName.test".
+
+7. For example:
+	1) go test -run=NONE -bench=ClientServerParallelTLS64 -cpuprofile=cpu.log net/http
+	2) go test -run=NONE -bench=ClientSeverParallelTLS64 -cpuprofile=cpu.log net/http 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

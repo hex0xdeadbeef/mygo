@@ -1,6 +1,9 @@
 package popcount
 
-import "sync"
+import (
+	"math/rand"
+	"sync"
+)
 
 var (
 	pc           [256]byte
@@ -50,4 +53,13 @@ func PopCountFast(x uint64) int {
 	}
 
 	return total
+}
+
+func GenerateNumbers(rnd *rand.Rand, count int) []uint64 {
+	numbers := make([]uint64, 0, count)
+	for i := 0; i < count; i++ {
+		numbers = append(numbers, rand.Uint64())
+	}
+
+	return numbers
 }

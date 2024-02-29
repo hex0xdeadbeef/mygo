@@ -1,7 +1,6 @@
 package word
 
 import (
-	"strings"
 	"unicode"
 )
 
@@ -30,11 +29,10 @@ func IsPalindrome(s string) bool {
 
 func formatInput(str string) []rune {
 	result := make([]rune, 0, len(str))
-	str = strings.ToLower(str)
 
 	for _, character := range str {
 		if !unicode.IsSpace(character) && !unicode.IsPunct(character) {
-			result = append(result, character)
+			result = append(result, unicode.ToLower(character))
 		}
 	}
 

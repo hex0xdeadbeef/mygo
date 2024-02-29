@@ -1,0 +1,6 @@
+mode: set
+golang/pkg/chapters/chapter11/sub22/echo/main.go:19.13,21.51 2 0
+golang/pkg/chapters/chapter11/sub22/echo/main.go:21.51,23.3 1 0
+golang/pkg/chapters/chapter11/sub22/echo/main.go:26.58,28.13 2 1
+golang/pkg/chapters/chapter11/sub22/echo/main.go:28.13,30.3 1 1
+golang/pkg/chapters/chapter11/sub22/echo/main.go:31.2,31.12 1 1

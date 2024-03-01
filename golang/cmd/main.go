@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"golang/pkg/chapters/chapter12/sub1/display"
+)
 
 func main() {
-	fmt.Println()
+	display.DifferencePtrAndNonPtrDisplaying()
 }

@@ -164,3 +164,39 @@ There are variants of "Set" specialized for certain groups of basic types, they 
 7. Reflection can read unexported components / inspect their values but it cannot change them.
 	1) So that we can find out whether the field is settable or not, we should use "reflect.Value.CanSet(...)" function, that returns a corresponding boolean value.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+12.6 DECODING S-EXPRESSION
+1. The "Unmarshall()" function uses reflection to modify the fields of the existing variable, creating new maps/structs/slices as determined by the corresponding type and the content of the
+incoming data.
+
+2. The lexer uses the "Scanner" type from "text/scanner" package to break an input into a sequence of tokens such as comments/identifiers/string literals/numeric literals. The scanner's 
+"Scan()" method advances the scanner and returns the kind of the next token, which has type "rune", but the "text/scanner" package represents the kinds of multicharacters tokens "Ident"/
+"String"/"Int" using small negative values of type "rune". Following a call to "Scan()" that returns one of these kinds of token, the scanner's "TokenText" method returns the text of the
+token.
+	1) Sincee a typical parser may need to inspect the current token several times, but the "Scan()" method advances the scanner, we wrap the scanner in a helper type, called "lexer" that
+	keeps track of the token most recently returned by "Scan()".
+
+3. Our S-expressions use identifiers for two distinct purposes:
+	1) Struct field names
+	2) nil value for a pointer. The "read(...)" function handles only this case. When it encounters the scanner.Ident "nil", it sets "v" to zero value of its type. For any other identifier,
+	it reports an error. 
+
+The readList function handles identifiers used as struct field names.
+
+4. A '(' token indicates teh start of a list.
+
+5. The second function, "readList()", decodes a list into a variable of composite type - a struct/map/slice/array - depending on what kind of Go variable we're currently populating. In 
+each case, the loop keeps parsing items until it encounters the matching close parenthesis, ')', as detected by "the endList()" function.
+
+6. The interesting part is the recursion. The simplest case is an array.
+	1) Until the closing ')' is seen we use "Indeex()" to obtain the variable for each array element and make a recursive call to "read()" to populate it. As in many error cases, if the
+	input data causes the decoder to index beyond the end of array, the decoder panics. 
+	2) The similar approach is used for slices, except we must create a new variable for each element, populate it, the append it to slice.
+	3) The loops for structs/maps must parse a (key value) sublist on each iteration.
+		1) For structs, the key is a symbol identifying the field. Analogous to the case for arrays, we obtain the existing struct field using "FieldByName()" and make a recursive call to 
+		populate it.
+		2) For maps, the key may be of any type, and analogous to the case of slices, we create a new variable, recursively populate it, and finally insert the new key/value pair into a 
+		map.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

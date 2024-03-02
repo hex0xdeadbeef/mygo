@@ -1,9 +1,9 @@
 package main
 
 import (
-	"golang/pkg/chapters/chapter12/sub1/display"
+	"golang/pkg/chapters/chapter12/sub5"
 )
 
 func main() {
-	display.DifferencePtrAndNonPtrDisplaying()
+	sub5.TryToChangeUnexportedField()
 }

@@ -48,10 +48,10 @@ it always returns a concrete type, but it's capable of referencing interfaca typ
 "reflect.ValueOf()" are always concrete, but a "reflect.Value" can hold interface values too.
 	1) "reflect.Value" also satisfies fmt.Stringer(), but unless Value holds a string, the result of the String method reveals only the type. Instead, use the fmt package's "%v" verb
 	which treats "reflect.Value" specially.
-	2) Calling the "Type" method on a "Value" returns its type as a "reflect.Type"
+	2) Calling the "Type()" method on a "Value" returns its type as a "reflect.Type"
 	3) There's inverse operation to "reflect.ValueOf()" - "reflect.Value.Interface()". It returns an "interface{}" holding the same concrete value as the "reflect.Value"
 
-4. A "reflect.Value" and an "interface{}" can both hold arbitrary values. The difference:
+4. A "reflect.Value" and an "interface{}" can both hold arbitrary values. Their differencies:
 	1) An empty interface hides the representation and intrinsic operations of the value it holds and exposes none of this methods, so unless we know its dynamic type and use a type
 	assertion to peer inside it, there's a little we can do to the value within.
 	2) Value has many methods for inspecting its contents, regardless of its type.
@@ -117,4 +117,50 @@ NOTICE THAT EVEN UNEXPORTED FIELDS ARE VISIBLE TO REFLECTION.
 	1) Cycles pose less of a problem for "fmt.Sprint()" because it rarely tries to print the complete structure. For example, when it encounters a pointer, it breaks the recursion by printing
 	the pointer's numeric value.
 	2) It can get stuck trying to print a slice or map that contains itself as an element, but such rare cases don't warrant the considerable extra trouble of handling cycles.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+12.5 SETTING VARIABLES with reflect.Value
+1. x, x.f[1], *p denote variables, but x + 1, f(2) don't.
+
+2. All the usual rules for addressability have analogs for reflection.
+
+3. A variable is an addressable storage location that contains a value, and its value may be updated through that address. A similar distinction applies to "reflect.Value"s. Some
+are addressable, others are not.
+
+	x := 2						value	type	variable?
+	a := reflect.ValueOf(2)		2		int		no
+	b := reflect.ValueOf(x)		2		int		no
+	c := reflect.ValueOf(&x)	&x		*int	no
+	d := c.Elem()				2		int		yes (x)
+
+	1) The value "a" isn't addressable, it's merely copy of 2
+	2) The same is true for "b"
+	3) The value within "c" is also non-addressable, being a copy of the pointer value "&x"
+	IN FACT NO "reflect.Value" RETURNED BY "reflect.ValueOf(x)"
+
+	4) In contrast, "d" derived from by dereferencing the pointer within it, refers to a variable and is thus addressable. The operation "Elem()" is the same to dereferencing. We obtain
+	an addressable an addressable Value for any variable x.
+
+4. We can ask a "reflect.Value" whether it's addressable through its "CanAddr()" method.
+
+5. To recocer the variable from an addressable "reflect.Value" requires three steps:
+	1) We call "Addr()" which returns a "Value" holding a pointer to the variable.
+	2) We call "interface()" on this value, which returns an interface{} value containing the pointer.
+	3) If we know the type of the variable, we can use a type assertion to retrieve the contents of the interface as an ordinary pointer.
+
+6. We can update the variable referred to by an addressable "reflect.Value" directly, without using a pointer, by calling the "reflect.Value.Set" passing the argument using "reflect.
+wValueOf()".
+	1) The program will panic if the types of the underlying type and the passed argument's type don't matches
+	2) The program panic if we try to use the "Set()" method on a unaddressableValue variable as well.
+
+There are variants of "Set" specialized for certain groups of basic types, they look like "SetXxx()".
+	1) In some ways these methods are more forgiving. SetInt for example, will succeed so long as the variable's type is some kind of integer, or even a named type whose underlying type
+	is a signed integer. If even a value is too large it'll be quietly truncated to fit.
+	2) Calling "SetInt()" or just "Set()"  on a "reflect.Value" that refers to an "interface{}" variable will panic.
+	3) If an addressable variable points to "interface{}" value we can pass any values to "Set(reflect.Valueof(...))", but using the type specified methods "Value.SetXxx(...)" on an
+	addressable variable will cause panic, because they're supposed to be used on the particular type.
+
+7. Reflection can read unexported components / inspect their values but it cannot change them.
+	1) So that we can find out whether the field is settable or not, we should use "reflect.Value.CanSet(...)" function, that returns a corresponding boolean value.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

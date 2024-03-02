@@ -16,7 +16,8 @@ func typeOfTest() {
 		three = 3
 	)
 	var (
-		readWriter io.ReadWriter = os.Stdout
+		readWriter   io.ReadWriter = os.Stdout
+		nilInterface io.ReadCloser
 	)
 
 	threeType := reflect.TypeOf(three)
@@ -25,4 +26,6 @@ func typeOfTest() {
 	rdtype := reflect.TypeOf(readWriter)
 	fmt.Println(rdtype)
 
+	nilIfType := reflect.TypeOf(nilInterface)
+	fmt.Println(nilIfType)
 }

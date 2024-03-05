@@ -18,7 +18,7 @@ func AddressableVariables() {
 	c := reflect.ValueOf(&x)
 
 	d := c.Elem()
-	d.SetInt(100)
+	d.SetInt(1000)
 
 	fmt.Println(x)
 

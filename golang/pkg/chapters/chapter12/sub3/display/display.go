@@ -69,6 +69,7 @@ func display(path string, v reflect.Value) {
 		for i := 0; i < v.Len(); i++ {
 			display(fmt.Sprintf("%s[%d]", path, i), v.Index(i))
 		}
+
 	case reflect.Struct:
 		for i := 0; i < v.NumField(); i++ {
 			fieldPath := fmt.Sprintf("%s.%s", path, v.Type().Field(i).Name)

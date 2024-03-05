@@ -3,6 +3,7 @@ package sexpr
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"reflect"
 	"strconv"
 	"text/scanner"
@@ -29,10 +30,6 @@ func encode(buf *bytes.Buffer, v reflect.Value) error {
 	var (
 		kind = v.Kind()
 	)
-
-	if kind != reflect.Invalid && v.IsZero() {
-		return nil
-	}
 
 	switch kind {
 	// Invalid
@@ -61,7 +58,7 @@ func encode(buf *bytes.Buffer, v reflect.Value) error {
 			fmt.Fprint(buf, "t")
 			break
 		}
-		fmt.Fprintf(buf, "nil")
+		fmt.Fprint(buf, "nil")
 		// Pointer
 	case reflect.Ptr:
 		if isPresented(v) {
@@ -198,20 +195,26 @@ func Print(p []byte) {
 	}
 }
 
+// lexer is used to read a sequence of []byte data in order to decode this byte sequence
+// it stores a current token has read
 type lexer struct {
 	scan scanner.Scanner
 	// the current token
 	token rune
 }
 
+// next advances the scanner and puts a new token into lex.token field
 func (lex *lexer) next() {
 	lex.token = lex.scan.Scan()
 }
 
+// text returns current text in the scanner
 func (lex *lexer) text() string {
 	return lex.scan.TokenText()
 }
 
+// consume checks whether the scanner includes the wanted token
+// if so, it calls lex.next(), otherswise it panics
 func (lex *lexer) consume(want rune) {
 	// NOTE: Not an example of good error handling
 	if lex.token != want {
@@ -222,13 +225,16 @@ func (lex *lexer) consume(want rune) {
 }
 
 func read(lex *lexer, v reflect.Value) {
+
 	const (
 		nilStr = "nil"
 	)
+
 	switch lex.token {
 	case scanner.Ident:
 		// The only valid identifiers are "nil"
 		// and struct field names.
+		// Sets the corresponding underlying value to v ("reflect.Value")
 		if lex.text() == nilStr {
 			v.Set(reflect.Zero(v.Type()))
 			lex.next()
@@ -236,7 +242,9 @@ func read(lex *lexer, v reflect.Value) {
 		}
 	case scanner.String:
 		// NOTE: ignoring errors
+		// Returns the natural string value without any quotes
 		s, _ := strconv.Unquote(lex.text())
+		// Sets the given above unquoted value to the v ("reflect.Value")
 		v.SetString(s)
 		lex.next()
 		return
@@ -244,11 +252,13 @@ func read(lex *lexer, v reflect.Value) {
 	case scanner.Int:
 		// NOTE: ignoring errors
 		i, _ := strconv.Atoi(lex.text())
+		// Sets the given parsed above value to the v ("reflect.Value")
 		v.SetInt(int64(i))
 		lex.next()
 		return
 	case '(':
 		lex.next()
+		// Examines the given byte sequence
 		readList(lex, v)
 		// consume ')'
 		lex.next()
@@ -257,6 +267,7 @@ func read(lex *lexer, v reflect.Value) {
 	panic(fmt.Sprintf("unexpected token %q", lex.text()))
 }
 
+// readList
 func readList(lex *lexer, v reflect.Value) {
 	switch v.Kind() {
 	// (item ...)
@@ -269,6 +280,10 @@ func readList(lex *lexer, v reflect.Value) {
 		var item reflect.Value
 
 		for !endList(lex) {
+			// 1) Get the type of v (reflect.Value)
+			// 2) Based on the type above get the element type
+			// 3) Get a value that represents a pointer to a new zero value
+			// 4) Get an addressable reflect.Value
 			item = reflect.New(v.Type().Elem()).Elem()
 			read(lex, item)
 			v.Set(reflect.Append(v, item))
@@ -293,22 +308,31 @@ func readList(lex *lexer, v reflect.Value) {
 			value reflect.Value
 		)
 
+		// Create a map
 		v.Set(reflect.MakeMap(v.Type()))
 		for !endList(lex) {
 			lex.consume('(')
 		}
+		// Get the addressable key
 		key = reflect.New(v.Type().Key()).Elem()
 		read(lex, key)
 
+		// Get the addressable value
 		value = reflect.New(v.Type().Elem()).Elem()
 		read(lex, value)
+
+		// Put the pair key/value into the created map
 		v.SetMapIndex(key, value)
+
 		lex.consume(')')
 	default:
 		panic(fmt.Sprintf("cannot decode list into %v", v.Type()))
 	}
 }
 
+// endList reads the current stored lex.token
+// processes some checks and returns the corresponding values
+// or panics if the lex.token is EOF
 func endList(lex *lexer) bool {
 	switch lex.token {
 	case scanner.EOF:
@@ -321,7 +345,7 @@ func endList(lex *lexer) bool {
 
 // Unmarshall parses S-expression data and populates the variable
 // whose address is in the non-nil pointer out.
-func Unmarshall(data []byte, out interface{}) (err error) {
+func Unmarshal(data []byte, out interface{}) (err error) {
 	var lex *lexer
 	lex = &lexer{scan: scanner.Scanner{Mode: scanner.GoTokens}}
 	lex.scan.Init(bytes.NewReader(data))
@@ -337,4 +361,41 @@ func Unmarshall(data []byte, out interface{}) (err error) {
 
 	read(lex, reflect.ValueOf(out).Elem())
 	return nil
+}
+
+type Decoder struct {
+	r    io.Reader
+	data []byte
+}
+
+func NewDecoder(r io.Reader) *Decoder {
+	const (
+		initialBufSize = 2048
+	)
+
+	return &Decoder{r: r, data: make([]byte, initialBufSize)}
+}
+
+func (dec *Decoder) initData() error {
+	const (
+		emptyDataSize = 0
+	)
+
+	n, err := dec.r.Read(dec.data)
+	if err != nil {
+		return fmt.Errorf("reading data from r: %s", err)
+	}
+	if n == emptyDataSize {
+		return fmt.Errorf("reader's data is empty")
+	}
+
+	return nil
+}
+
+func (dec *Decoder) Decode(v any) error {
+	if err := dec.initData(); err != nil {
+		return err
+	}
+
+	return Unmarshal(dec.data, v)
 }

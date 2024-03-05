@@ -256,11 +256,11 @@ func FetchModified(fileName string, urls ...string) error {
 		} else if err != nil {
 			return err
 		}
-		defer file.Close()
 
 		// The io.Copy() postpones any errors until the file closed, so we must explicitly close the file and catch any errors.
 		nwb, err := io.Copy(file, response.Body)
 		response.Body.Close()
+		file.Close()
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,9 @@
 package sexpr
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 func PrintUsing() {
 	type Movie struct {
@@ -9,14 +12,13 @@ func PrintUsing() {
 		Color           bool
 		Actors          map[string]string
 		Oscars          []string
-		Sequel          *string
 	}
 
 	strangelove := Movie{
 		Title:    "Dr. Strangelove",
 		Subtitle: "How I Learned to Stop Worrying and Love the Bomb",
 		Year:     1964,
-		Color:    false,
+		Color:    true,
 		Actors: map[string]string{
 			"Dr. Strangelove":            "Peter Sellers",
 			"Grp. Capt. Lionel Mandrake": "Peter Sellers",
@@ -35,5 +37,8 @@ func PrintUsing() {
 		log.Fatalf("Failed to encode: %v", err)
 	}
 
+	fmt.Printf("%s\n\n", string(encoded))
+
 	Print(encoded)
+
 }

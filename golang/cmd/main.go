@@ -1,9 +1,10 @@
 package main
 
 import (
-	"golang/pkg/chapters/chapter12/sub5"
+	"golang/pkg/chapters/chapter12/sub8/methods"
+	"os"
 )
 
 func main() {
-	sub5.TryToChangeUnexportedField()
+	methods.Print(os.Stdout)
 }

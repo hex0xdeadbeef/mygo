@@ -121,7 +121,7 @@ NOTICE THAT EVEN UNEXPORTED FIELDS ARE VISIBLE TO REFLECTION.
 
 2. All the usual rules for addressability have analogs for reflection.
 
-3. A variable is an addressable storage location that contains a value, and its value may be updated through that address. A similar distinction applies to "reflect.Value"s. Some
+3. A variable is an ADDESSABLE storage location that contains a value, and its value may be updated through that address. A similar distinction applies to "reflect.Value"s. Some
 are addressable, others are not.
 
 	x := 2						value	type	variable?
@@ -135,7 +135,7 @@ are addressable, others are not.
 	3) The value within "c" is also non-addressable, being a copy of the pointer value "&x"
 	IN FACT NO "reflect.Value" RETURNED BY "reflect.ValueOf(x)" IS ADDRESSABLE
 
-	4) In contrast, "d" derived from by dereferencing the pointer within it, refers to a variable and is thus addressable. The operation "Elem()" is the same to dereferencing. We obtain an addressable Value for any variable x.
+	4) In contrast, "d" derived from by dereferencing the pointer within it, refers to a variable and is thus addressable. The operation "Elem()" is the same to dereferencing. We obtain an addressable "reflect.Value" for any variable x.
 
 4. We can ask a "reflect.Value" whether it's addressable through its "CanAddr()" method.
 
@@ -156,7 +156,7 @@ There are variants of "Set" specialized for certain groups of basic types, they 
 		2) Even a named type whose underlying type is a signed integer.
 		OR
 		3) If even a value is too large it'll be quietly truncated to fit.
-	2) Calling "SetInt()" or just "Set()" on a "reflect.Value" that refers to an "interface{}" variable will panic.
+	2) Calling "SetInt()" or just "Set()" on a "reflect.Value" that refers to an "interface{}" variable will panic, because it's not addressable "reflect.Value"
 	3) If an addressable variable points to "interface{}" value we can pass any values to "Set(reflect.Valueof(...))", but using the type specified methods "Value.SetXxx(...)" on an
 	addressable variable will cause panic, because they're supposed to be used on the particular type.
 
@@ -206,12 +206,13 @@ each case, the loop keeps parsing items until it encounters the matching close p
 2. The "Unpack()" function below does three things:
 	1) It calls "req.ParseForm()" to parse the request.
 	2) Thereafter, "req.Form" contains all the parameters, regardless of whether the HTTP client used the "GET" or the "POST" request method.
-	3) "Unpack()" builds a mapping from the effective name of each field to the variable for that field. The effective name may differ from the actual name if the field has a tag.
+	3) "Unpack()" builds a mapping from the "effective" name of each field to the variable for that field. The effective name may differ from the actual name if the field has a tag.
 		1) The "reflect.Type.Field()" method returns a "reflect.StructField" that provides information about the type of each field such as its: name, type, optional tag.
-		2) The "Tag" field is a "reflect.StructTag", which is a string type that provides "Get()" method to parse and extract the substring for a particular key, such as: http:"..." in this
+		2) The "Tag" field is a "reflect.StructTag", which is a string type that provides "Get()" method to parse and extract the substring for a particular key, such as: `http:"..."` in this
 		case.
 	4) Finally "Unpack()" iterates over the name/value pairs of the HTTP parameters and updates the corresponding struct fields. Recall that the same parameter name may appear more than
-	once. if this happens, and the field is a slice, then all the values of that are accumulated into the slice. Otherwise, the field is repeatedly overwritten so that only the last value has any affect.
+	once. if this happens, and the field is a slice, then all the values of that are accumulated into the slice. Otherwise, the field is repeatedly overwritten so that only the last value has
+	any affect.
 	5) The "populate" function takes care of setting a single field v (or a single element of a slice field) from a parameter value.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -226,20 +227,20 @@ each case, the loop keeps parsing items until it encounters the matching close p
 /*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 12.9 A WORD OF CAUTION
 THREE REASONS TO USE REFLECTION WITH CARE:
-1. Reflection-based code can be fragile. For every mistake that would cause a compiler report a type error, there's a corresponding way to misuse reflection, but whereas the compiler reports the
-mistake at build time, a reflection error is reported during execution as a panic, possibly long after the program was written or even long after it has started running.
+1. Reflection-based code can be fragile. For every mistake that would cause a compiler report a type error, there's a corresponding way to misuse reflection, but whereas the compiler reports
+the mistake at build time, a reflection error is reported during execution as a panic, possibly long after the program was written or even long after it has started running.
 
 We should keep track of the type, addressability and settability of each reflect.Value. The best way to avoid this fragility is to ensure that the use of reflection is fully encapsulated within
-our package and, if possible, avoid "reflect.Value" in favor of specific types in our package's API, to restrict inputs to legal values. If this isn't possible, perform additional dynamic checks
-before each risky operation. As an example from the standart library, when "fmt.Printf" applies a verb to an inappropriate operand, it doesn't panic mysteriously but prints an informative error
-message.
+our package and, if possible, avoid "reflect.Value" in favor of specific types in our package's API, to restrict inputs to legal values. If this isn't possible, perform additional dynamic
+checks before each risky operation. As an example from the standart library, when "fmt.Printf" applies a verb to an inappropriate operand, it doesn't panic mysteriously but prints an
+informative error message.
 
 Reflection also reduces the safety and accuracy of automated refactoring and analysis tools, because they can't determine or rely on type information.
 
-2. Since types serve as a form of documentation and the operations of reflection cannot be subject to static type checking, heavily reflective code is often hard to understand. We should document
-the expected types and other invariants of functions that accept an "interface{}" an "reflect.Value" values.
+2. Since types serve as a form of documentation and the operations of reflection cannot be subject to static type checking, heavily reflective code is often hard to understand. We should
+document the expected types and other invariants of functions that accept an "interface{}" an "reflect.Value" values.
 
-3. Reflection-based function may be one or two orders of magnitude slower than code specialized for a particular type. It's fine to use reflection when it makes the program clearer. Testing is a
-particularly good fit for reflection since most test use small data sets, but for functions on the critical path, reflection is best avoided.
+3. Reflection-based function may be one or two orders of magnitude slower than code specialized for a particular type. It's fine to use reflection when it makes the program clearer. Testing is
+a particularly good fit for reflection since most test use small data sets, but for functions on the critical path, reflection is best avoided.
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

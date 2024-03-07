@@ -146,30 +146,18 @@ through the "C.x" notation. The "C.uint" type is distinct from Go's "uint" type,
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-13.4 CALLING C CODE with cgo
+13. WORD OF CAUTION
 
-1. "cgo" is a tool that creates Go bindings fo C functions. Such tool are called "foreign-function interfaces" (FFIs).
+1. High-level languages insulate programs and programmers not only from the arcane specifics of individual computer instruction sets, but from dependence on irrelevancies like:
+	1) Where in memory a variable lives
+	2) How big a data type is
+	3) The details of structure layout
+	4) A host of other implementation details
 
-2. "cgo" is not only fo Go programs. SWIG is another. It provides more complex features for integrating with C++ classes.
+Because of that insulating layer, it's possible to write programs that are safe and robust and that will run on any specific operating system without change.
 
-3. "compress/..." subtree of the standart library provides compressors and decompressors for popular compression algorithms.
-
-4. From the "libbzip2" C package we need:
-	1) "bz_stream" struct type, which holds the input and output buffers
-	AND THREE C FUNCTIONS
-	1) BZ2_bzCompressInit, which allocates the stream's buffers
-	2) BZ2_bzCompress, which compresses data from the input buffer to the output buffer
-	3) BZ2_bzCompressEnd, which releases the buffers
-
-We'll call the BZ2_bzCompressInit and BZ2_bzCompressEnd C functions directly from Go, but for BZ2_bzCompress, we'll define a wrapper function in C.
-
-5. The import "C" is the special import. There's no package C, but this import causes "go build" to preprocess the file using the "cgo" tool before the Go compiler sees it.
-	During preprocessing "cgo" generates a temporary package that contains Go declarations corresponding to all the C functions and types used by the file, such as C.bz_stream and
-	c.BZ2_bzCompressInit. The "cgo" tool discovers these types by invoking the C compiler in a special way on the contents of the comment that precedes the import declaration.
-
-	The comment may also contain "#cgo" directives that specify extra options to the C toolchain. The "CFLAGS" and "LDFLAGS" contribute extra arguments to the compiler and linker commands
-	so that they can locate the "bzlib.h" header file and the "libbz2.a" archive library.
-
-6. We should observe that Go program may access C types like "bz_stream", "char", and "uint", C functions like bz2compress, and even object-like C preprocessor macross such "BZ_RUN", all
-through the "C.x" notation. The "C.uint" type is distinct from Go's "uint" type, even if both have the same width.
+2. The cost of using "unsafe" package is usually to portability and safety, so one uses "unsafe" at one's peril. Our advice on how and when to use "unsafe" parallels Knuth's comments on
+premature optimization. Most programmers will never need to use unsafe at all. Nevertheless, there will be occasionally be situations where some critical piece of code can be best written
+using unsafe. It careful study and measurement indicates that "unsafe" really is the best approach, restrict it to a small a region as possible, so that the most of program is oblivious
+to its use.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/

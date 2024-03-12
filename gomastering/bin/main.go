@@ -1,7 +1,16 @@
 package main
 
-import "gomastering/pkg/ch0/generics"
+import (
+	"fmt"
+	"gomastering/pkg/ch02/randomgen"
+)
 
 func main() {
-	generics.Using()
+	pass, err := randomgen.SecureRandPass(100)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(pass)
 }

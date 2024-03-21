@@ -23,6 +23,8 @@ func CancelationAbsence() {
 		completed := make(chan interface{})
 
 		go func() {
+			// It won't be reached because of the absence of closing the doWork channel
+			defer fmt.Println("Child goroutine stopped.")
 			// If we pass the nil channel this goroutine will be blocked.
 			for s := range strings {
 				fmt.Println(s)
@@ -47,6 +49,7 @@ func SimpleReaderCancelation() {
 		go func() {
 			defer fmt.Println("doWork exited")
 			defer close(terminated)
+
 			for {
 				select {
 				case s := <-strings:
@@ -84,6 +87,7 @@ func SimpleWriterCancelation() {
 		go func() {
 			defer fmt.Println("newRandStream closure exited.")
 			defer close(randStream)
+
 			for {
 				select {
 				case <-done:

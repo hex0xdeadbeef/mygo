@@ -6,7 +6,7 @@ import (
 )
 
 /*
-A pipeline is just another tool we can use to form an abstraction in our system. In particular, it's a very powerful tool to use when our program need to process streams,
+A pipeline is just another tool we can use to form an abstraction in our system. In particular, it's a very powerful tool to use when our program need to process streams
 or batches of data. A pipeling is nothing more that a series of things that take data in, perform an operation on it, and pass the data back out. We call each of these ops
 a stage of the pipeline.
 */
@@ -26,7 +26,7 @@ Pipeline properties:
 
 /*
 1. Butch processing means that stages operate on chunks of data all at once instead of one discrete value at a time.
-2. Stage processing means that the stage receives and emits one element at a time.
+2. Stream processing means that the stage receives and emits one element at a time.
 */
 
 /*
@@ -47,7 +47,6 @@ that must be preemptable:
 	1) Creation of the discrete value that is not nearly instantaneous.
 	2) Sending of the discrete value on its channel.
 */
-
 
 /*
 If one of our stages is computationally expensive, this will certainly eclipse the performance overhead.
@@ -85,14 +84,14 @@ func MultiplyStreamStage(val int, multiplier int) int {
 	return val * multiplier
 }
 
-func AddStreamhStage(val int, additive int) int {
+func AddStreamStage(val int, additive int) int {
 	return val + additive
 }
 
 func AddMultiplyStreamCombined() {
 	vals := []int{1, 2, 3, 4}
 	for _, v := range vals {
-		fmt.Printf("%v ", AddStreamhStage(MultiplyStreamStage(v, 2), 10))
+		fmt.Printf("%v ", AddStreamStage(MultiplyStreamStage(v, 2), 10))
 	}
 }
 
@@ -154,9 +153,9 @@ func ConcurrentPipeline() {
 
 	intStream := generator(done, []int{1, 2, 3, 4, 5}...)
 
-	pipeline := multiply(done, add(done, intStream, 3), 10)
+	pipelineMultiplyTail := multiply(done, add(done, intStream, 3), 10)
 
-	for v := range pipeline {
+	for v := range pipelineMultiplyTail {
 		fmt.Printf("%v ", v)
 	}
 

@@ -36,7 +36,7 @@ func AdHocExample() {
 }
 
 func LexicalExample() {
-	// Create the owner of a channel that will produce the channel with elements
+	// Create the owner of a channel that will provide the channel with elements
 	chanOwner := func() <-chan int {
 		results := make(chan int, 5)
 		go func() {

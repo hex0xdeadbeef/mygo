@@ -33,23 +33,23 @@ func Repeat(done <-chan struct{}, values ...any) <-chan any {
 	return valueStream
 }
 
-func LimitedJunction(done <-chan struct{}, valueStream <-chan interface{}, num int) <-chan interface{} {
-	takeStream := make(chan interface{})
+func LimitedJunction(done <-chan struct{}, dataProducer <-chan interface{}, limit int) <-chan interface{} {
+	limitedStream := make(chan interface{})
 
 	go func() {
-		defer close(takeStream)
+		defer close(limitedStream)
 
-		for i := 0; i < num; i++ {
+		for i := 0; i < limit; i++ {
 			select {
 			case <-done:
 				return
 			// The valueStream gives the value and takeStream accepts it.
-			case takeStream <- <-valueStream:
+			case limitedStream <- <-dataProducer:
 			}
 		}
 	}()
 
-	return takeStream
+	return limitedStream
 }
 
 func LimitedJunctionUsing() {

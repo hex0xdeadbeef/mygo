@@ -1,7 +1,7 @@
 package main
 
-import "concurrency/pkg/ch04/pipeline"
+import "concurrency/pkg/ch04/contextpkg"
 
 func main() {
-	pipeline.StringTakerUsing()
+	contextpkg.ContextWithDataUsing()
 }

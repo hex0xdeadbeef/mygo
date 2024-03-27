@@ -39,7 +39,6 @@ func GoroutineMeasuring() {
 	before := memConsumed()
 	for i := goroutinesNumber; i > 0; i-- {
 		go noop()
-
 	}
 
 	wg.Wait()

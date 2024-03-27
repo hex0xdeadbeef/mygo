@@ -42,26 +42,27 @@ func lessThanFifty() bool {
 }
 
 func Using() {
-	c := sync.NewCond(&sync.Mutex{})
+	var (
+		c               = sync.NewCond(&sync.Mutex{})
+		queue           = make([]interface{}, 0, 10)
+		removeFromQueue = func(delay time.Duration) {
+			// Sleep for a moment
+			time.Sleep(delay)
 
-	queue := make([]interface{}, 0, 10)
-	removeFromQueue := func(delay time.Duration) {
-		// Sleep for a moment
-		time.Sleep(delay)
+			// Lock others removers from this critical section
+			c.L.Lock()
 
-		// Lock others removers from this critical section
-		c.L.Lock()
+			// Remove the first element
+			queue = queue[1:]
+			fmt.Println("Removed from the queue!")
 
-		// Remove the first element
-		queue = queue[1:]
-		fmt.Println("Removed from the queue!")
+			// Unlock others removers from the deleting
+			c.L.Unlock()
 
-		// Unlock others removers from the deleting
-		c.L.Unlock()
-
-		// Wake up the only one goroutine to now that an element has been deleted.
-		c.Signal()
-	}
+			// Wake up the only one goroutine to now that an element has been deleted.
+			c.Signal()
+		}
+	)
 
 	for i := 0; i < 10; i++ {
 		c.L.Lock()
@@ -119,21 +120,17 @@ func ClickBroadcasting() {
 	})
 	fmt.Println(1)
 
-	time.Sleep(750 * time.Millisecond)
-
 	subscribe(button.Clicked, func() {
 		defer clickRegistered.Done()
 		fmt.Println("Displaying annoying dialog box!")
 	})
 	fmt.Println(2)
-	time.Sleep(750 * time.Millisecond)
 
 	subscribe(button.Clicked, func() {
 		defer clickRegistered.Done()
 		fmt.Println("Mouse clicked.")
 	})
 	fmt.Println(3)
-	time.Sleep(750 * time.Millisecond)
 
 	button.Clicked.Broadcast()
 

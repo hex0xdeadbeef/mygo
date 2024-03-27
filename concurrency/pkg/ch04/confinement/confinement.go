@@ -7,7 +7,7 @@ import (
 )
 
 /*
-There are two kind of the confinement:
+There are two kinds of the confinement:
 	1) ad hoc. ad hoc confinement is when you achieve confinement through a convention - whether it be set by the languages community, the group you work within, or the
 	codebase you work within.
 	2) lexical. lexical confinement involves using lexical scope to expose only the correct data and concurrency primitives for multiple concurrent processes to use. It

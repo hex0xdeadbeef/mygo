@@ -16,7 +16,7 @@ import (
 	things.
 
 	Pool's primary interface is its "Get()" method. When called, "Get()" will first check whether there are any available instances within the pool to return to the caller
-	and if not, call its "New()" member variable to create a new one. When finished, callers call Put to place the instance they were working with back in the pool for use
+	and if not, call its "New()" member variable to create a new one. When finished, callers must call Put to place the instance they were working with back in the pool for use
 	by other processes.
 */
 
@@ -24,7 +24,7 @@ import (
 
 // The sync.Pool is useful in the following situations:
 // 1. We want to store the certain quantity of free/buzy objects to be used in the execution and not to be garbage collected.
-// 2. Warming a cache of preallocated objects for operations that must run as quickly as possible. In this case, instead of trying to guard the host machine's memory by\
+// 2. Warming a cache of preallocated objects for operations that must run as quickly as possible. In this case, instead of trying to guard the host machine's memory by
 // constraining the number of objects created, we're trying to guard consumers' time by front-loading the time it takes to get a reference to another object. This is very
 // common when writing high-throughput network servers that attempt to respond as quickly as possible.
 

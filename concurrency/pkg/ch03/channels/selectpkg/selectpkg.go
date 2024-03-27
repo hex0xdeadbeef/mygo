@@ -15,7 +15,7 @@ Then when one of the channels is ready, that operation will proceed, and its cor
 */
 
 /*
-When all channels are blocked an none of them are ready to give the event we can use: tme.After(time.Duration())
+When all channels are blocked and none of them are ready to give the event we can use: time.After(time.Duration())
 */
 
 func Example() {
@@ -94,10 +94,11 @@ loop:
 		case <-done:
 			break loop
 		default:
+			workCounter++
 		}
+
 	}
 
-	workCounter++
 	time.Sleep(1 * time.Second)
 
 	fmt.Printf("Achieved %v cycles of work before signalled to stop. \n", workCounter)

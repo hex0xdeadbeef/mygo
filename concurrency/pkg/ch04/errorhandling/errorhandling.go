@@ -44,12 +44,12 @@ func NoErrorHandling() {
 	}
 }
 
-type RequestResult struct {
-	Error    error
-	Response *http.Response
-}
-
 func ErrorHandling() {
+	type RequestResult struct {
+		Error    error
+		Response *http.Response
+	}
+
 	checkStatus := func(done <-chan struct{}, urls ...string) <-chan RequestResult {
 		results := make(chan RequestResult)
 
@@ -86,6 +86,7 @@ func ErrorHandling() {
 			}
 			continue
 		}
+		
 		fmt.Printf("Response: %v\n", result.Response.Status)
 	}
 }

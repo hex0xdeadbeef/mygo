@@ -9,7 +9,7 @@ import (
 )
 
 /*
-Any goroutine that attempts to write to write to a channel that is full will wait until the channel has been emptied, and any goroutine that attempts to read from a channel
+Any goroutine that attempts to write to a channel that is full will wait until the channel has been emptied, and any goroutine that attempts to read from a channel
 that is empty will wait until at least one item is placed on it.
 */
 
@@ -47,7 +47,7 @@ The default value of a channel is nil.
 
 /*
 Things to put channel in the right context:
-1) To assign channel ownership. Channel owners hacve a write-access view into the channel (chan or chan <-). Channel utilizers only have a read-only view into the channel
+1) To assign channel ownership. Channel owners have a write-access view into the channel (chan or chan <-). Channel utilizers only have a read-only view into the channel
 (<- chan). The goroutine that owns a channel should:
 	1) Instantiate a channel
 	2) Perform writes, or pass ownership to another goroutine.
@@ -75,17 +75,18 @@ func Deadlock() {
 		strStream <- "Hello!"
 	}()
 
-	/*
-		fatal error: all goroutines are asleep - deadlock!
-
-		goroutine 1 [chan receive]:
-		concurrency/pkg/ch02/channels/basics.Deadlock()
-			/Users/dmitriymamykin/Desktop/goprojects/concurrency/pkg/ch02/channels/basics/basics.go:30 +0x44
-		main.main()
-			/Users/dmitriymamykin/Desktop/goprojects/concurrency/bin/main.go:7 +0x1c
-	*/
 	<-strStream
 }
+
+/*
+	fatal error: all goroutines are asleep - deadlock!
+
+	goroutine 1 [chan receive]:
+	concurrency/pkg/ch02/channels/basics.Deadlock()
+		/Users/dmitriymamykin/Desktop/goprojects/concurrency/pkg/ch02/channels/basics/basics.go:30 +0x44
+	main.main()
+		/Users/dmitriymamykin/Desktop/goprojects/concurrency/bin/main.go:7 +0x1c
+*/
 
 func IsChannelOpenOk() {
 	stringStream := make(chan string)

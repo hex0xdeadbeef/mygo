@@ -9,7 +9,7 @@ import (
 // We should provide the method Do() with the function, that will initialize the variable. The "sync.Once" counts only the number of calls the Do() method instead of
 // counting the count of the unique function that were called within it.
 
-// The check how many times the go itself uses the sync.Once: grep -ir sync.Once $(go env GOROOT)/src | wc -l
+// The check how many times the Go itself uses the sync.Once: grep -ir sync.Once $(go env GOROOT)/src | wc -l
 // The result is: 234 (18.03.2024)
 
 // We should formalize the coupling by wrapping any usage of "sync.Once" in a small lexical block:
@@ -61,6 +61,21 @@ func RewritingDoFunction() {
 
 }
 
+func OnceDeadlock() {
+	var onceA, onceB sync.Once
+	var initB func()
+
+	initA := func() {
+		onceB.Do(initB) // |1| A is locked, go to B |2| Try to lock A, but A has already locked. DEADLOCK
+	}
+
+	initB = func() {
+		onceA.Do(initA) // |1| B is locked, go to B
+	}
+
+	onceA.Do(initA)
+}
+
 /*
 fatal error: all goroutines are asleep - deadlock!
 
@@ -95,13 +110,3 @@ Process 26536 has exited with status 2
 Detaching
 dlv dap (26484) exited with code: 0
 */
-
-func OnceDeadlock() {
-	var onceA, onceB sync.Once
-	var initB func()
-
-	initA := func() { onceB.Do(initB) } // |1| A is locked, go to B |2| Try to lock A, but A has already locked. DEADLOCK
-	initB = func() { onceA.Do(initA) }  // |1| B is locked, go to B
-
-	onceA.Do(initA)
-}

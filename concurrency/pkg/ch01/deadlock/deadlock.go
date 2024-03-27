@@ -6,17 +6,52 @@ import (
 	"time"
 )
 
-type value struct {
-	mu    sync.Mutex
-	value int
-}
-
 // 1. a1 locks its mutex
 // 2. G1 pr G2 waits a second
 // 3. b2 locks its mutex
 // 4. The second from the 2. passed and b1 locks its mutex, so there's the deadlock
 
 // The result is: infinite waiting.
+
+type value struct {
+	mu    sync.Mutex
+	value int
+}
+
+func Deadlock() {
+	var (
+		wg   sync.WaitGroup
+		a, b value
+
+		printSum = func(goroutineNumber int, v1, v2 *value) {
+			fmt.Printf("First block by %d goroutine.\n", goroutineNumber)
+			v1.mu.Lock()
+			defer v1.mu.Unlock()
+
+			time.Sleep(2 * time.Second)
+
+			fmt.Printf("Second block by %d goroutine.\n", goroutineNumber)
+			v2.mu.Lock()
+			defer v2.mu.Unlock()
+
+			fmt.Printf("sum=%v\n", v1.value+v2.value)
+		}
+	)
+
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		printSum(1, &a, &b)
+	}()
+
+	go func() {
+		defer wg.Done()
+		printSum(2, &b, &a)
+	}()
+
+	wg.Wait()
+
+}
 
 /*
 sync.runtime_Semacquire(0x14000114010?)
@@ -57,7 +92,6 @@ created by concurrency/pkg/ch01/deadlock.Deadlock in goroutine 1
 	/Users/dmitriymamykin/Desktop/goprojects/concurrency/pkg/ch01/deadlock/deadlock.go:44 +0x288
 
 */
-
 /*
 Coffman conditions:
 1) A concurrent process holds exclusive rights to a resource at any on time
@@ -65,35 +99,3 @@ Coffman conditions:
 3) A resource that is held by a concurrent process can only be released by that process, so it fulfills this condition.
 4) A concurrent process (P1) must be waiting on a chain of other concurrent processes (P2), which are in turn waiting on it (P1), so it fulfills this final condition too.
 */
-
-func Deadlock() {
-	var (
-		wg   sync.WaitGroup
-		a, b value
-
-		printSum = func(v1, v2 *value) {
-			v1.mu.Lock()
-			defer v1.mu.Unlock()
-
-			time.Sleep(2 * time.Second)
-
-			v2.mu.Lock()
-			defer v2.mu.Unlock()
-
-			fmt.Printf("sum=%v\n", v1.value+v2.value)
-		}
-	)
-
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		printSum(&a, &b)
-	}()
-	go func() {
-		defer wg.Done()
-		printSum(&b, &a)
-	}()
-
-	wg.Wait()
-
-}

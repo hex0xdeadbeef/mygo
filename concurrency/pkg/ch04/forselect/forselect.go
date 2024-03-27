@@ -31,10 +31,11 @@ func LoopOverDataSequence() {
 		}
 	}()
 
+loop:
 	for _, s := range stringData {
 		select {
 		case <-done:
-
+			break loop
 		case stringStream <- s:
 			/*
 				Do work in another goroutine
@@ -63,7 +64,6 @@ func InfiniteLoopingWithWorkInLoop() {
 		// Non-blocking continuation
 		default:
 		}
-
 		/*
 			Do non-preemptable work
 		*/

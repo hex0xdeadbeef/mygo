@@ -11,16 +11,12 @@ var m sync.Mutex
 func DataRace() {
 	var data int
 
-	// We protect this code from the intervenings of the other goroutines that could possibly read the stale value of "data"
-	// None of the goroutines that works simultaneously can read the variables in this critical section until it's done
 	go func() {
 		m.Lock()
 		data++
 		m.Unlock()
 	}()
 
-	// We protect this code from the intervenings of the other goroutines that could possibly write the new value into the "data"
-	// None of the goroutines that works simultaneously can change the variables in this critical section
 	m.Lock()
 	if data == 0 {
 		// 1. The data is 0
@@ -31,5 +27,4 @@ func DataRace() {
 		fmt.Printf("the value is %d\n", data)
 	}
 	m.Unlock()
-
 }

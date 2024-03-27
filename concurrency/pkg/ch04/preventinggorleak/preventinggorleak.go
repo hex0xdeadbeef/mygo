@@ -44,11 +44,13 @@ func CancelationAbsence() {
 
 func SimpleReaderCancelation() {
 
-	doWork := func(done <-chan struct{}, strings <-chan string) <-chan interface{} {
-		terminated := make(chan interface{})
+	doWork := func(done <-chan struct{}, strings <-chan string) <-chan struct{} {
+		terminated := make(chan struct{})
 		go func() {
-			defer fmt.Println("doWork exited")
-			defer close(terminated)
+			defer func() {
+				close(terminated)
+				fmt.Println("doWork exited")
+			}()
 
 			for {
 				select {
@@ -85,8 +87,10 @@ func SimpleWriterCancelation() {
 		randStream := make(chan int)
 
 		go func() {
-			defer fmt.Println("newRandStream closure exited.")
-			defer close(randStream)
+			defer func() {
+				close(randStream)
+				fmt.Println("newRandStream closure exited.")
+			}()
 
 			for {
 				select {
@@ -94,7 +98,6 @@ func SimpleWriterCancelation() {
 					return
 				case randStream <- rand.Int():
 				}
-
 			}
 		}()
 

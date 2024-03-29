@@ -44,7 +44,7 @@ func Bridge(done <-chan struct{}, chanStream <-chan <-chan interface{}) <-chan i
 				select {
 				// Send the value to the
 				case dataProducer <- val:
-				case <-done:
+				default:
 				}
 
 			}

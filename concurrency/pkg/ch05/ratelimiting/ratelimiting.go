@@ -21,7 +21,7 @@ The point is: if you don't rate limit requests to your system, you cannot easily
 
 /*
 Rate limits allow you to reason about the performance and stability of your system by preventing it from falling outside the boundaries you've already investigated. If you need to expand
-those boundaries, you can so in a controlled manner after lots of testing and coffee.
+those boundaries, you can so in a controlled manner after lots of testing.
 */
 
 /*
@@ -39,44 +39,19 @@ Production system might also include a client-side rate limiter to help prevent 
 
 /*
 This technique also allows us to begin thinking across dimensions other than time. When you rate limit a system, you're prolly gonna limit more than one thing. You'll likely have some
-kind of limit on the number of API requests, but an addition, you'll prolly also have limits on other resources like disc access, network access, etc.
+kind of limit on the number of API requests, but in addition, you'll prolly also have limits on other resources like disk access, network access, etc.
 */
 
 /*
 We're able to compose logical rate limiters into groups that make sense for each call.
 */
 
-type APIConnection struct {
-	rateLimiter *rate.Limiter
-}
-
-func OpenFirst() *APIConnection {
-	return &APIConnection{
-		rateLimiter: rate.NewLimiter(rate.Limit(1), 1),
-	}
-}
-
-func (a *APIConnection) ReadFile(ctx context.Context) error {
-	if err := a.rateLimiter.Wait(ctx); err != nil {
-		return err
-	}
-	// ... some work here
-	return nil
-}
-
-func (a *APIConnection) ResolveAddress(ctx context.Context) error {
-	if err := a.rateLimiter.Wait(ctx); err != nil {
-		return err
-	}
-	// ... some work here
-	return nil
-}
-
 func Using() {
 	defer func() {
 		log.Printf("Done.")
 	}()
 
+	// Log setup
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Ltime | log.LUTC)
 
@@ -118,6 +93,32 @@ func Using() {
 
 	wg.Wait()
 
+}
+
+type APIConnection struct {
+	rateLimiter *rate.Limiter
+}
+
+func OpenFirst() *APIConnection {
+	return &APIConnection{
+		rateLimiter: rate.NewLimiter(rate.Limit(1), 1),
+	}
+}
+
+func (a *APIConnection) ReadFile(ctx context.Context) error {
+	if err := a.rateLimiter.Wait(ctx); err != nil {
+		return err
+	}
+	// ... some work here
+	return nil
+}
+
+func (a *APIConnection) ResolveAddress(ctx context.Context) error {
+	if err := a.rateLimiter.Wait(ctx); err != nil {
+		return err
+	}
+	// ... some work here
+	return nil
 }
 
 func Per(eventCount int, duration time.Duration) rate.Limit {
@@ -197,8 +198,7 @@ type MultiAPIConnection struct {
 
 func MultiAPIOpen() *MultiAPIConnection {
 	return &MultiAPIConnection{
-		apiLimit: MultiLimiter(rate.NewLimiter(Per(2, time.Second), 2),
-			rate.NewLimiter(Per(10, time.Minute), 10)),
+		apiLimit:     MultiLimiter(rate.NewLimiter(Per(2, time.Second), 2), rate.NewLimiter(Per(10, time.Minute), 10)),
 		diskLimit:    rate.NewLimiter(rate.Limit(1), 1),
 		networkLimit: rate.NewLimiter(Per(3, time.Second), 1),
 	}

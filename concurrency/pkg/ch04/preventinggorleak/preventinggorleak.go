@@ -117,7 +117,7 @@ func SimpleWriterCancelation() {
 }
 
 // The case when we want union all the "done" channel into a single one.
-func or(doneChannels ...<-chan struct{}) <-chan struct{} {
+func Or(doneChannels ...<-chan struct{}) <-chan struct{} {
 	switch len(doneChannels) {
 	case 0:
 		return nil
@@ -141,7 +141,7 @@ func or(doneChannels ...<-chan struct{}) <-chan struct{} {
 			case <-doneChannels[0]:
 			case <-doneChannels[1]:
 			case <-doneChannels[2]:
-			case <-or(append(doneChannels[3:], orDone)...):
+			case <-Or(append(doneChannels[3:], orDone)...):
 			}
 		}
 	}()
@@ -162,7 +162,7 @@ func OrExample() {
 	}
 
 	start := time.Now()
-	<-or(
+	<-Or(
 		signal(2*time.Hour),
 		signal(5*time.Minute),
 		signal(1*time.Second),

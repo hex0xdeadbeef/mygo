@@ -130,7 +130,6 @@ func TimeoutHeartbeat() {
 		case <-time.After(timeout):
 			fmt.Println("worker goroutine is not healthy")
 			return
-
 		}
 	}
 }

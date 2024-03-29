@@ -1,0 +1,133 @@
+
+<!DOCTYPE>
+<html>
+
+<head>
+	<title>Table Widget</title>
+	<style>
+		h1 {
+			text-align: center;
+		}
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+		th, td {
+			border: 1px solid black;
+			padding: 8px;
+			text-align: left;
+		}
+		th {
+			background-color: #dcfff2;
+			cursor: pointer;
+		}
+	</style>
+	<script>	
+		function getColumnIndex(columnIndex) {
+			window.location.href = "/sort?columnIndex=" + columnIndex;
+		}
+	</script>
+</head>
+
+<body>
+	<h1>Info</h1>
+	<table>
+			<thead>
+				<tr>
+					
+						<th onclick="getColumnIndex( 0 )">Firstname</th>
+					
+						<th onclick="getColumnIndex( 1 )">Lastname</th>
+					
+						<th onclick="getColumnIndex( 2 )">Year</th>
+					
+						<th onclick="getColumnIndex( 3 )">Role</th>
+					
+						<th onclick="getColumnIndex( 4 )"></th>
+					
+				</tr>
+			</thead>
+			
+			<tbody>
+				
+					<tr>
+						
+							<td>Alexander</td>
+						
+							<td>Zherenovskiy</td>
+						
+							<td>2003</td>
+						
+							<td>Kuni lover</td>
+						
+					</tr>
+				
+					<tr>
+						
+							<td>Denis</td>
+						
+							<td>Nemchenko</td>
+						
+							<td>1980</td>
+						
+							<td>WorldOfTanks lover</td>
+						
+							<td>Thirsty</td>
+						
+					</tr>
+				
+					<tr>
+						
+							<td>Dmitriy</td>
+						
+							<td>Mamykin</td>
+						
+							<td>-1000</td>
+						
+							<td>Triceratops</td>
+						
+							<td>Hungry</td>
+						
+					</tr>
+				
+					<tr>
+						
+							<td>George</td>
+						
+							<td>Odin</td>
+						
+							<td>2002</td>
+						
+							<td>Barni</td>
+						
+					</tr>
+				
+					<tr>
+						
+							<td>Kate</td>
+						
+							<td>Balashova</td>
+						
+							<td>2003</td>
+						
+							<td>Noodles with carrot lover</td>
+						
+					</tr>
+				
+					<tr>
+						
+							<td>Rustam</td>
+						
+							<td>Rakhmatullov</td>
+						
+							<td>2003</td>
+						
+							<td>Money lover</td>
+						
+					</tr>
+				
+			</tbody>		
+	</table>
+</body>
+
+</html>

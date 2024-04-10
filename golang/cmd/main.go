@@ -1,9 +1,7 @@
 package main
 
-import "golang/pkg/projects/chapter7/mulitiersorttable"
+import . "golang/pkg/projects/chatsnippet"
 
 func main() {
-
-	mulitiersorttable.StartServer()
-
+	ChatServer()
 }

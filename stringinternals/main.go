@@ -7,168 +7,90 @@ import (
 )
 
 func main() {
-	lenUsage()
+	fmt.Println()
+	someFacts()
 
 	fmt.Println()
-
-	concat()
-
-	fmt.Println()
-
-	comparing()
+	detailedFacts()
 
 	fmt.Println()
-	shareableUnderlyingByteSequence()
+	forRangeRunesLooping()
 
 	fmt.Println()
-	idxClobbering()
+	forRangeBytesLooping()
 
 	fmt.Println()
-	failToCompileIndexChanging()
+	simpleForIterating()
 
-	fmt.Println()
-	immutabilityAndNonaddressabilityOfSingleByte()
-
-	fmt.Println()
-	incorrectStringConstant()
-
-	fmt.Println()
-	directConversionFromIntegerToString()
-
-	fmt.Println()
-	runesLen(nil)
-
-	fmt.Println()
-	forRangeRunes()
-
-	fmt.Println()
-	forRangeBytes()
 }
 
-func lenUsage() {
-	hello := `Привет!`
+func someFacts() {
+	const (
+		cnstStrA = `abcdf`
+		cnstStrB = "abcdf"
+	)
 
-	fmt.Println(len(hello)) // 13 bytes
-}
-
-func concat() {
-	a := "abcd"
-	b := `efg`
+	var (
+		a = "a"
+		b = `b`
+	)
 
 	ab := a + b
+	a += b
 
-	fmt.Println(ab)
+	fmt.Println(ab == a)
 
-	c := ""
-	c += `!`
-	c += "?"
-	fmt.Println(c)
+	strA := "abcdef"
+	strB := "abc"
+
+	fmt.Println(strB < strA)
 }
 
-func comparing() {
-	less := `abcd`
-	bigger := `abcdefg`
+func detailedFacts() {
+	var (
+		helloWorld = "hello world!"
+		hello      = helloWorld[:5]
+	)
 
-	fmt.Println(less == bigger)
-	fmt.Println(bigger > less)
-	fmt.Println(less > bigger)
+	fmt.Println(hello[0])
+	fmt.Printf("%T", hello[0])
+	// hello[0] = 'q' // cannot assign to hello[0] (neither addressable nor a map index expression)compilerUnassignableOperand
+	// pFirstElem = &hello[0] // invalid operation: cannot take address of hello[0] (value of type byte)compilerUnaddressableOperand
 }
 
-func shareableUnderlyingByteSequence() {
-
-	str := "abcdefg"
-	// The same underlying byte sequence with str
-	subStrA := str
-	subStrB := str[1:4]
-
-	fmt.Println(str)
-	fmt.Println(subStrA)
-	fmt.Println(subStrB)
-}
-
-func idxClobbering() {
-	hello := `Привет, мир!`
-
-	fmt.Println(hello[:3])
-	fmt.Printf("%[1]T %[1]v\n", []byte("abcde")[0])
-}
-
-func failToCompileIndexChanging() {
-	str := `abcde`
-	fmt.Println("Before", str)
-
-	// str[0] = `q` // cannot assign to str[0] (neither addressable nor a map index expression)compilerUnassignableOperand
-	strBytes := []byte(str)
-	strBytes[0] = 'q'
-
-	str = string(strBytes)
-	fmt.Println("After:", str)
-}
-
-func immutabilityAndNonaddressabilityOfSingleByte() {
-	str := `abcdefg`
-
-	// str[0] = `q` // cannot assign to str[0] (neither addressable nor a map index expression)compilerUnassignableOperand
-	// zeroElemPointer := &str[0] // invalid operation: cannot take address of str[0] (value of type byte)compilerUnaddressableOperand
-
-	fmt.Println(str[:0])
-}
-
-func incorrectStringConstant() {
+func constSubtleties() {
 	const (
 		str = `abc`
 
-		// subStrA = str[5:] // invalid argument: index 5 out of bounds [0:4]compilerInvalidIndex
-		// subStrB byte = str[10] // invalid argument: index 10 out of bounds [0:3]compilerInvalidIndex
+		// subStrA byte = str[5] // invalid argument: index 5 out of bounds [0:3]compilerInvalidIndex
+		// subStrB byte = str[10:15] // invalid argument: index 10 out of bounds [0:4]compilerInvalidIndex
 
 		// const expr
-		strLenA = len(str)
-
+		lengthA = len(str)
 		// not const expr
-		// strLenB = len(str[:]) // len(str[:]) (value of type int) is not constantcompilerInvalidConstInit
-
+		// lengthB = len(str[:]) //
 	)
-
 }
 
-func directConversionFromIntegerToString() {
-	num := 100
-
-	fmt.Println(string(num))
-	fmt.Println('A')
-	fmt.Println(string(-1))
-}
-
-func runesLen(runes []rune) int {
+func RuneToBytes(runes []rune) []byte {
 	var (
-		length int
-	)
-
-	for _, v := range runes {
-		length += utf8.RuneLen(v)
-	}
-
-	fmt.Println(length)
-	return length
-}
-
-func conversionsBetweenRunesAndBytes(runes []rune) []byte {
-	var (
-		l = runesLen(runes)
-
-		n, bts = 0, make([]byte, l)
+		n int
 	)
 
 	for _, r := range runes {
-		n += utf8.EncodeRune(bts[n:], r)
+		n += utf8.RuneLen(r)
 	}
 
-	fmt.Println(bts)
+	n, resultingBytes := 0, make([]byte, n)
 
-	return bts
+	for _, r := range runes {
+		n += utf8.EncodeRune(resultingBytes[n:], r)
+	}
+
+	return resultingBytes
 }
 
-func multipleConversions() {
+func runesBytesConversions() {
 	s := `abcdefg`
 
 	bs := []byte(s)
@@ -178,110 +100,124 @@ func multipleConversions() {
 	s = string(rs)
 
 	rs = bytes.Runes(bs)
-	bs = conversionsBetweenRunesAndBytes(rs)
+	bs = RuneToBytes(rs)
 }
 
 func compilerOptimizations() {
 	var (
-		rangingOverByteSliceFromString = func() {
-			var str = "abcdef"
+		forRangeLooping = func() {
+			var (
+				str = `abcdefg`
+			)
 
-			// Here the []byte(str) conversion will not copy the underlying bytes of str.
-			for i, b := range []byte(str) {
-				fmt.Println(i, " ", b)
+			// Here, the []byte conversion will
+			// not copy the underlying bytes of str
+			for i, v := range []byte(str) {
+				fmt.Println(i, ":", v)
 			}
 		}
 
-		usingStringKeyFromByteSlice = func() {
+		mapKeyUsage = func() {
 			var (
-				key = []byte{'k', 'e', 'y'}
-
-				m = make(map[string]struct{}, 10)
+				strBytes = []byte{'k', 'e', 'y'}
+				m        = make(map[string]struct{}, 10)
 			)
 
-			// The string([]byte) in this conversion copies the bytes in key
-			m[string(key)] = struct{}{}
+			// string(str) makes the deep copy of str
+			m[string(strBytes)] = struct{}{}
 
-			// Here, this string([]byte) conversion doesn't copy the bytes in key. The optimization will be still made, even if key is a package-level variable.
-			fmt.Println(m[string(key)])
+			// The optimization won't make the deep copy of underlying bytes
+			fmt.Println(string(strBytes))
 		}
 
-		comparisonOfConversionsByteSliceToString = func() {
-			var (
-				x = []byte{1023: 'x'}
-				y = []byte{1023: 'y'}
+		s string
+		x = []byte{1023: 'x'}
+		y = []byte{1023: 'y'}
 
-				s string
-			)
-
-			// None of the four comparisons will make deep copies of the underlying byte slices.
-			// But during concatenation the conversions of course will be made.
+		comparing = func() {
+			// The two deep copies while comparing won't be made
+			// Instead of copying the bytes will be compared one by one.
 			if string(x) != string(y) {
-				// There will be the only one allocation for the resulting slice
+				// The underlying bytes will be copied deeply during concatenation
 				s = (" " + string(x) + string(y))[1:]
 			}
 
 			fmt.Println(s)
-
 		}
 
-		noOptimisation = func() {
-			var (
-				x = []byte{1023: 'x'}
-				y = []byte{1023: 'y'}
-
-				s string
-			)
-
-			// During the comparison the copies won't be made
+		anotherComparing = func() {
+			// During comparing the deep copies won't be made. It's not needed
 			if string(x) != string(y) {
-				// There will be three copies:
-				// The copy of "x"
-				// The copy of "y"
-				// Allcoation for the concatenation
+				// There are the two copies will be made, because there's no non-blank string literal
 				s = string(x) + string(y)
 			}
-
-			fmt.Println(s)
 		}
 	)
 
-	rangingOverByteSliceFromString()
+	forRangeLooping()
 
-	usingStringKeyFromByteSlice()
+	mapKeyUsage()
 
-	comparisonOfConversionsByteSliceToString()
+	comparing()
 
-	noOptimisation()
+	anotherComparing()
 }
 
-func forRangeRunes() {
+func forRangeRunesLooping() {
 	var (
-		s = "éक्षिaπ囧"
+		str = "éक्षिaπ囧"
 	)
 
-	for i, v := range s {
-		fmt.Printf("%-3v 0x%x %v \n", i, v, string(v))
+	for i, r := range str {
+		fmt.Printf("%-4d hex: 0x%x decimal: %d\n", i, r, r)
 	}
-
-	fmt.Println(len(s))
+	fmt.Println(len(str))
 }
 
-func forRangeBytes() {
+func forRangeBytesLooping() {
 	var (
-		s = "éक्षिaπ囧"
+		str = "éक्षिaπ囧"
 	)
 
-	for i := 0; i < len(s); i++ {
-		fmt.Printf("The byte at index %d is 0x%x\n", i, s[i])
+	for i, b := range []byte(str) {
+		fmt.Printf("Byte №%d | Byte 0x%x | Char %c\n", i, b, b)
 	}
+	fmt.Println(len(str))
 
-	fmt.Println()
-
-	// Here's the bytes aren't copied into a new slice
-	for i, b := range []byte(s) {
-		fmt.Printf("The byte at index %d is 0x%x\n", i, b)
-	}
-
-	fmt.Println(len(s))
 }
+
+func simpleForIterating() {
+	var (
+		str = "éक्षिaπ囧"
+	)
+
+	for i := 0; i < len(str); i++ {
+		fmt.Printf("Byte №%d | Byte: 0x%x | Symbol: %c\n", i, str[i], str[i])
+	}
+	fmt.Println(len(str))
+}
+
+func sugaredAppendCopy() {
+	hello := []byte("hello")
+	world := "world"
+
+	// The usual way is:
+	// helloWorld := append(hello, []byte(world)...)
+
+	// Sugared
+	helloWorld := append(hello, world...)
+	fmt.Println(string(helloWorld))
+
+	helloWorldB := make([]byte, len(hello)+len(world))
+	copy(helloWorldB, hello)
+
+	// The usual way
+	// copy(helloWorldB[len(hello):], []byte(world))
+
+	// Sugared
+	copy(helloWorldB[len(hello):], world)
+
+	fmt.Println(helloWorld)
+	fmt.Println(helloWorldB)
+}
+

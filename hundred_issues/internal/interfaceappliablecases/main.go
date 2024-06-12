@@ -10,10 +10,6 @@ THE WAYS WHEN INTERFACES SHOULD BE USED
 3. Behavior restriction
 */
 
-func main() {
-
-}
-
 /*
 3. Behavior restriction
 */

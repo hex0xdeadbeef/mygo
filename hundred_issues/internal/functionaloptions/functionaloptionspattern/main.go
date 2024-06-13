@@ -8,8 +8,8 @@ import (
 /*
 	FUNCTIONAL OPTIONS PATTERN REALIZATION
 1. The idea is simple: unexported structure includes the configuration: "options"
-	1) Each of its options represent a function itself returning an error of the same type. For example: WithPort
-		type Option func(options *options) error
+	1) Each of its options represents a function itself returning an error of the same type. For example: WithPort
+		type Option func(options *options) error is resulting closure that is returned
 2. Every field of a configuration demands its own public function (It should start with "With" prefix) that includes the analogous logic: a check of input data, changing a
 state of internal structure of the configuration.
 3. Building a target object we apply all the closures and finally constructs an object based on the resulting options instance

@@ -17,7 +17,7 @@ a channel type.
 /*
 	CONCLUSION
 We won't write a complicated code polluting it with unnecessary abstractions, until there are weighty needs. When we met a situation forcing us to write a formulaic code, we
-can start to think about using of generics.	
+can start to think about using of generics.
 */
 
 import (
@@ -173,7 +173,7 @@ func merge[T any](chA, chB <-chan T) <-chan T {
 	return res
 }
 
-type SliceFn[T any] struct {
+type SliceFn[T  comparable] struct {
 	S       []T
 	Compare func(a, b T) bool
 }

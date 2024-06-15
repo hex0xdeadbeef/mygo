@@ -41,6 +41,51 @@ package main
 		2) Summarize | Subtraction
 	The decomposed expression will work much more time, but will be more precise. There's a choice of precision/execution time.
 9. When summarizing / subtraction we should group the elems of the close precision together to achieve bigger presicion
+
+	MAP
+1. An amount of segments(butches) in map cannot be reduced. Map can only grow up and have more segments inside.
+2. Reduction of a map doesn't affect the amount of segments. It just zeroes the slots  inside the map.
+	Bytes in Heap: 136        KB | Live objects: 163        |  Freed: 5
+	Bytes in Heap: 472578     KB | Live objects: 38355      |  Freed: 18936
+	Bytes in Heap: 300487     KB | Live objects: 38365      |  Freed: 38171
+3. To reduce an amount of memory used by a map we can regularly:
+	1) create a new map of the same type
+	2) copy all the elements to the new map
+	3) free the memory allocated for he old map
+	A lack of this method is the doubling the size of the initial map while copying.
+4. If the type of the elems of the map is referencing, after deleting and garbage collection the elems will be zeroed and all the links will have the size of 1
+CPU word because it will be nilled.
+	Bytes in Heap: 0          MB | Live objects: 164        |  Freed: 5
+	Bytes in Heap: 182        MB | Live objects: 1038681    |  Freed: 18891
+	Bytes in Heap: 38         MB | Live objects: 1038690    |  Freed: 1038491
+5. If a key/value exceeds 128 Bytes, Go won't save them in a segment directly. Instead of direct storing, the pointer to it will be stored.
+
+	COMPARISONGS
+1. Operators "==" and "!=" don't work with slices and maps at all. Tries to do this result in fail during compilation.
+2. Operators "==" and "!=" work great with:
+	1) Boolean vals
+	2) Numeric types
+	3) Strings
+	4) Channels (Were two chans created by the same call of make function? OR Are they both nil?)
+	5) Interfaces. Do two interfaces have the same dynamic types and the same dynamic vals? OR Are the two interfaces nil vals?
+	6) Pointers. Do the two pointers reference to the same val in the memory area or don't OR Are the two pointers nil vals?
+	7) Structures and Arrays. Are they consisted of the same types AND Do they have the same vals of these types respectively?
+3. It's allowed to make comparisons between interfaces vals if they have comparable types. If they don't, there will be panic with the corresponding error.
+	panic: runtime error: comparing uncomparable type []int
+
+	goroutine 1 [running]:
+	main.Comparisons.func4()
+		/Users/dmitriymamykin/Desktop/mygo/hundred_issues/internal/datatypes/main.go:780 +0x114
+	main.Comparisons()
+		/Users/dmitriymamykin/Desktop/mygo/hundred_issues/internal/datatypes/main.go:790 +0x78
+	main.main()
+		/Users/dmitriymamykin/Desktop/mygo/hundred_issues/internal/datatypes/main.go:116 +0x1c
+4. We can use reflect.DeepEqual(a, b any) to make a comparison inspite of typization of vals.
+	1) Funcs are always deeply equal if they are both nil vals. If not, they're not deeply equal.
+	2) NaN vals are always not deeply equal
+	3) Recursive comparison will be stopped after the second occurence the val in this comparison.
+	4) reflect.DeepEqual(...) is 100 times slower than "==" operator.
+5. Custom type instances comparison can be as an alternative of reflect.DeepEqual(...). It'll be faster than reflect.DeepEqual(...)
 */
 
 import (
@@ -48,6 +93,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"reflect"
 	"runtime"
 	"unsafe"
 )
@@ -81,6 +127,11 @@ func main() {
 	// SliceCapLeak()
 
 	// SliceAndPointers()
+
+	// MapLeaking()
+
+	// Comparisons()
+
 }
 
 func OctalLiterals() {
@@ -448,12 +499,12 @@ func FullSliceExpression() {
 
 func printAlloc() {
 	const (
-		mapToKB = 1024
+		mapToKB = 1 << 20
 	)
 
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
-	fmt.Printf("Bytes in Heap: %-10d KB | Live objects: %-10d |  Freed: %-10d\n", m.Alloc/mapToKB, m.Mallocs, m.Frees)
+	fmt.Printf("Bytes in Heap: %-10d MB | Live objects: %-10d |  Freed: %-10d\n", m.Alloc/mapToKB, m.Mallocs, m.Frees)
 }
 
 func SliceCapLeak() {
@@ -628,4 +679,192 @@ func SliceAndPointers() {
 	fmt.Println()
 
 	runtime.KeepAlive(firstTwoStorages)
+}
+
+func InefficientMapInitializing() {
+
+	var (
+		preinitializedMap = make(map[string]int, 1_000_000) // 1_000_000 is the initial size of the map, not the capacity
+	)
+
+	fmt.Println(len(preinitializedMap))
+
+}
+
+func MapLeaking() {
+	const (
+		insertionsNumber = 1_000_000
+		unitNumber       = 1 << 7
+	)
+
+	var (
+		// m = make(map[int][unitNumber]byte)
+		m = make(map[int]*[unitNumber]byte)
+
+		// randomBytes = func() [unitNumber]byte {
+		// 	var (
+		// 		res = [unitNumber]byte{}
+		// 	)
+
+		// 	for i := 0; i < unitNumber; i++ {
+		// 		res[i] = byte(rand.Intn(128))
+		// 	}
+
+		// 	return res
+		// }
+
+		randomPointerToBytes = func() *[unitNumber]byte {
+			var (
+				res = [unitNumber]byte{}
+			)
+
+			for i := 0; i < unitNumber; i++ {
+				res[i] = byte(rand.Intn(128))
+			}
+
+			return &res
+		}
+	)
+	printAlloc()
+
+	for i := 0; i < insertionsNumber; i++ {
+		// m[i] = randomBytes()
+		m[i] = randomPointerToBytes()
+	}
+	printAlloc()
+
+	// Deleting all the inserted elements
+	for i := 0; i < insertionsNumber; i++ {
+		delete(m, i)
+	}
+	// GC invocation
+	runtime.GC()
+	printAlloc()
+
+	runtime.KeepAlive(m)
+}
+
+func Comparisons() {
+
+	var (
+		a = func() {
+			type (
+				customer struct {
+					id string
+				}
+			)
+
+			var (
+				customerA = customer{"qwerty12345"}
+				customerB = customer{"qwerty12345"}
+			)
+
+			fmt.Println(customerA == customerB) // true
+		}
+
+		b = func() {
+			type (
+				customer struct {
+					id         string
+					properties []string
+				}
+			)
+
+			var (
+				_ = customer{"qwerty12345", nil}
+				_ = customer{"qwerty12345", nil}
+			)
+
+			// fmt.Println(customerA == customerB) // invalid operation: customerA == customerB (struct containing []string cannot be compared)compilerUndefinedOp
+		}
+
+		c = func() {
+			var (
+				valA, valB interface{} = 1, 2
+			)
+
+			fmt.Println(valA == valB)
+
+			valA, valB = 3, 3
+			fmt.Println(valA == valB)
+		}
+
+		_ = func() {
+			var (
+				valA, valB interface{} = []int{1, 2, 3}, []int{4, 5, 6}
+			)
+
+			fmt.Println(valA == valB)
+
+			/*
+				panic: runtime error: comparing uncomparable type []int
+				goroutine 1 [running]:
+				main.Comparisons.func4()
+					/Users/dmitriymamykin/Desktop/mygo/hundred_issues/internal/datatypes/main.go:780 +0x114
+				main.Comparisons()
+					/Users/dmitriymamykin/Desktop/mygo/hundred_issues/internal/datatypes/main.go:790 +0x78
+				main.main()
+					/Users/dmitriymamykin/Desktop/mygo/hundred_issues/internal/datatypes/main.go:116 +0x1c
+			*/
+		}
+
+		e = func() {
+			var (
+				valA, valB interface{} = []int{1, 2, 3}, []int{4, 5, 6}
+			)
+
+			fmt.Println(reflect.DeepEqual(valA, valB))
+		}
+
+		f = func() {
+			type (
+				randNum func() int
+			)
+
+			var (
+				aF, bF randNum = rand.Int, rand.Int
+			)
+
+			fmt.Println(aF != nil && bF != nil)
+			fmt.Println(reflect.DeepEqual(aF, bF))
+		}
+	)
+
+	a()
+
+	b()
+
+	c()
+
+	// d()
+
+	e()
+
+	f()
+}
+
+type (
+	customer struct {
+		id         string
+		properties []string
+	}
+)
+
+// Compare deeply compares two customer type instances
+func Compare(a, b customer) bool {
+	if a.id != b.id {
+		return false
+	}
+
+	if len(a.properties) != len(b.properties) {
+		return false
+	}
+
+	for i := range a.properties {
+		if a.properties[i] != b.properties[i] {
+			return false
+		}
+	}
+
+	return true
 }

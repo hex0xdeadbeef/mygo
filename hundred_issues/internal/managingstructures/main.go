@@ -69,7 +69,7 @@ To beat this behavior we must create a copy of the source map and make insertion
 	1) Enclose all the actions within a cycle in a function forcing the defer to work after return statement of this function. In this case the defer statement is guaranteed to
 	be executed after each iteration. It results in an overhead.
 	2) To make the func readFile(...) a closing function. In fact this solution is the same to 1). It results in an overhead too.
-3. We shoul remember that in a cycle defer statements just are piled to a stack and will be executed after the return statement of the function, so we need to beat this problem
+3. We should remember that in a cycle defer statements just are piled to a stack and will be executed after the return statement of the function, so we need to beat this problem
 
 */
 

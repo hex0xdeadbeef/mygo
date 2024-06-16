@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
+	"os"
+	"sync"
+	"time"
 )
 
 /*
@@ -50,6 +54,23 @@ finally we will store the pointer to this variable updated up to the last elemen
 	If the writing into a map is happening during the iteration, it can be executed or skipped at all. The choice can vary for each created insertion and from one iteration to
 	another one.
 To beat this behavior we must create a copy of the source map and make insertions into the copy, not the initial map.
+
+	IGNORING PROPERTIES OF BREAK OPERATOR
+1. There are a bunch of error while working with switch/select statements in combination with break operator. Programmers break the case, not the cycle
+2. break operator breaks the closest to it statement from these ones: switch | select | for
+3. An operator switch | select | for with the break operator is an idiomatic thing in Go
+4. The same logic is applied for continue operator:
+	1) continue continues the closest to it switch | select | for operator.
+
+	USING DEFER IN CYCLES
+1. defer plans the actions inside it after returning of the enclosing function
+2. In the case of a restrictive circumstances (for example: file descriptors can be exhausted) we can apply the following patterns:
+	0) Arrange the work with closing the files after each iteration of the cycle
+	1) Enclose all the actions within a cycle in a function forcing the defer to work after return statement of this function. In this case the defer statement is guaranteed to
+	be executed after each iteration. It results in an overhead.
+	2) To make the func readFile(...) a closing function. In fact this solution is the same to 1). It results in an overhead too.
+3. We shoul remember that in a cycle defer statements just are piled to a stack and will be executed after the return statement of the function, so we need to beat this problem
+
 */
 
 func main() {
@@ -69,7 +90,11 @@ func main() {
 
 	// InsertingIntoMap()
 
-	UpdatingMapDuringIteration()
+	// UpdatingMapDuringIteration()
+
+	// BreakSwitchOrSelectWithCycle()
+
+	// DeferInCycles()
 }
 
 func SkippingValInForRange() {
@@ -461,7 +486,7 @@ func MapAdding() {
 		m[v] = struct{}{}
 	}
 
-	for k, _ := range m {
+	for k := range m {
 		fmt.Println(k)
 	}
 
@@ -531,4 +556,280 @@ func UpdatingMapDuringIteration() {
 	}
 
 	fmt.Println(copiedM) // map[0:true 1:false 2:true 10:true 12:true]
+}
+
+func BreakSwitchOrSelectWithCycle() {
+	var (
+		a = func() {
+			for i := 0; i < 5; i++ {
+				switch i {
+				case 2:
+					// This statement breaks the switch only, not the cycle
+					break
+				default:
+					fmt.Println(i)
+				}
+			}
+		}
+
+		aFixed = func() {
+		FirstLoop:
+			for i := 0; i < 5; i++ {
+				switch i {
+				case 2:
+					// We break the loop with marker "FirtsLoop" here
+					break FirstLoop
+				default:
+					fmt.Println(i)
+				}
+			}
+
+		}
+
+		b = func() {
+			var (
+				producer = func(ctx context.Context) <-chan rune {
+					producer := make(chan rune)
+
+					go func() {
+						defer close(producer)
+
+						// The marker is responsible for being used while breaking
+					firstLoop:
+						for {
+							select {
+							case <-ctx.Done():
+								// In this case we break the loop in general, not the select operator
+								break firstLoop
+							case producer <- rune(rand.Intn(128)):
+
+							}
+						}
+
+					}()
+
+					return producer
+				}
+			)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Microsecond*500))
+			defer cancel()
+
+			for r := range producer(ctx) {
+				fmt.Printf("%c ", r)
+			}
+
+		}
+	)
+
+	a()
+	/*
+		0
+		1
+		3
+		4
+	*/
+
+	fmt.Println()
+	aFixed()
+	/*
+		0
+		1
+	*/
+
+	fmt.Println()
+	b()
+
+}
+
+func DeferInCycles() {
+	if errs := readFilesA(nil); errs != nil {
+		for _, err := range errs {
+			fmt.Println(err)
+		}
+	}
+
+	if errs := readFilesB(nil); errs != nil {
+		for _, err := range errs {
+			fmt.Println(err)
+		}
+	}
+
+	if errs := readFilesС(nil); errs != nil {
+		for _, err := range errs {
+			fmt.Println(err)
+		}
+	}
+
+}
+
+func readFilesA(filePaths <-chan string) []error {
+	if filePaths == nil {
+		return []error{fmt.Errorf("filePaths channel is nil")}
+	}
+
+	var (
+		errs = make([]error, 1<<8)
+	)
+
+	for fp := range filePaths {
+		if err := readFileA(fp); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errs
+}
+
+func readFileA(filePath string) (err error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("opening file %q: %w", filePath, err)
+	}
+	defer func(filePath string) {
+		fileClosingErr := f.Close()
+
+		if fileClosingErr == nil {
+			return
+		}
+
+		if err != nil {
+			err = fmt.Errorf("%w; closing file %q: %w", err, filePath, fileClosingErr)
+			return
+		}
+
+		err = fmt.Errorf("closing file %s: %q", filePath, fileClosingErr)
+
+	}(filePath)
+
+	// some logic...
+
+	return err
+}
+
+func readFilesB(filePaths <-chan string) []error {
+	if filePaths == nil {
+		return []error{fmt.Errorf("filePaths channel is nil")}
+	}
+
+	var (
+		errs = make([]error, 1<<8)
+	)
+
+	for fp := range filePaths {
+		err := func(filePath string) (err error) {
+			f, err := os.Open(filePath)
+			if err != nil {
+				return fmt.Errorf("opening file %q: %w", filePath, err)
+			}
+			defer func(filePath string) {
+				fileClosingErr := f.Close()
+
+				if fileClosingErr == nil {
+					return
+				}
+
+				if err != nil {
+					err = fmt.Errorf("%w; closing file %q: %w", err, filePath, fileClosingErr)
+					return
+				}
+
+				err = fmt.Errorf("closing file %s: %q", filePath, fileClosingErr)
+
+			}(filePath)
+
+			// some logic...
+
+			return err
+		}(fp)
+
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errs
+}
+
+type (
+	Semaphore struct {
+		c chan struct{}
+	}
+
+	FileWorker struct {
+		filepath string
+		file     *os.File
+	}
+
+	ErrsPipe struct {
+		errorsCh chan error
+	}
+)
+
+func readFilesС(filePaths <-chan string) (errs []error) {
+	const (
+		fileDescriptorsLimit = 1 << 10
+	)
+
+	if filePaths == nil {
+		return []error{fmt.Errorf("filePaths channel is nil")}
+	}
+
+	var (
+		wg  = &sync.WaitGroup{}
+		sem = &Semaphore{c: make(chan struct{}, fileDescriptorsLimit)}
+		eP  = &ErrsPipe{errorsCh: make(chan error)}
+
+		errS = make([]error, 1<<8)
+	)
+
+	for fp := range filePaths {
+
+		wg.Add(1)
+		go readFileС(wg, sem, eP, fp)
+
+	}
+
+	go func() {
+		wg.Wait()
+		close(eP.errorsCh)
+		close(sem.c)
+	}()
+
+	for curErr := range eP.errorsCh {
+		errS = append(errS, curErr)
+	}
+
+	return errS
+}
+
+func readFileС(wg *sync.WaitGroup, sem *Semaphore, eP *ErrsPipe, filePath string) {
+	sem.c <- struct{}{}
+	defer func() {
+		<-sem.c
+		wg.Done()
+	}()
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		eP.errorsCh <- err
+		return
+	}
+	defer func(filePath string) {
+		fileClosingErr := f.Close()
+
+		if fileClosingErr == nil {
+			return
+		}
+
+		if err != nil {
+			err = fmt.Errorf("%w; closing file %q: %w", err, filePath, fileClosingErr)
+			return
+		}
+
+		err = fmt.Errorf("closing file %q: %w", filePath, err)
+
+		eP.errorsCh <- err
+	}(filePath)
+
+	// some logic...
 }

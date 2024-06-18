@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
+	"math/rand"
 	"strings"
+	"sync"
 	"unicode/utf8"
 )
 
@@ -55,10 +60,28 @@ amount of bytes (from 1 to 4 bytes).
 3. Another good way of concatenation is to take all the strings given, sum theirs lengths, allocate the byte slice of this resulting length and put the bytes of the strings into it.
 4. The last way of concatenation is using fmt.Sprintf(...) function
 
+	UNNECESSARY CONVERSIONS TO STRING
+1. Most operations are executed on bytes, not strings. So we should choose the pkg corresponding to our needs. The bytes pkg includes most the operations of strings pkg.
+2. Even if there's a slice of bytes behind a string, to turn a []byte into a string we need a copy of bytes slice. It means a new allocation of memory and copying all the bytes of the old
+byte
+3. Strings are not changable
 
+	SUBSTRINGS AND MEMORY LEAKS
+1. The technique of slice shrinking is appliable to strings.
+2. The compiler allows a substring and the source string to use the same underlying byte sequence for performance reasons.
+3. To beat the problem of storing all the bytes of an initial source []byte we need to create a deep copy of the string.
+4. Copying is completed in the following way:
+	1.
+		1) Firstly we need to convert a string to a []byte
+		2) Secondly we need to convert the resulting []byte to a string with the operator string(b []byte)
+		3) As a result we get a new string referencing to another []byte
+	2.
+		1) Using a strings.Clone(s string) or bytes.Clone(b []byte)
+5. Since a string is just a pointer, a call a function doesn't result in deep copying of the underlying bytes. The copied string will reference to the same underlying byte sequence.
 */
 
 func main() {
+
 	// LenUsage()
 
 	// Utf8CountInString()
@@ -70,6 +93,12 @@ func main() {
 	// RuneAccessOptimization()
 
 	// TrimRightAndTrimSuffix()
+
+	// RightBytesProcessing()
+
+	// StringsImmutability()
+
+	// SubstringUsage()
 }
 
 func LenUsage() {
@@ -254,4 +283,116 @@ func FastConcatenationOptimized(strs ...string) string {
 	}
 
 	return b.String()
+}
+
+func RightBytesProcessing() {
+	var (
+		sanitize = func(b []byte) []byte {
+			return bytes.TrimSpace(b)
+		}
+
+		getCleanBytes = func(r io.Reader) ([]byte, error) {
+			b, err := io.ReadAll(r)
+			if err != nil {
+				return nil, err
+			}
+
+			// clean invocation
+			b = sanitize(b)
+
+			return b, nil
+		}
+
+		r = strings.NewReader("\t   bebra \t\n             \r")
+	)
+
+	b, err := getCleanBytes(r)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(b))
+}
+
+func StringsImmutability() {
+	var (
+		b = []byte{'a', 'b', 'c'}
+		// The deep copy of b has been created here
+		s = string(b)
+	)
+
+	b[1] = 'd'
+
+	// s has't been changed
+	fmt.Println(s)
+}
+
+func SubstringUsage() {
+	var (
+		s1 = "hello world!"
+		// Take 5 first bytes, not runes
+		subBytes = s1[:5]
+
+		s2            = "Привет мир!"
+		subRunesWrong = s2[:5]
+		subRunesRight = []rune(s2)[:6]
+	)
+
+	fmt.Println(subBytes)
+
+	fmt.Println(subRunesWrong)
+	fmt.Printf("%c\n", subRunesRight)
+}
+
+type (
+	store struct {
+		m map[string]struct{}
+
+		mu *sync.Mutex
+	}
+)
+
+func newStore() *store {
+	return &store{m: make(map[string]struct{}, 1<<6), mu: &sync.Mutex{}}
+}
+
+func (s *store) HandleLog(log string) error {
+	const (
+		UUIDLength = 36
+	)
+
+	if len(log) < UUIDLength {
+		return errors.New("log is not correctly formatted")
+	}
+
+	// This operation creates a new string referencing to the same underlying byte sequence, so the resulting string will includes all the bytes of the source byte sequence, not just 36 bytes.
+	// uuid := log[:36]
+
+	// To beat the problem of storing all the bytes of the underlying byte sequence we need to create a deep copy of it.
+	// In this case UUIDRightA and UUIDRightB reference to a new byte sequence that is a deep copy of the initial one.
+	UUIDRightA, UUIDRightB := string([]byte(log[:UUIDLength])), strings.Clone(log[:UUIDLength])
+	switch rand.Intn(2) % 2 {
+	case 1:
+		s.store(UUIDRightA)
+	default:
+		s.store(UUIDRightB)
+	}
+
+	return nil
+}
+
+func (s *store) store(uuid string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.m[uuid] = struct{}{}
+}
+
+func StringMemoryLeaking() {
+	var (
+		s   = newStore()
+		log = "QIJJDQWIKDJQqdwiwdjidwijdqwoidqiodwqjdjwqdmqldklwqji28730wdqlkjdqwjiwdqji310813803huo1f39931gc1g39d3981g9f13bouf13ofh08313f1g801"
+	)
+
+	s.HandleLog(log)
 }

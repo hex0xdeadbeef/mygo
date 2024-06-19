@@ -39,7 +39,7 @@ In both cases a caller can unwrap an error an deconstruct it, using all contexts
 	4) Nonetheless, during wrapping a potential relation created, since an internal error gets accessible to a caller. If we need to prevent this behavior, we should use the
 	"%v" directive. "%v" directive doesn't wrap an error, it creates another error, but saves the specification of it.
 
-	INACCURATE ERROR CHECK
+	INACCURATE ERROR TYPE CHECK
 1. Using custom error type | "%w" directive we also need to change error check of a caller code.
 2. We should differentiate errors by their types. For this purpose we can use switch statement with .(type) to get the type of the error gotten.
 3. If we've wrapped an error on the low-level and want to find out whether this error has the specific internal error type, we should use the errors.As(...) function.
@@ -48,12 +48,32 @@ type of error give, it'll return true.
 	1) errors.As(...) requires that a target must be a pointer. If the target isn't a pointer, it'll panic.
 5. If we use error wrapping we should use errors.As(...) to check whether the error has the specific type given.
 
+	INACCURATE ERROR VALUE CHECK
+1. Sentiel error - an error that is defined as the global variable
+	1) It's desirable to start this types of error with prefix "Err" in general.
+	2) A sentiel error signals about an expected error
+	3) Many default packages have signal errors. For example: sql.ErrNoRows (is returned when a query returns no rows), io.EOF (io.Reader returns this err, when there're
+	no accessible input data)
+Returning a sentiel error is a common principle. They signal about erros that can be expected in advance and presence of them the clients will check.
+2. Sentiels errors must be created as values. For example: ErrFoo = errors.New("foo")
+3. Expected errors must be defined as errors types. For example: type BarError struct {...}, where BarError implements the error interface.
+4. To make superficial errors' values comparison we should use the == operator, it compares only the "head" errs and returns true if these two errs is equal by value
+5. To make deep errors' vals comparison we should use the errors.Is(...) It traverses errors' trees an signals with true if two errs are equal by value, not the types
+
+	DON'T PROCESS THE SAME ERROR TWICE
+1. We must not handle errors twice or more times. It complicates debugging.
+2. An error must be handled only once.
+3. Registration an error in logs is the same to handling error. We must or register an error in log, or handle it in code. Doing both things, we complicate work at all.
 */
 
 func main() {
 	// PanicA()
 
-	ErrorWrappingUsageA()
+	// ErrorWrappingUsageA()
+
+	// SillyErrComparisonUsage()
+
+	// IntilligentErrComparison()
 }
 
 func PanicA() {
@@ -224,4 +244,97 @@ func getTxAmountFromDB(txID string) (float32, error) {
 	}
 
 	return amount, nil
+}
+
+// This is a sentiel error
+// Sentiel error - is an error that is defined as a global error
+var ErrFoo = errors.New("foo")
+
+// To make superficial errors' values comparison we should use
+// the == operator, it compares only the "head" errs and returns
+// true if these two errs is equal by value
+func SillyErrComparisonUsage() {
+	if err := genError(); err == ErrFoo {
+		fmt.Println(err)
+	}
+}
+
+// To make deep errors' vals comparison we should use the errors.Is(...)
+// It traverses errors' trees an signals with true if two errs are equal
+// by value, not the types
+func IntilligentErrComparison() {
+
+	if err := genError(); errors.Is(err, ErrFoo) {
+		fmt.Println(err)
+	}
+}
+
+func genError() error {
+	switch rand.Intn(3) {
+	case 0:
+		return ErrFoo
+	case 1:
+		return fmt.Errorf("wrapped ErrFoo err: %w", ErrFoo)
+	default:
+		return errors.New("an error")
+	}
+}
+
+type Route struct {
+	srcLat, srcLng, dstLat, dstLng float32
+}
+
+// The example of multiple err handling
+// We must not handle errs twice or more
+
+/*
+In the updated code every error is handled only once and every error is wrapped in GetRoute. This way is right.
+*/
+func GetRoute(srcLat, srcLng, dstLat, dstLng float32) (Route, error) {
+	err := validateCoords(srcLat, srcLng)
+	if err != nil {
+
+		/*
+			Logging was removed
+		*/
+		// The third place of handling error
+		// log.Println("failed to validate source coords")
+		return Route{}, fmt.Errorf("failed to validate source coordinates: %w", err)
+	}
+
+	err = validateCoords(dstLat, dstLng)
+	if err != nil {
+
+		/*
+			Logging was removed
+		*/
+		// log.Println("failed to validate source coords")
+		return Route{}, fmt.Errorf("failed to validate target coordinates: %w", err)
+	}
+
+	return Route{srcLat, srcLng, dstLat, dstLng}, nil
+}
+
+// This function is too large in a sence of doubling errors both in journal and as an resulting error
+func validateCoords(lat, lng float32) error {
+	if lat > 90.0 || lat < -90.0 {
+		/*
+			Logging was removed
+		*/
+		// The first place of handling error
+		// log.Printf("invalid lat: %g", lat)
+
+		// The second place of handling error
+		return fmt.Errorf("invalid lat: %g", lat)
+	}
+
+	if lng > 180.0 || lat < -180.0 {
+		/*
+			Logging was removed
+		*/
+		// log.Printf("invalid lng: %g", lng)
+		return fmt.Errorf("invalid lng: %g", lng)
+	}
+
+	return nil
 }

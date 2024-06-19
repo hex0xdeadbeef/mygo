@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"os"
 )
 
 /*
@@ -64,6 +65,15 @@ Returning a sentiel error is a common principle. They signal about erros that ca
 1. We must not handle errors twice or more times. It complicates debugging.
 2. An error must be handled only once.
 3. Registration an error in logs is the same to handling error. We must or register an error in log, or handle it in code. Doing both things, we complicate work at all.
+
+	THE RIGHT WAY TO SKIP AN ERROR
+1. To skip an error in the right way we need to assign the result of function execution to a placeholder "_"
+2. This assignment can be augmented with a comment
+3. In many cases it's better to prefer error registration despite of the level of such error handling.
+	HOW TO HANDLE ERRORS IN DEFER
+1. We must handle errors in defer section similarly to ordinary ones.
+2. If we want to handle an error in defer func() {...}() section we need to use named resulting params and closure to observe the actual err state.
+3. While handling error in defer section we should pay attention to the previous err state.
 */
 
 func main() {
@@ -337,4 +347,45 @@ func validateCoords(lat, lng float32) error {
 	}
 
 	return nil
+}
+
+// The only one way to skip an error is to assign a possible error value to a placeholder "_"
+func ErrorSkipping() {
+	_ = notify()
+}
+
+func notify() error {
+	if rand.Intn(2) == 1 {
+		return errors.New("an error")
+	}
+
+	return nil
+}
+
+// Passing a file name is a bad practice.
+func DeferSectionErrHandling(fileName string) (err error) {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return fmt.Errorf("opening a file %q: %w", fileName, err)
+	}
+	defer func() {
+		fileClosingErr := f.Close()
+
+		if fileClosingErr == nil {
+			return
+		}
+
+		fileClosingErr = fmt.Errorf("closing a file %q: %w", fileName, fileClosingErr)
+
+		if err == nil {
+			err = fileClosingErr
+			return
+		}
+
+		err = fmt.Errorf("%w; %w", err, fileClosingErr)
+	}()
+
+	// some logic
+
+	return err
 }

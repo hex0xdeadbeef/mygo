@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"io"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -94,6 +98,30 @@ channels.
 	1) Asynchronous access to a variable
 	2) The order of actions is guaranteed of a program
 2. Receiving from an unbuffered channel happens before sending competion on this channel.
+
+	WORKLOAD TYPES' AFFECTION
+1. The time of workload completion is limited by a type of a workload we have. The types of workload:
+	1) Clock speed of CPU / The speed of CPU. This type of workload is called CPU-bound.
+	2) The speed of the system of Input/Output system. This is the most relevant while executing REST or DB request. In this case the workload is called I/O bound.
+	3) The volume of free memory. In this case the workload is called Memory-Bound.
+2. What's an optimal size for worker pool?
+	1) If the workload is I/O-bound the answer is based on the external system.
+	2) if the workload is CPU-bound, we should coun on the value of variable GOMAXPROCS - the variable sets an amount of OS Threads. This value is set by the amount of logical
+	processors.
+	3) Using runtime.GOMAXPROCS(0) returns the amount of logical processors on machine
+
+	CONTEXT CANCELLING
+1. Context pkg exports the method Done() that returns unidurectional channel <- chan struct{}. This channel closes when the work of this context must be canceled. For example:
+	1) Done() channel bound to the context created by context.WithCancel(...) closes invokating the cancel() function
+	2) Done() channel bound to the context created by context.WithDeadline(...) | context.WithTimeout(...) closes after time exceeds the specified timestamp.
+2. Closing the channel is the single signal all the goroutines take. After closing this channel all the consumers will be notified about context cancelation or the time limit excess.
+3. There's another method Err() that returns nil if the channel hasn't been closed yet, otherwise non-nil error is returned.
+	1) The error context.Canceled if the channel closed
+	2) The error context.DeadlineExceeded if the deadline is exceeded
+4. If we don't know what context to use in our code, we should use context.TODO() instead of using context.Background(). It means that the context hasn't been defimned yet or isn't
+accessible.
+5. All the contexts in the standart library is safe to be used in concurrent apps or by some goroutines. 
+
 */
 
 func main() {
@@ -109,7 +137,9 @@ func main() {
 
 	// ReceiveBeforeSendCompletionBuffered()
 
-	ReceiveBeforeSendCompletionUnbuffered()
+	// ReceiveBeforeSendCompletionUnbuffered()
+
+	WorkerPoolRead(strings.NewReader("abcdefg"))
 
 }
 
@@ -122,23 +152,24 @@ func main() {
 2. There's no guarantee that the 1st goroutine will start first and finish before the 2nd.
 3. There might be a case when both goroutines execute alternatively.
 */
+
 func DataraceA() {
 	var (
-		wg = &sync.WaitGroup{}
-		i  int
+		wg     = &sync.WaitGroup{}
+		i  int = 0
 	)
 
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		for j := 0; j < 1000; j++ {
+		for j := 0; j < 1_000; j++ {
 			i++
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
-		for j := 0; j < 1000; j++ {
+		for j := 0; j < 1_000; j++ {
 			i++
 		}
 	}()
@@ -263,14 +294,19 @@ It happens because we cannot guarantee a specific order of gorountines planning.
 In this case the time of actions is the order of goroutines execution.
 */
 func NonDeterministicCalls() {
+	// A
 	var (
 		mu = &sync.Mutex{}
 		wg = &sync.WaitGroup{}
 
 		i int
 	)
-
 	wg.Add(2)
+	// A
+
+	// A < B
+
+	// B
 	go func() {
 		defer wg.Done()
 
@@ -288,10 +324,14 @@ func NonDeterministicCalls() {
 
 		i = 2
 	}()
+	// B
 
+	// B < C
+
+	// C
 	wg.Wait()
-
 	fmt.Println(i)
+	// C
 }
 
 func ReceiveBeforeSendCompletionBuffered() {
@@ -307,7 +347,6 @@ func ReceiveBeforeSendCompletionBuffered() {
 	fmt.Println(i) // It can happen before/after replacing value
 }
 
-
 // Receiving from an unbuffered channel happens before the completion of sending on this channel.
 func ReceiveBeforeSendCompletionUnbuffered() {
 	i := 0
@@ -320,4 +359,103 @@ func ReceiveBeforeSendCompletionUnbuffered() {
 
 	ch <- struct{}{}
 	fmt.Println(i)
+}
+
+// Worker pool example
+func WorkerPoolRead(r io.Reader) (int, error) {
+	const (
+		bufSize    = 1 << 10
+		workersNum = 1 << 4
+	)
+
+	var (
+		wg    = &sync.WaitGroup{}
+		tasks = make(chan []byte, workersNum)
+
+		ticker = time.NewTicker(time.Millisecond * 750)
+
+		count int64
+	)
+	defer ticker.Stop()
+
+	for i := 0; i < workersNum; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for v := range tasks {
+				atomic.AddInt64(&count, int64(task(v)))
+			}
+		}()
+	}
+Out:
+	for {
+		select {
+		case <-ticker.C:
+			break Out
+		default:
+			v := make([]byte, bufSize)
+			_, err := r.Read(v)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break Out
+				}
+				return 0, err
+			}
+
+			tasks <- v
+		}
+	}
+	close(tasks)
+	wg.Wait()
+
+	return int(count), nil
+}
+
+func task(b []byte) int {
+	return len(b)
+}
+
+func ContextUsageRealization(ctx context.Context) error {
+	var (
+		ch1 = make(chan struct{})
+		ch2 = make(chan struct{})
+	)
+
+	// some logic...
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case ch1 <- struct{}{}:
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case v, ok := <-ch2:
+			if !ok {
+				return fmt.Errorf("ch2 closed")
+			}
+
+			fmt.Println(v)
+		}
+	}
+
+	// some logic...
+}
+
+type Message string
+
+func handler(ctx context.Context, ch chan Message) error {
+	for {
+		select {
+		case msg := <-ch:
+			// some logic ...
+			fmt.Println(msg)
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -106,7 +105,7 @@ channels.
 	3) The volume of free memory. In this case the workload is called Memory-Bound.
 2. What's an optimal size for worker pool?
 	1) If the workload is I/O-bound the answer is based on the external system.
-	2) if the workload is CPU-bound, we should coun on the value of variable GOMAXPROCS - the variable sets an amount of OS Threads. This value is set by the amount of logical
+	2) if the workload is CPU-bound, we should count on the value of variable GOMAXPROCS - the variable sets an amount of OS Threads. This value is set by the amount of logical
 	processors.
 	3) Using runtime.GOMAXPROCS(0) returns the amount of logical processors on machine
 
@@ -120,7 +119,7 @@ channels.
 	2) The error context.DeadlineExceeded if the deadline is exceeded
 4. If we don't know what context to use in our code, we should use context.TODO() instead of using context.Background(). It means that the context hasn't been defimned yet or isn't
 accessible.
-5. All the contexts in the standart library is safe to be used in concurrent apps or by some goroutines. 
+5. All the contexts in the standart library is safe to be used in concurrent apps or by some goroutines.
 
 */
 
@@ -139,7 +138,7 @@ func main() {
 
 	// ReceiveBeforeSendCompletionUnbuffered()
 
-	WorkerPoolRead(strings.NewReader("abcdefg"))
+	// WorkerPoolRead(strings.NewReader("abcdefg"))
 
 }
 

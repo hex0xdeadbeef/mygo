@@ -92,7 +92,7 @@ The algorithm:
 	the memory to OS will be started.
 2. When GC started?
 	1. The limit of GOGC exceeded.
-	2. 2 minutes taken without GC invokation.
+	2. 2 minutes taken without GC invocation.
 	3. Calling runtime.GC().
 
 */

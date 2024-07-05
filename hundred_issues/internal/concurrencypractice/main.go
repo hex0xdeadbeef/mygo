@@ -183,7 +183,7 @@ func main() {
 
 	// SyncCondSimulationC()
 
-	ErrGroupContextUsage()
+	// ErrGroupContextUsage()
 }
 
 func InappropriateContextPassing() {
@@ -920,10 +920,10 @@ func SliceMapDataraceA() {
 func SliceMapDataraceB() {
 	var (
 		wg = &sync.WaitGroup{}
-		s  = make([]int, 1<<3) // 0 0 0 0 _ _ _ _
+		s  = make([]int, 1<<3)
 	)
 
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		s1 := s[:4]
@@ -932,7 +932,6 @@ func SliceMapDataraceB() {
 		s1 = append(s1, []int{2, 2, 2, 2}...)
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		s2 := s[4:]
@@ -1261,18 +1260,20 @@ func SyncCondSimulationB() {
 					fmt.Printf("$%d goal reached!\n", goal)
 					return
 				}
+
 			}
 
 		}
 	)
 
-	wg.Add(2)
-	go f(wg, 10)
-	go f(wg, 15)
+	for i := 10; i <= 500_000; i += 10 {
+		wg.Add(1)
+		go f(wg, i)
+	}
 
 	go func() {
 		for {
-			time.Sleep(time.Millisecond * 100)
+			time.Sleep(time.Nanosecond * 1)
 			donation.balance++
 			donation.ch <- donation.balance
 

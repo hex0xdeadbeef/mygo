@@ -9,7 +9,7 @@ package utilscreation
 	1) The use of tons of nano-packets is not usually bad. The balance must be kept. If a group of code has high internal cohesion and doesn't relate to anything else, we
 	migh union the code into nano-package.
 
-3. Creation a util package with a single typex.
+3. Creation a util package with a single type.
 	1) Instead of creation some utils functions, we can create a util type with the same methods. It eases the interaction between client and the packet. In this case
 	there's only a single reference to a packet.
 	2) A slight refactoring removes the meaningless name of the packet and gives the representing API.

@@ -30,6 +30,33 @@ And it results in four operations we don't want to mix:
 // https://www.ardanlabs.com/blog/2018/12/garbage-collection-in-go-part1-semantics.html
 /*
 	GO GARBAGE COLLECTOR
+
+* -2. Root objects' types.
+	1) Global variables.
+		Global variables can be directly accessed by GC.
+	2) Goroutine stacks.
+		Active goroutine stacks can also contain references to objects. Since goroutines are concurrently executing, their stacks are considered root sets. The GC scans goroutine stacks
+		to identify additional root objects.
+* 1. Generational GC.
+	In Golang, the primary generations are:
+		1) "Young" generation
+			1) New objects are initially allocated in the "Young" generation. These objects are considered "young" and are likely to become garbage relatively quickly.
+			2) "Minor" collection.
+				The GC performs frequent, low-cost collections in the "Young" generation. These minor collections aim to quickly identify and reclaim short-lived objects that have become
+				garbage.
+		2) "Old" generation
+			1) The "Old" generation is long-term storage for objects that have survived multiple minor collections. Objects in the "Old" generation are considered "mature" and are
+			expected to have longer lifetimes.
+			2) "Major" collection.
+				The GC performs occasional, more expensive major collections in the "Old" generation. These "Major" collections aim to identify and collect objects that have become garbage
+				in the "Old" generation.
+		3) Benefits of Generational GC
+			1) Efficiency
+				By focusing on the "Young" generation, the GC can quickly identify and collect short-lived objects, reducing the need for more costly "Major" collections.
+			2) Reduced Pause Times
+				"Minor" collections in the "Young" generation are typically fast and have minimal impact on app performance. Major collections in the "Old" generation are less frequent,
+				resulting in shorter pause 	times.
+* 0. The STW time is when no app Goroutines are performing any of their app work. The app is essentially stopped. (100 microseconds)
 1. Garbage Collectors have the responsibility of:
 	1) Tracking heap memory allocations
 	2) Freeing up allocations that are no longer needed
@@ -91,7 +118,68 @@ And it results in four operations we don't want to mix:
 
 	Sweeping is when the memory associated with values in heap memory that were not marked as in-use are reclaimed. This activity occurs when app Goroutines attempt to allocate new vals in heap
 	memory.
+* 8. GC percentage. The GC is involved when the amount of overhead reached nearly 100% of "Alive heap". For example: we have the cleaned heap of size 2MB and GOGC is set to 100%
+	1) The current value of "Alive heap" is 2MB
+	2) An overhead of "Alive heap" reached 2MB of "Alive heap", so the overall amount of heap is 4MB
+The overhead that is near to 100% percent of "Alive heap" triggers the GC to start to work.
+* 9. GC trace can be applied with establishment CODEDEBUG set to 1 the result is:
+	| General | gc 1405 @6.068s 11%
+	| Wall-Clock | 0.058+1.2+0.083 ms clock, 0.70+2.5/1.5/0+0.99 ms cpu, 7->11->6 MB, 10 MB goal, 12P
+
+	The breakdown is:
+	// General
+	gc 1404 			: The 1404 GC run since the program started
+	@6.068s				: Six seconds since the program started
+	11%					: Eleven percent of the available CPU so far has been spent in GC
+
+	// Wall-Clock
+	0.058				: STW 			: Mark Setup		- Write Barrier On
+	1.2					: Concurrent	: Marking
+	0.083				: STW			: Mark Termination	- Write Barrier Off and clean up
+
+	// Cpu Time
+	0.70				: STW			: Mark Setup
+	2.5					: Concurrent	: Mark 				- Assist Time (GC performed in line with allocation)
+	1.5					: Concurrent	: Mark				- Background GC time
+	0 					: Concurrent	: Mark				- Idle GC time
+	0.99				: STW			: Mark Termination
+
+	// Memory
+	7MB					: Heap memory in-use before the Marking started
+	11MB				: Heap memory in-use after the Marking finished
+	6MB					: Heap memory marked as live after the Marking finished
+	10MB				: Collection goal for heap memory in-use after Marking finished
+
+	// Threads
+	12P 				: Number of logical processors or thread used to run Goroutines
+* 10. If the GC decides it's better to start a collection earlier, it will.
+* 11. Running a GC trace can tell us a lot about the health of the app and the pace of the collector. The pace at which the collector is running plays an important role in collection
+process.
+* 12. Pacing.
+	The GC has the pacing algorithm which is used to determine when a collector is to start.
+
+	The algorithm depends on a feedback loop that the collector uses to gather information about the running app and the stress the app is putting on the heap. Stress can be defined as how
+	fast the application is allocation heap memory within a given amount of time. It's that stress that determines the pace at which the collector needs to run.
+
+	Before the collector starts, GC estimates the amount of time it believes it will take to finish the collection. Then once a collection is running, latencies will be inflicted on the
+	running app that will slow down app work. Every collection adds to the overall latecny of the application.
+* 13. Increasing GOGC percentage value will increase the amount of heap memory that can be allocated before the next collection has to start. This can result in the pace of collection to
+slow down.
+	1) We must not consider to change GOGC variable setting it to the vals other than 100%. It's really about getting more work done between each collection or during the collection.
+
+* 14. Collectior Latency Costs
+	There are two types of latencies every collection inflicts on our running app:
+		1) Stealing CPU capacity. The effect of this stolen CPU capacity means your app is not running at full throttle during the collection. The app Goroutines are now sharing Ps with
+		the collector's Goroutines or helping with the collection (Mark Assist). The value of apps Ps reduced is 25% percent.
+		2)
 */
+
+// https://medium.com/@souravchoudhary0306/part-4-gc-triggers-in-gos-garbage-collection-318396a34786
+/*
+*	GC TRIGGERS IN GO'S Garbage Collection
+1. Heap Size Trigger
+
+ */
 
 // https://www.youtube.com/watch?v=UVqpl4PExkM
 /*

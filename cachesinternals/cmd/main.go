@@ -26,16 +26,16 @@ transmittions and is closer to the CPU. And there's the solution represented by 
 	2) SRAM uses transistors that solve the same problem that work with the same speed to the logical parts of CPU (Threads).
 		1) SRAM is 10 times faster than DRAM
 	3) While arranging the data processing units closer to CPU we loose the capability of storing tons of data. SRAM isn't exception.
-	4) SRAM is created with the same technology as CPU, so we can embed the SRAM units to CPU. These units are very close to CPU logical kernels (threads)
-Cache - is the set of SRAM units arranged inside the processor. These SRAM blocks provide max busyness of the CPU thanks to data transmission and data storing with the very fast
-speeds.
+	4) SRAM is created with the same technology as CPU, so we can embed the SRAM units into CPU. These units are very close to CPU logical kernels (threads)
+Cache - is the set of SRAM units arranged inside the processor.
+	1) These SRAM blocks provide max busyness of the CPU thanks to data transmission and data storing with the very fast speeds.
 
 5. CPU internals. Pic: 0_CPU_Internals
 	1) The CPU kernel is represented as the area inside the dotted line.
 	2) ALU ("Arithmetic Logic Units") - the structures processing math operations.
 	3) Registers are ordered into a register file.
 		1) Registers are also SRAM but theirs speed is less or equal to ALU they service. Each register stores the only one number. For example 64-bit number. This value can be an element
-		of specific data: code of an instruction or an address of memory of other data.
+		of specific data: Code of an instruction or an Address of emory of other data.
 
 6. L1D (data cache) cache stores >=32KB of data and works at the same speed as logical kernels
 

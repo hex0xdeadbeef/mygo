@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"runtime"
 	"sync/atomic"
@@ -13,7 +14,7 @@ import (
 2. The compiler can rewrite our code.
 3. There are only two operations with memory:
 	1) Load (reading)
-	2) Write (writing)
+	2) Store (writing)
 And it results in four operations we don't want to mix:
 	1) LoadLoad
 	2) LoadStore
@@ -29,7 +30,7 @@ And it results in four operations we don't want to mix:
 
 // https://www.ardanlabs.com/blog/2018/12/garbage-collection-in-go-part1-semantics.html
 /*
-	GO GARBAGE COLLECTOR
+*	GO GARBAGE COLLECTOR
 
 * -2. Root objects' types.
 	1) Global variables.
@@ -179,7 +180,7 @@ slow down.
 *	GC TRIGGERS IN GO'S Garbage Collection
 1. Heap Size Trigger
 
- */
+*/
 
 // https://www.youtube.com/watch?v=UVqpl4PExkM
 /*
@@ -280,9 +281,21 @@ func main() {
 	// MemoryBarrierB()
 }
 
+func A() {
+	x := 4
+	y := B()
+
+	fmt.Println(x, y)
+}
+
+func B() *int {
+	x := 10
+	return &x
+}
+
 // go build -gcflags="-m"
 func ArraysAllocation() {
-	a1 := [1_310_720]int{}
+	a1 := [1_310_720]int{} 
 	a1[0] = 1
 
 	a2 := [1_310_721]int{} // ./main.go:14:18: moved to heap: s

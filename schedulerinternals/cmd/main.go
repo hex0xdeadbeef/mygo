@@ -1,11 +1,97 @@
 package main
 
+// https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part1.html
+/*
+	OS SCHEDULER
+
+	QUICK OVERVIEW
+1. A program is just a series of insructions that need to be executed one after the other sequentially. To make this happen the operating system uses the concept of a Thread (M).
+	It's the job of a Thread to account for and sequentially execute the set of instructions it's assigned. Execution continues until there are no more instructions for the Thread to execute.
+2. Every program we run creates a Process and each Process is given an initial Thread.
+3. Threads have the ability to create more Threads. All these different Threads run independently of each other and scheduling decisions are made at the Thread level, not at the Process level.
+4. Threads can run concurrently (each taking a turn on an individual core) or in parallel (each running at the same time on different cores)
+5. Threads also maintain their own state to allow for the safe, local, and independent execution of their insructions.
+6. The OS Scheduler is responsible for making sure that cores aren't idle if there are Threads that can be executing.
+7. It must also create the illusion that all the Threads can execute are executing at the same time. In the process of creating this illusion, the scheduler needs to run Threads with a higher
+priority over lower priority Threads. However, Threads with a lower priority can't be starved of execution time.
+8. The OS Scheduler also needs to minimize scheduling latencies as much as possible by making quick and smart decsions.
+
+	INSTRUCTION POINTER (IP) or Program Counter (PC)
+1. The "Program Counter" (PC), which is sometimes called the "Instruction Pointer", is what allows a Thread to keep track of the next instruction to execute. In most processors, the PC points
+	to the next instruction and not the current instruction.
+2. The computer keeps track of the next line to be executed by keeping its address in a special register called the "Instruction Pointer" (IP) or "Program Counter" (PC). This register is
+	relative to CS as segment register and points to the next instruction to be executed. The contents of this register is updated with every instruction executed. Thus a program is executed
+	sequentially line by line.
+
+	THREAD STATES
+1. Thread state dictates the role the scheduler takes with the Thread. The Thread can be in one of three states: "Waiting", "Runnable" or "Executing"
+2. "Waiting" status
+	"Waiting" status means the Thread is stopped and waiting for something in order to continue. This could be for reasons like, waiting for hardware (disk, network), the OS (syscalls) or
+	synchronization calls (atomic, mutexes). These types of latencies are a root cause for bad performance.
+3. "Runnable" state
+	"Runnable" state means the Thread wants time one a core so it can execute its assigned machine instructions. If we have a lot of Threads that want time, then Threads have to wait longer
+	to get time. Also, the individual amount of time any given Thread gets is shortened, as more Threads compete for time. This type of scheduling latency can also be a cause of bad performance.
+4. "Executing" state
+	"Executing" state means that the Thread has been placed on a core and is executing its machine instructions. The work related to the app is getting done. This is everyone wants.
+
+	TYPES OF WORK
+1. There are two types of work a Thread can do. The first one is called "CPU-Bound" and the second is called "I/O-Bound"
+2. "CPU-Bound" workload
+	"CPU-Bound" workload is the work that never creates a situation where the Thread may be placed in "Waiting" states. This is work that is continuosly making calculations. A Thread calculating
+	the Pi number to the Nth digit would be "CPU-Bound"
+3. "I/O-Bound" workload
+	"I/O-Bound" workload is the work that causes Threads to enter into "Waiting" states. This is work that consists in requesting access to a resource over the network or making system calls
+	into the operating system. A Thread that need to an access a database would be "I/O-Bound". I would include synchronization (mutexes, atomic), that cause the Thread to wait as the part of
+	this category.
+
+	CONTEXT SWITCHING
+1. If we running on Linux, Mac or Windows, we're running on an OS that has a "Preemptive" scheduler. It means that:
+	1) The scheduler is unpredictable when it comes to what Threads will be to run at any given time. Threads' priorities together with events (like receiving data on the network) make it
+	impossible to determine what the scheduler will choose to do and when.
+	2) We must never write code based on some perceived behavior that we've been lucky to experience but it's not guaranteed to take place every time. We must control the synchronization and
+	orchestration of Threads if we need determinism in our app.
+2. "Context Switch" happens when the scheduler pulls an "Executing" Thread off a core and replace it with a "Runnable" Thread. The Thread what was selected from the run queue moves into an
+	"Executing" state. The Thread that was pulled can move back into a "Runnable" state (if it still has the ability to run), or into a "Waiting" state (if it was replaced because of an "I/O-
+	Bound" type of a request)
+3. Context switches are considered to be expensive because it takes times to swap Threads on and off a core. The amount of latency incurrent during context switch depends on different factors
+	but it's reasonable for it to take between ~1000 and ~1500 nanosecs.
+4. Considering the hardware should be able to reasonably execute (on average) 12 instructions per nanosecond per core, a context switch can cost us from ~12,000 to ~18,000 instructions of latency
+5. In essence, our program is losing the ability to execute a large number of instructions during context switch.
+	1) If our program is focused on "I/O-Bound" workload, then context switches are going to be an advantage. Once a Thread moves into a "Waiting" state, another Thread in a "Runnable" state is
+	there to take its place. This allows the core to always be doing work. This is one of the most important aspects of scheduling. We mustn't allow a core to go idle if there's work (Threads in
+	a Runnable state) to be done.
+	2) If our program is focused on "CPU-Bound" workload, then context switches are going to be a performance nightmare. Since the Thread always has work to do, the context switch is stopping
+	that work from processing. This situation is in stark contrast with what happens with an "I/O-Bound" workload.
+
+	LESS IS MORE
+1. When there are more Threads to consider, and "I/O-Bound" work happening, there's more chaos and nondeterministic behavior. Things take longer to schedule and execute.
+2. This is why the rule of the game is "Less is More".
+	1) Less Threads in a "Runnable" state mean less scheduling overhead and more time each Thread gets over time.
+	2) More Threads in a "Runnable" state mean less time each Thread gets over time. That means less of our work is getting done over time as well.
+
+	FINDING THE BALANCE IN CORES and THREADS NUMBER
+1. There's a balance we need to find between the number of Cores and Threads we need to get the best throughput for our app.
+2. When it comes to managing this balance, "Thread Pool" were a great answer.
+
+	CACHE LINES
+1. Accessing data from main memory has such a high latency cost (~100 - 300 clock cycles) that processors and cores have local caches to keep data close to the hardware threads that need it.
+2. Accessing data from caches have a much lower cost (~3 - 40 clock cycles) depening on the cache being accessed.
+3. Data is exchanged between the processor and main memory using cache lines. A cache line is 64-byte chunk of memory that is exchanged between main memory and the caching system. Each core is
+	given its own copy of any cache line it needs, which means the hardware uses value semantics. This is why mutations to memory in multithreaded apps can create performance nightmares.
+
+	When multiple Threads running in paralell are accessing the same data value or even data values near one another, they will be accessing data on the same cache line. Any Thread running on
+	any core will get its ow copy of that same cache line.
+4. False sharing
+	If one Thread on a given core makes a change to its copy of the cache line, then through the magic of hardware, all other copies of the same cache line have to be marked dirty. When a
+	Thread attempts to read or write access to a dirty cache line, main memory access (~100 - 300 clock cycles) is required to get a new copy of the updated cache line.
+*/
+
 // https://www.youtube.com/watch?v=P2Tzdg8n9hw
 /*
 	GO SCHEDULER
 1. Web-services work with I/O workload mostly and this work requires context switching.
 2. Using threads is expensive.
-	1) Thread has the wait of 2-8 MB
+	1) Thread has the weight of 2-8 MB
 	2) Switching between contexts of threads takes place on kernel level
 3. Thread is just a context to provide some code. To launch some code we need:
 	0) Registers

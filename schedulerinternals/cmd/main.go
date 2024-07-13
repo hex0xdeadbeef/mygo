@@ -1,11 +1,15 @@
 package main
 
 import (
+	"C"
 	"fmt"
 	"runtime"
+	"sync"
+	"time"
 )
 
 // Ardan Labs
+
 // https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part1.html
 /*
 	OS SCHEDULER
@@ -210,7 +214,145 @@ and everything is non-deterministic. Apps that run on top of the OS have no cont
 2. In Go, those same context switches are costing us ~200 nanoseconds of ~2,4k instructions.
 3. The scheduler also helps with gains on cache-line efficiencies
 */
+
 // Ardan Labs
+
+// https://habr.com/ru/companies/first/articles/581158/
+/*
+	GO/OS SCHEDULER
+1. Planning of execution - is the hardest process. From the point of an OS's view the tiniest unit of work is OS Thread. The OS cannit regulate an amount of OS Threads are being created by a
+user. The user can create these OS Threads by themselves.
+2. The OS has to distribute these OS Thread throughout the cores. Since an amount of cores is limited by the processor, the OS needs to limit the time of work of these OS Threads.
+3. Whem an Operating System decides that a specific Thread played enough and it has to chill, we have a bunch of work:
+	1) We must switch some instructions
+	2) Rewrite the CPU caches
+4. The fewer amount of caches, the faster the program.
+5. The Goroutines in Go language are working over CPU's Threads.
+*/
+
+// https://habr.com/ru/companies/first/articles/582144/
+/*
+1. Terms of GMP model:
+	1) G - Goroutine that we will launch
+	2) M - Machine, a thread we will run onto the CPU and complete our tasks on
+	3) P - Processor that will perform our work
+2. When we run our program the Go's environment reads the value of GOMAXPROCS (the amount of Ps) in order to find out the number of virtual processors (cores). It happens in the function called
+schedinit, that is responsible for launching of tasks scheduler. The comment for this function is:
+	// The bootstrap sequence is:
+	//	call osinit
+	//	call schedinit
+	//	make & queue new G
+	//	call runtime mstart
+
+	//	The new G calls runtime main
+
+	During the call of Go's scheduler we also creates our program.
+3. Before the start of the program we complete the sched.maxmcount = 10_000, limiting the number of Ms (OS threads).
+4. Before rewriting the maximum number of Ms (OS Thread) with the referening to GOMAXPROCS, we refer to the OS to find out the available number of them.
+5. If we rewrite the GOMAXPROCS environment variable with the higher number than our system can support, we could dramatically descrease the performance of the overall app.
+6. After that we find the main Goroutine an attach it to the first OS Thread run by the OS.
+7. M - is the stream of the execution. M - is that, the Operation Ssytem fights for as we saw before. The fewer amount of OS Threads, the easier the process of planning of tasks of the OS.
+	At the too low amount of Ms we have many tasks undone.
+8. If we don't have the work, we could park our Ms.
+
+	PARKING AND LAUNCHING OF Ms
+1. We should keep the balance between of launched and parked Ms (OS Threads) in order to use all the resources of the system. As we said before:
+	1) Many Ms result in scheduler chaos.
+	2) Tiny amount of Ms results in the more work undone.
+2. The scheduler itself is distributed. The queues of work ("Runnable" Goroutines) are saved for each processor (core). So we cannot find out the sequence of Goroutines' execution.
+3. The M (OS Thread) is spinning if:
+	1) The M has finished all the Goroutines in the LRQ and is searching for a new one
+	2) The GRQ is empty too
+	3) The timers queue is empty too. (If we run time.Sleep(...) in our Goroutine, it goes for a nap during the time is going. After the time passes, this Goroutine winds up in the special queue
+	of execution, where the same Goroutines are)
+	4) There are no Goroutines in "Network Poller" Thread.
+
+	The spinning thread checks these queues and if it finds something for an execution, it starts the work. If it has found nothing, it's parked and thrown into "Idle Thread Pool".
+
+	All the new OS Threads created are in the "spinning" mode.
+4. Creation of Ms (OS Threads)
+	1) If there are new Goroutines, we run a new M (OS Thread) if there are idle Ps and no spinning Ms.
+	2) If we have a spinning M, we just pass the work (Gs) to this M. This M also checks the presence of others spinning Ms. If it hasn't found any work, it launches a new M in the "spinning"
+	state.
+*/
+
+// https://habr.com/ru/articles/804145/
+/*
+	BASICS
+1. Go doesn't give us the access to M (OS Threads)
+2. Concurrency is about of execution of tasks simultaneously, but not necessarily at the same moment.
+3. Parallelism - Some tasks are executed at the same moment and likely using more than one CPU's kernels.
+
+	GMP MODEL
+1. Goroutine (G)
+	Goroutine - is the tiniest unit of Go's execution. The Goroutine is like a lightweight OS Thread.
+	The Goroutine is also the "g" structure. Once a Goroutine is created it's passed into the LRQ of the P (logical Processor) and this P itself passes this Goroutine into M (OS Thread) to
+	execute.
+2. States of Goroutine
+	1) "Waiting" state
+		In "Waiting" state the Goroutine is idle. For example: G is paused for an operation of channels/mutexes/atomics or it can be stopped by syscalls
+	2) "Runnable"
+		In "Runnable" state the Goroutine is ready to be executed, but it's not being executed yet. It's just waiting for execution on an M (OS Thread)
+	3) "Running"
+		In "Running" state the Goroutine is being executed on a Thread (M). It will resuwe until the work is done or until it's stopped by the scheduler or smth else.
+3. Logical Processor (P)
+	P - is just an abstraction that is also called logical processor. As default the amount of Ps is set to the number of available kernels on the host.
+	Each P includes its own list of "Runnable" Goroutines, that is called Local Run Queue (LRQ). The limit of Goroutines in LRQ is 256 (1<<8) Goroutines.
+		1) If the LRQ is filled fully (It's current amount of Goroutines is 256), the Goroutine created is put into GRQ (Global Run Queue)
+
+	The amount of Ps calls the maximum amount of Gorotines that can be run simultaneosly.
+4. OS Thread (M)
+	The Go's maximum number of Ms is 10_000
+	If all the threads are locked, the Go's scheduler creates a new OS Thread for a new Goroutine.
+	The OS Threads are reusable instances because of the weight of delete/create ops over OS Threads.
+
+	HOW GMP WORKS?
+1. If the Goroutine performs syscall that takes too long (for example a read from file on the HDD), the M will be blocked and unpinned from P. The P will be pinned to:
+	1) a free M in "Thread Pool" if any
+	2) a new M created
+2. Work Stealing
+	When the M has finished its work, it will search the Goroutines in others' LRQs.
+		0) LRQs picked randomly
+		1) It'll try to do it 4 times
+		2) A half of Goroutines will be stolen
+	If no Gorotines have been found,
+*/
+
+// GopherCon
+
+// https://www.youtube.com/watch?v=YHRO5WQGh0k
+/*
+1. When does Go's scheduler do its work?
+	1) Goroutine creation
+	2) Goroutine blocking
+	3) Blocking syscall. The Thread itself blocks too!
+2. Long Running Goroutines.
+	There's the "sysmon" Goroutine that has its own OS Thread (M). It's used to preempt long running Goroutines. It work in this way:
+		1) It runs a background Thread called "sysmon" to detect long-running Goroutines
+		2) If a Goroutines has been running >10 ms, it'll be unscheduled at the safe point
+		3) The unscheduled goroutine will be put into GRQ (Global Runb Queue)
+3. Thread Spinning
+	1) Threads without work "spins" looking for work before parking
+	2) They check GRQ, poll the network, attempt to run GC tasks, and work-steal.
+
+	This burns CPU cycles, but maximally leverages available parallelism
+4. Ps and Runqueues
+	1) The per-core runqueues are stored in heap-allocated "p" struct
+	2) "p" structure stores other resources a thread needs to run Goroutines too, like a memory cache.
+	3) A thread claims "p" to run Goroutines and the entire "p" is haded-off when this M is blocked. This hand-off is taken care of by the "sysmon" too.
+*/
+
+// GopherCon
+
+// Oleg Kozyrev
+/*
+1. The internals of Goroutines LRQ
+	The LRQ is LIFO + FIFO
+		1) If there's a Goroutine in LIFO, it'll be put first and executed. After it the elems will be picked and run with FIFO principle.
+		2) If there are elements only in FIFO queue, they'll be picked with FIFO and executed respectively
+
+	The LRQ has the limit on number of elems. This limit is 256 elems.
+*/
 
 // https://www.youtube.com/watch?v=P2Tzdg8n9hw
 /*
@@ -339,9 +481,43 @@ In this situation we discard the use of CPU caches, so the caches are invalidate
 */
 
 func main() {
-	// NumberOfVirtualCPUs()
+
+	A()
+
+	// LFIFO()
+}
+
+func A() {
+	runtime.GOMAXPROCS(1)
+
+	go B()
+
+	time.Sleep(1 * time.Second)
+}
+
+func B() {
+	for {
+	}
 }
 
 func NumberOfVirtualCPUs() {
 	fmt.Println(runtime.NumCPU())
+}
+
+func LFIFO() {
+	runtime.GOMAXPROCS(1)
+	var (
+		wg sync.WaitGroup
+	)
+
+	for i := 0; i < 5; i++ {
+
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			fmt.Println(i)
+		}(i)
+	}
+
+	wg.Wait()
 }

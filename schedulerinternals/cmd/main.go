@@ -1,7 +1,6 @@
 package main
 
 import (
-	"C"
 	"fmt"
 	"runtime"
 	"sync"
@@ -480,6 +479,165 @@ In this situation we discard the use of CPU caches, so the caches are invalidate
 	3) execute(g)
 */
 
+// Google Dev (Dmitriy Vyukov)
+/*
+	THE LACKS OF THREADS
+1. Memory consumption at least 32 KB
+2. Performance (syscalls)
+3. No infinite stacks
+
+	M:N THREADING
+1. OS doesn't know anything about Goroutines, it works only with OS Threads
+
+	BLOCKED GOROUTINES
+1. The channel object has its own "Wait Queue"
+2. When Goroutine is blocked on a channel it's listed in this channel.
+3. When this blocked Goroutine is unblocked, it's returned to GRQ
+4. The same mechanism is applied to:
+	1) Mutexes
+	2) Timers
+	3) Network I/O
+
+	SYSTEM CALLS
+1. When the execution goes into the kernel, we completely lose visibility.
+2. We only see when our execution enters/exits the syscall.
+3. When a Thread enters a syscall, it creates/wakes up another thread to resume work
+4. #Threads is > than #Cores
+
+	M:P:N THREADING
+1. P (Processor) - is the resources required to run Go code.
+2. The number of Ps (Processors) is equal to the number of cores.
+
+	SYSTEM CALLS HANDLING (HANDOFF)
+1. When a Thread goes into system call it wakes another Thread and then it passes the Processor object to this Thread woken.
+2. This thread woken starts to take Goroutines from the LRQ of this Processor and perform it.
+
+	FAIRNESS
+1. Fairness is a property of the Scheduler that simply says:
+	If a goroutine in the "Runnable" state, it'll run eventually
+2. If we don't have fairness we get:
+	1) bad tail latencies
+	2) livelocks
+	3) pathological behaviors
+3. FIFO is bad because we run the latest thing in Goroutine Run Queue.
+4. LIFO is good because we run the newest thing, so we use the "hot"-caches.
+5. "Infinite Goroutines"
+	When a Gorotine in an infinite loop, the other Goroutines are starved by it.
+	The solution is to preempt this Goroutine in the "tight-loop" after 10 milliseconds.
+
+	This 10 milliseconds is soft limit of time.
+	The Goroutine preempted goes to the tail of Global Run Queue
+6. Local Run Queue (LRQ)
+	The Local Run Queue is built with FIFO queue (Double Linked List) + 1-element LIFO buffer
+
+	The 1-element buffer is neeeded to provide better locality of caches
+
+	The Goroutine in LIFO slot cannot be stolen. This restriction lasts for ~3 microseconds.
+
+7. LRQ Starvation
+	1-element LIFO buffer is enough to get starvation
+
+	The situation is: two goroutines response each other, so each of them wind up in the 1-elem LIFO buffer.
+		The Gs in FIFO are never executed, so they're starved.
+
+	To resolve this problem we have Time Slice Inheritance:
+		The goroutine has the time slice (10 milliseconds). When we get a Goroutine from the 1-elem LIFO buffer this Goroutine inherits the time slice.
+
+	Inherit Time Slice -> Looks like infinite loop -> Preemption (~10 milliseconds)
+8. GRQ Starvation & The choice of the number 61:
+	1) Not too small. In other case we'll poll the GRQ too frequently and get lock-contention problem.
+	2) Not too large. In other case we'll not resolve the starvation problem
+	3) Prime
+9. Network Poller Starvation.
+	The Solution: background Thread polls network occasionally if it wasn't polled by main-worker Threads
+
+	THREAD STACK
+1. Function frame
+	1) Local variables
+	2) Return address
+	3) Previous frame pointer
+2. Thread Stack is the place when we store Function Frames.
+	1) There's the Stack Pointer that points where the stack top is.
+3. Stack implementations
+	1) Stack is implemented as the large range of virtual address space.
+	2) The size of this virtual range is about 1-8 MB
+	3) It consists of physical pages (4KB). These pages are allocated lazily.
+4. Types of pages:
+	1) Preallocated stack pages
+	2) Empty stack pages
+	3) Protected stack pages (are used to define stack overwflows)
+
+	GOROUTINE STACK
+0. Some properties:
+	1) The stack size is limited to 1 GB (it's "infinite enough")
+	2) We do the check of Stack overflow at runtime working with Goroutines
+	3) If we don't have enough space, we call morestack()
+
+	4) If function returns and it happens in the Nth frame of stack, the frame will just be removed (it's applied to Split Stacks)
+5. The benefits of "Split Stack":
+	1) We can run 10^6 Goroutines
+	2) Works on 32-bits systems
+	3) Better granularity
+	4) Cheap "page-out"
+	5) Huge pages
+	The costs of this type of stack:
+		1) A normal function call: ~2 nanosecs
+		2) Stack split:	~60 nanosecs
+7. Growable stacks.
+	Go has switched to "Growable stack"
+	The idea of "Growable stack" is simple: When we reach the limit of current stack:
+		1) We allocate the stack of size x2 of Old Stack
+		2) Copy all the stack contents to the new stack
+		3) Deallocate the old stack
+8. The differences between "Split" and "Growable" stacks
+	Split stack:
+		1) O(1) cost per function call
+		2) Repeated
+	Worst case: stack split in hot loop
+
+	Growable stack
+		1) O(N) cost per function call
+		2) Amortized
+	Worst case: Grow stack for short Goroutine
+
+	PREEMPTION
+1. What is Preemption?
+	Preemption - is asynchronously asking a goroutine to yield.
+2. We need Preemption for fairness, multiplexing, GC calls and crashes
+*/
+
+// Google Dev (Dmitriy Vyukov)
+
+// Vicki Niu
+/*
+	INTERNALS OF GOROUTINE
+1. What is a Goroutine?
+	type g struct {
+	stack 				stack 	// stack offsets
+	m					*m 		// current m (OS Thread)
+	sched				gobuf	// saves context of g for recovering after context switch
+	atomicstatus		uint32 	// current status of g (waiting, runnable, running)
+
+								// activeStackChans indicates that there are unlocked channels
+								// pointing at this Goroutine's stack. If true,
+								// stack copying needs to acquire channel locks to protect these
+								// areas of the stack.
+	activateStackChans 	bool
+
+								// parkingOnChan indicates that the goroutine is about to
+								// park on a channel or chanrecv. Used to signal an unsafe point
+								// for stack shrinking. It's a boolean value, but it's updated atomically
+	parkingOnChan 		uint8
+	}
+2. Goroutine stack
+	1) All Gs are initially allocated with 2 KB stack
+	2) Each go function has a small preamble, which calls morestack if it runs out of memory. Then the runtime allocates a new memory segment with the doubled size and copies the old segnment
+	and restarts the execution
+	3) Effectively makes goroutines infinitely growable with efficient shrinking.
+*/
+
+// Vicki Niu
+
 func main() {
 
 	A()
@@ -521,3 +679,11 @@ func LFIFO() {
 
 	wg.Wait()
 }
+
+// Function Frame is:
+/*
+	1) Local variables
+	2) Return address
+	3) Previous frame pointer
+*/
+func Foo() {}

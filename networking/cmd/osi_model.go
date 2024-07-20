@@ -1,5 +1,99 @@
 package main
 
+// https://www.imperva.com/learn/application-security/osi-model/
+/*
+0. What is OSI
+	The Open System Interconnection (OSI) model describes seven layers that computer systems use to communicate over a network. It was the first standart model for network communications,
+	adopted by all major computer and telecommunication companies in the early 1980s
+
+	The modern Internet isn't based on OSI, but on simpler TCP / IP model. However, the OSI 7-layer model is still widely used, as it helps and visualize and communicate how networks operate
+	and helps isolate and troubleshoot networking problems.
+1. Application layer
+	The application layer is used by end-user software such as web browsers and email clients. It provides protocols that allow software to send and receive information and present
+	meaningful data to users. A few examples of application layer protocols are the Hyper Text Transfer Protocol (HTTP), File Transfer Protocol (FTP), Post Office Protocol (POP), Simple
+	Mail Transfer Protocol (SMTP), and Domain Name System (DNS)
+2. Presentation layer
+	The presentation layer prepares data for the application layer. It defines how two devices should encode, encrypt, and compress data so it is received on the other end. The presentation
+	layer takes any data transmitted by the application layer and prepares it for transmission over session layer.
+3. Session layer
+	The session layer creates communication channels, called sessions, between devices. It's responsible for opening sessions, ensuring they remain open and functional while data is being
+	transferred, and closing them when communication ends. The session layer can also set checkpoints during a data transfer - if the session is interrupted, devices can resume data transfer
+	from the last checkpoint.
+4. Transport layer
+	The transport layer takes data transferred in the session layer and breaks it into SEGMENTS on the transmitting end. It's responsible for reassembling the SEGMENTS on the receiving end,
+	turning it back into data that can be used by the session layer. The transport layer carries out flow control, sending data at a rate that matches the connection speed of the receiving
+	device, and error control, checking if data was received incorrectly and if not, requesting it again.
+5. Network layer
+	The network layer has two main functions. One is breaking up segments into network packets, and reassembling the packets on the receiving end. The other is routing packets by discovering
+	the best path across a physical network. The network layer uses network addresses (typically Internet Protocol addresses) to route packets to a destination node.
+6. Data Link layer
+	The Data Link layer establishes and terminate a conncetion between two physically-connected nodes on a network. It breaks up packets into FRAMES and sends them from source to
+	destination. This layer is composed of two parts - Logical Link Control (LLC), which identifies network protocols, performs error checking and synchronizes frames, and Media Access
+	Control (MAC) which uses MAC addresses to connect devices and define permissions to transmit and receive data.
+7. Physical layer
+	The physical layer is responsible for the physical cable or wireless connection between network nodes. It defines the connector, the electrical cable or wireless technology connecting
+	the devices, and is responsible for transmittion of the raw data, which is simply a series of zeroes and ones, while taking care of bit rate control.
+*/
+
+// https://www.cloudflare.com/learning/ddos/glossary/open-systems-interconnection-model-osi/
+/*
+1. What is the OSI Model?
+	The Open System Interconnection Model is a conceptual model created by the International Organization for Standartization which enables diverse communication systems to communicate
+	using standart protocols.
+
+	The OSI Model can be seen as a universal language for computer networking, It's based on the concept of splitting up a communication system into seven abstract layers, each one stacked
+	upon the last one.
+
+	Each layer of the OSI Model handles a specific job and communicates with the layers above and below  itself.
+7. Application layer
+	This is the only layer that directly interacts with data from the user. Software applications like browsers and email clients rely on the application layer to initiate communications.
+	But it should be clear that client software applications are not part of the application layer; rather the application layer is responsible for the protocols and data manipulation that
+	the software relies on to present meaningful data to the user.
+
+	Application layer protocols include HTTP, SMTP and other ones
+6. Presentation layer
+	This layer is primarily responsible for preparing data so that it can be used by the application layer; in other words, layers 6 makes data presentable for applications to consume.
+	The presentation layer is responsible for translation, encryption, and compression of data.
+
+	Two communicating devices may be using different encoding methods, so layer 6 is responsible for translating incoming data into a syntax that the application layer of the receiving
+	device can understand.
+
+	If the devices are communicating over an encrypted connection, layer 6 is responsible for adding the encryption on the sender's end as well as decoding the ecnryption on the receiver's
+	end so that it can present the application layer with unencrypted, readable data.
+
+	Finally, the presentation layer is also responsible for compressing data it receives from the application layer delivering it to layer 5. It helps to improve speed and efficiency of
+	communication by minimizing the amount of data that will be transferred.
+5. Session layer
+	This is the layer that is responsible for opening and closing communication between the two devices. The time between when the communication is opened and closed is known as session.
+	The session layer ensures that the session stays open long enough to transfer all the data being exchanged, and the promptly closes the session in order to avoid wasting resources.
+
+	The session layer also synchronizes data transfer with checkpoints. For example, if a 100 MB file is being transferred, the session layer could set a checkpoint every 5 MB. In the case
+	of a disconnect or a crash after 52 MB have been transferred, the session could be resumed from the last checkpoint, meaning only more 50 MB of data need to be transferred. Without
+	checkpoints, the entire transfer would have to begin again from scratch.
+4. Transport layer
+	Layer 4 is responsible for end-to-end communication between the two devices. This includes taking data from the session layer and breaking it up into chunks called segments before
+	sending it to layer 3. The transport layer on the receiving device is responsible for reassembling the segments into data the session layer can consume.
+
+	The transport layer is also responsible for flow control and error control. Flow control determines an optimal speed of transmission to ensure that a sender with a fast connection
+	doesn't overwhelm a receiver with a slow connection. The transport layer performs error control on the receiving end by ensuring that the data received is complete, and requesting
+	a retransmission if it isn't.
+
+	Transport layer protocols include the Transmittion Control Protocol (TCP) and the User Datagram Protocol (UDP)
+3. Network layer
+	The network layer is responsible for facilitating data transfer between two different networks. If the two devices communicating are in the same network, then the network layer is
+	unncecessary. The network layer breaks up segments from the transport layer into smaller units, called packets, on the sender's device, and reassembling these packets on the receiving
+	device. The network layer also finds the best physical path for the data to reach its destination; this is known as routing.
+
+	Network layer protoclos include IP and other ones.
+2. Data Link layer
+	The data link layer is very similar to the network layer, except the data link layer facilitates data transfer between two devices on the same network. The data link layer takes packets
+	from the network layer and breaks them into smaller pieces called frames. Like the network layer, the data link layer is also responsible for flow control and error control in
+	intra-network communication (The transport layer only does flow control and error control for inter-network communications)
+1. Physical layer
+	This layer includes the physical equipment involved in the data transfer, such as the cables and swithces. This is also the layer where the data gets converted into a bit stream, which
+	is a string of ones and zeroes. The physical layer of both devices must also agree on a signal convention so that the 1s can be distinguished from the 0s on both devices.
+*/
+
 // https://www.geeksforgeeks.org/open-systems-interconnection-model-osi/
 /*
 	OSI MODEL
@@ -132,97 +226,3 @@ package main
 		4) Directory Services
 			This application provides distributed database sources and access for global information about various objects and services
 */
-
-// https://www.imperva.com/learn/application-security/osi-model/
-/*
-0. What is OSI
-	The Open System Interconnection (OSI) model describes seven layers that computer systems use to communicate over a network. It was the first standart model for network communications,
-	adopted by all major computer and telecommunication companies in the early 1980s
-
-	The modern Internet isn't based on OSI, but on simpler TCP / IP model. However, the OSI 7-layer model is still widely used, as it helps and visualize and communicate how networks operate
-	and helps isolate and troubleshoot networking problems.
-1. Application layer
-	The application layer is used by end-user software such as web browsers and email clients. It provides protocols that allow software to send and receive information and present
-	meaningful data to users. A few examples of application layer protocols are the Hyper Text Transfer Protocol (HTTP), File Transfer Protocol (FTP), Post Office Protocol (POP), Simple
-	Mail Transfer Protocol (SMTP), and Domain Name System (DNS)
-2. Presentation layer
-	The presentation layer prepares data for the application layer. It defines how two devices should encode, encrypt, and compress data so it is received on the other end. The presentation
-	layer takes any data transmitted by the application layer and prepares it for transmission over session layer.
-3. Session layer
-	The session layer creates communication channels, called sessions, between devices. It's responsible for opening sessions, ensuring they remain open and functional while data is being
-	transferred, and closing them when communication ends. The session layer can also set checkpoints during a data transfer - if the session is interrupted, devices can resume data transfer
-	from the last checkpoint.
-4. Transport layer
-	The transport layer takes data transferred in the session layer and breaks it into SEGMENTS on the transmitting end. It's responsible for reassembling the SEGMENTS on the receiving end,
-	turning it back into data that can be used by the session layer. The transport layer carries out flow control, sending data at a rate that matches the connection speed of the receiving
-	device, and error control, checking if data was received incorrectly and if not, requesting it again.
-5. Network layer
-	The network layer has two main functions. One is breaking up segments into network packets, and reassembling the packets on the receiving end. The other is routing packets by discovering
-	the best path across a physical network. The network layer uses network addresses (typically Internet Protocol addresses) to route packets to a destination node.
-6. Data Link layer
-	The Data Link layer establishes and terminate a conncetion between two physically-connected nodes on a network. It breaks up packets into FRAMES and sends them from source to
-	destination. This layer is composed of two parts - Logical Link Control (LLC), which identifies network protocols, performs error checking and synchronizes frames, and Media Access
-	Control (MAC) which uses MAC addresses to connect devices and define permissions to transmit and receive data.
-7. Physical layer
-	The physical layer is responsible for the physical cable or wireless connection between network nodes. It defines the connector, the electrical cable or wireless technology connecting
-	the devices, and is responsible for transmittion of the raw data, which is simply a series of zeroes and ones, while taking care of bit rate control.
-*/
-
-// https://www.cloudflare.com/learning/ddos/glossary/open-systems-interconnection-model-osi/
-/*
-1. What is the OSI Model?
-	The Open System Interconnection Model is a conceptual model created by the International Organization for Standartization which enables diverse communication systems to communicate
-	using standart protocols.
-
-	The OSI Model can be seen as a universal language for computer networking, It's based on the concept of splitting up a communication system into seven abstract layers, each one stacked
-	upon the last one.
-
-	Each layer of the OSI Model handles a specific job and communicates with the layers above and below  itself.
-7. Application layer
-	This is the only layer that directly interacts with data from the user. Software applications like browsers and email clients rely on the application layer to initiate communications.
-	But it should be clear that client software applications are not part of the application layer; rather the application layer is responsible for the protocols and data manipulation that
-	the software relies on to present meaningful data to the user.
-
-	Application layer protocols include HTTP, SMTP and other ones
-6. Presentation layer
-	This layer is primarily responsible for preparing data so that it can be used by the application layer; in other words, layers 6 makes data presentable for applications to consume.
-	The presentation layer is responsible for translation, encryption, and compression of data.
-
-	Two communicating devices may be using different encoding methods, so layer 6 is responsible for translating incoming data into a syntax that the application layer of the receiving
-	device can understand.
-
-	If the devices are communicating over an encrypted connection, layer 6 is responsible for adding the encryption on the sender's end as well as decoding the ecnryption on the receiver's
-	end so that it can present the application layer with unencrypted, readable data.
-
-	Finally, the presentation layer is also responsible for compressing data it receives from the application layer delivering it to layer 5. It helps to improve speed and efficiency of
-	communication by minimizing the amount of data that will be transferred.
-5. Session layer
-	This is the layer that is responsible for opening and closing communication between the two devices. The time between when the communication is opened and closed is known as session.
-	The session layer ensures that the session stays open long enough to transfer all the data being exchanged, and the promptly closes the session in order to avoid wasting resources.
-
-	The session layer also synchronizes data transfer with checkpoints. For example, if a 100 MB file is being transferred, the session layer could set a checkpoint every 5 MB. In the case
-	of a disconnect or a crash after 52 MB have been transferred, the session could be resumed from the last checkpoint, meaning only more 50 MB of data need to be transferred. Without
-	checkpoints, the entire transfer would have to begin again from scratch.
-4. Transport layer
-	Layer 4 is responsible for end-to-end communication between the two devices. This includes taking data from the session layer and breaking it up into chunks called segments before
-	sending it to layer 3. The transport layer on the receiving device is responsible for reassembling the segments into data the session layer can consume.
-
-	The transport layer is also responsible for flow control and error control. Flow control determines an optimal speed of transmission to ensure that a sender with a fast connection
-	doesn't overwhelm a receiver with a slow connection. The transport layer performs error control on the receiving end by ensuring that the data received is complete, and requesting
-	a retransmission if it isn't.
-
-	Transport layer protocols include the Transmittion Control Protocol (TCP) and the User Datagram Protocol (UDP)
-3. Network layer
-	The network layer is responsible for facilitating data transfer between two different networks. If the two devices communicating are in the same network, then the network layer is
-	unncecessary. The network layer breaks up segments from the transport layer into smaller units, called packets, on the sender's device, and reassembling these packets on the receiving
-	device. The network layer also finds the best physical path for the data to reach its destination; this is known as routing.
-
-	Network layer protoclos include IP and other ones.
-2. Data Link layer
-	The data link layer is very similar to the network layer, except the data link layer facilitates data transfer between two devices on the same network. The data link layer takes packets
-	from the network layer and breaks them into smaller pieces called frames. Like the network layer, the data link layer is also responsible for flow control and error control in
-	intra-network communication (The transport layer only does flow control and error control for inter-network communications)
-1. Physical layer
-	This layer includes the physical equipment involved in the data transfer, such as the cables and swithces. This is also the layer where the data gets converted into a bit stream, which
-	is a string of ones and zeroes. The physical layer of both devices must also agree on a signal convention so that the 1s can be distinguished from the 0s on both devices.
- */

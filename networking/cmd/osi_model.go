@@ -6,16 +6,16 @@ package main
 	The Open System Interconnection (OSI) model describes seven layers that computer systems use to communicate over a network. It was the first standart model for network communications,
 	adopted by all major computer and telecommunication companies in the early 1980s
 
-	The modern Internet isn't based on OSI, but on simpler TCP / IP model. However, the OSI 7-layer model is still widely used, as it helps and visualize and communicate how networks operate
+	The modern Internet isn't based on OSI, but on simpler TCP / IP model. However, the OSI 7-layer model is still widely used, as it helps to visualize and communicate how networks operate
 	and helps isolate and troubleshoot networking problems.
-1. Application layer
+7. Application layer
 	The application layer is used by end-user software such as web browsers and email clients. It provides protocols that allow software to send and receive information and present
 	meaningful data to users. A few examples of application layer protocols are the Hyper Text Transfer Protocol (HTTP), File Transfer Protocol (FTP), Post Office Protocol (POP), Simple
 	Mail Transfer Protocol (SMTP), and Domain Name System (DNS)
-2. Presentation layer
+6. Presentation layer
 	The presentation layer prepares data for the application layer. It defines how two devices should encode, encrypt, and compress data so it is received on the other end. The presentation
 	layer takes any data transmitted by the application layer and prepares it for transmission over session layer.
-3. Session layer
+5. Session layer
 	The session layer creates communication channels, called sessions, between devices. It's responsible for opening sessions, ensuring they remain open and functional while data is being
 	transferred, and closing them when communication ends. The session layer can also set checkpoints during a data transfer - if the session is interrupted, devices can resume data transfer
 	from the last checkpoint.
@@ -23,14 +23,14 @@ package main
 	The transport layer takes data transferred in the session layer and breaks it into SEGMENTS on the transmitting end. It's responsible for reassembling the SEGMENTS on the receiving end,
 	turning it back into data that can be used by the session layer. The transport layer carries out flow control, sending data at a rate that matches the connection speed of the receiving
 	device, and error control, checking if data was received incorrectly and if not, requesting it again.
-5. Network layer
+3. Network layer
 	The network layer has two main functions. One is breaking up segments into network packets, and reassembling the packets on the receiving end. The other is routing packets by discovering
 	the best path across a physical network. The network layer uses network addresses (typically Internet Protocol addresses) to route packets to a destination node.
-6. Data Link layer
+2. Data Link layer
 	The Data Link layer establishes and terminate a conncetion between two physically-connected nodes on a network. It breaks up packets into FRAMES and sends them from source to
 	destination. This layer is composed of two parts - Logical Link Control (LLC), which identifies network protocols, performs error checking and synchronizes frames, and Media Access
 	Control (MAC) which uses MAC addresses to connect devices and define permissions to transmit and receive data.
-7. Physical layer
+1. Physical layer
 	The physical layer is responsible for the physical cable or wireless connection between network nodes. It defines the connector, the electrical cable or wireless technology connecting
 	the devices, and is responsible for transmittion of the raw data, which is simply a series of zeroes and ones, while taking care of bit rate control.
 */
@@ -44,7 +44,7 @@ package main
 	The OSI Model can be seen as a universal language for computer networking, It's based on the concept of splitting up a communication system into seven abstract layers, each one stacked
 	upon the last one.
 
-	Each layer of the OSI Model handles a specific job and communicates with the layers above and below  itself.
+	Each layer of the OSI Model handles a specific job and communicates with the layers above and below itself.
 7. Application layer
 	This is the only layer that directly interacts with data from the user. Software applications like browsers and email clients rely on the application layer to initiate communications.
 	But it should be clear that client software applications are not part of the application layer; rather the application layer is responsible for the protocols and data manipulation that
@@ -52,9 +52,11 @@ package main
 
 	Application layer protocols include HTTP, SMTP and other ones
 6. Presentation layer
-	This layer is primarily responsible for preparing data so that it can be used by the application layer; in other words, layers 6 makes data presentable for applications to consume.
-	The presentation layer is responsible for translation, encryption, and compression of data.
-
+	This layer is primarily responsible for preparing data so that it can be used by the application layer; in other words, layer 6 makes data presentable for applications to consume.
+	The presentation layer is responsible for
+		1) translation
+		2) encryption
+		3) ompression
 	Two communicating devices may be using different encoding methods, so layer 6 is responsible for translating incoming data into a syntax that the application layer of the receiving
 	device can understand.
 
@@ -164,8 +166,8 @@ package main
 			It's a three-phase process that includes:
 				- Connection establishment
 				- Data transfer
-				- Termination/disconnection
-			In this type of transmittion, the receiving device sends an acknowledgement, back to the source after a packet or group of packets is received. This type of transmittion is
+				- Termination/Disconnection
+			In this type of transmission, the receiving device sends an acknowledgement, back to the source after a packet or group of packets is received. This type of transmittion is
 			reliable and secure.
 		2) Connectionless service
 			It's a one-phase process and includes Data Transfer. In this type of transmittion, the receiver doesn't acknowledge receipt of a packet. This approach allows for much faster
@@ -184,8 +186,8 @@ package main
 		1) Segmentation and reassembling
 			This layer accepts the message from the SESSION layer, and breaks the message into smaller units. Each of the segments produced has a header associated with it. The TRANSPORT
 			layer at the destination station reassembles the message.
-		2) Sevice point addressing
-			To deliver the message to the correct process, the transport layer header includes a type of address called "Service point address" or "Port address". Thus by specifying this
+		2) Service point addressing
+			To deliver the message to the correct process, the transport layer header includes a type of address called "Port address". Thus by specifying this
 			address, the transport layer makes sure the message is delivered to the correct process.
 	Notes:
 		- Transport layer is operated by the OS. It's a part of the OS and communicates with the APPLICATION layer by making syscalls.
@@ -206,7 +208,7 @@ package main
 	The PRESENTATION layer is also called the TRANSLATION layer. The data from the APLLICATION layer is extracted here and manipulated as per the required format to transmit over the network
 
 	Functions of TRANSLATION (PRESENTATION) layer:
-		1) Tranlation. For example from ASCII to EBCDIC
+		1) Tranlation. For example from ASCII <-> EBCDIC
 		2) Encryption <-> Decryprtion
 			Data encryption translates the DATA into another form of code. The encrypted DATA is known as the ciphertext and the decrypyed data is known as plain text. A key value is used
 			for encryptiong as well as decrypting data.

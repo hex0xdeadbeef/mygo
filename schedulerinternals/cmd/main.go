@@ -16,7 +16,7 @@ import (
 	QUICK OVERVIEW
 1. A program is just a series of insructions that need to be executed one after the other sequentially. To make this happen the operating system uses the concept of a Thread (M).
 	It's the job of a Thread to account for and sequentially execute the set of instructions it's assigned. Execution continues until there are no more instructions for the Thread to execute.
-2. Every program we run creates a Process and each Process is given an initial Thread.
+2. Every program we run creates a Process and each Process is given an initial Thread (M).
 3. Threads have the ability to create more Threads. All these different Threads run independently of each other and scheduling decisions are made at the Thread level, not at the Process level.
 4. Threads can run concurrently (each taking a turn on an individual core) or in parallel (each running at the same time on different cores)
 5. Threads also maintain their own state to allow for the safe, local, and independent execution of their insructions.
@@ -115,7 +115,7 @@ instructions of latency
 	1) Each P is given a LRQ that manages the Goroutines assigned to be executed within the context of a P. These Goroutines take turns being context-switched on and off the M assigned to that P
 	2) The GRQ is for Goroutines that have not been assigned to a P yet. There's a process to move Goroutines from GRQ to a LRQ
 
-	COOPERATING SCHEDULER
+	COOPERATIVE SCHEDULER
 1. As we discussed in the first part, the OS Scheduler is preemptive. Essentially it means we cannot predict what the scheduler is going to do at any given time. The kernel is making decisions
 and everything is non-deterministic. Apps that run on top of the OS have no control over what is happening inside the kernel with scheduling unless they leverage synchronization primitives.
 2. The Go's scheduler is the part of Go's runtime and the Go's runtime is built into our app. This means Go's scheduler runs in user space, above the kernel.
@@ -352,6 +352,8 @@ schedinit, that is responsible for launching of tasks scheduler. The comment for
 
 	The LRQ has the limit on number of elems. This limit is 256 elems.
 */
+
+// Oleg Kozyrev
 
 // https://www.youtube.com/watch?v=P2Tzdg8n9hw
 /*

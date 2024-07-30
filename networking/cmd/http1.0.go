@@ -52,6 +52,7 @@ package main
 	1) The first format is preferred as an Internet standart and represents a fixed-length subset of that defined by RFC 1123.
 	2) The second format is obsolete
 	HTTP/1.0 clients and servers that parse date value should accept all three formats, though they must never generate the third (asctime) format
+	All HTTP date/time stamps must be represented in Greenwich Mean Time (GMT), without exception.
 4. Character sets
 	Character set - a method used with one or more tables to convert a sequence of octets into a sequence of characters. This use of the term "character set" is more commonly referred to
 	as a "character encoding".

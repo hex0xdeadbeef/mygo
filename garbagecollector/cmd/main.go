@@ -74,7 +74,7 @@ And it results in four operations we don't want to mix:
 4. Mark Setup (STW) phase.
 	1) Goroutines stopping.
 	When a collection starts, the first activity that must be performed is: turning on the "Write Barrier". The purpose of "Write Barrier" is to allow the collector to maintain data integrity
-	on the heap during a collection sicne both the collector and application goroutines will be running concurrently.
+	on the heap during a collection since both the collector and application goroutines will be running concurrently.
 
 	In order to turn on the Write Barrier, every app goroutine running must be stopped. This activity is usually very quick (10-30 microsecs) on average.
 	That is, as long as the app goroutines are behaving properly.
@@ -168,11 +168,10 @@ process.
 slow down.
 	1) We must not consider to change GOGC variable setting it to the vals other than 100%. It's really about getting more work done between each collection or during the collection.
 
-* 14. Collectior Latency Costs
+* 14. Collector Latency Costs
 	There are two types of latencies every collection inflicts on our running app:
 		1) Stealing CPU capacity. The effect of this stolen CPU capacity means your app is not running at full throttle during the collection. The app Goroutines are now sharing Ps with
 		the collector's Goroutines or helping with the collection (Mark Assist). The value of apps Ps reduced is 25% percent.
-		2)
 */
 
 // https://medium.com/@souravchoudhary0306/part-4-gc-triggers-in-gos-garbage-collection-318396a34786
@@ -189,8 +188,8 @@ slow down.
 	1) Arrays <= 10 MB are allocated in STACK
 	2) Arrays >10 MB are allocated in HEAP
 2. Slices allocation:
-	1) Slices < 64KB are allocated in STACK
-	2) Slices >= 64 KB are allocated in HEAP
+	1) Slices <= 64KB are allocated in STACK
+	2) Slices > 64 KB are allocated in HEAP
 3. Go's GC is based on the algorithm "Mark And Sweep"
 4. Stages of "Mark And Sweep":
 	1) Mark: GC marks all the reachable objects as "alive"
@@ -199,7 +198,7 @@ slow down.
 	1) Physical memory
 	2) CPU time
 6. "Stop the World". When the GC is at the stages of:
-	1) Freparing of Markering
+	1) Preparing of Markering
 	2) Finish of Markering
 the overall application is stopped.
 7. "Alive and Dead" heaps.
@@ -295,7 +294,7 @@ func B() *int {
 
 // go build -gcflags="-m"
 func ArraysAllocation() {
-	a1 := [1_310_720]int{} 
+	a1 := [1_310_720]int{}
 	a1[0] = 1
 
 	a2 := [1_310_721]int{} // ./main.go:14:18: moved to heap: s

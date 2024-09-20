@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"unsafe"
 )
@@ -77,6 +78,49 @@ The descrtibed structure eases the search in the bucket and we can easily store/
 15. Buckets are stored sequentially in memory.
 16 "overflow"'s 8 bytes take the rest of the bucket.
 */
+
+func deferA() (res int) {
+	res = 1
+	defer func() {
+		res++
+	}()
+
+	return res
+}
+
+func deferB() int {
+	var res int
+
+	res = 1
+	defer func() {
+		res++
+	}()
+
+	return res
+}
+
+func mapTrick() {
+	for range 100 {
+		var (
+			m = map[int]bool{10: true}
+		)
+
+		for k, _ := range m {
+			if k%10 == 0 {
+				m[k+10] = true
+			}
+		}
+
+		fmt.Println(m)
+
+	}
+}
+
+func main() {
+	fmt.Println(deferA())
+	fmt.Println(deferB())
+	mapTrick()
+}
 
 type hmap struct {
 	/*

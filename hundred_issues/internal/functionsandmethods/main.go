@@ -97,9 +97,10 @@ func main() {
 
 	// DeferUsageAFixedB()
 
-	DeferTypeUsageA()
+	// DeferTypeUsageA()
 
 	// DeferTypeUsageB()
+
 }
 
 type customer struct {
@@ -526,6 +527,7 @@ func DeferTypeUsageA() {
 
 	worker.id = "ABCDEFG"
 	worker.telNumber.number = 777
+
 	fmt.Println("Function return:", worker.id, worker.telNumber)
 	fmt.Print("Defer invocation: ")
 }
@@ -538,4 +540,37 @@ func DeferTypeUsageB() {
 	worker.telNumber.number = 777
 	fmt.Println("Function return:", worker.id, worker.telNumber)
 	fmt.Print("Defer invocation: ")
+}
+
+// It'll rerurn 2 because of calling defer function on the explicit x value
+func test() (x int) {
+	defer func() {
+		x++
+	}()
+
+	defer func() {
+		x++
+	}()
+
+	defer func() {
+		x = 10
+	}()
+
+	x = 1
+	return
+}
+
+// It'll return 1 because of explicit return of the value
+func anotherTest() int {
+	var x int
+	defer func() {
+		x++
+	}()
+
+	defer func() {
+		x++
+	}()
+
+	x = 1
+	return x
 }

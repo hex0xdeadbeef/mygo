@@ -68,13 +68,15 @@ func stringsInterningAtCompileTime() {
 		greetB = "hello world"
 	)
 
-	a := greetA
+	var (
+		a = greetA
+	)
 
 	// greetA == greetB && greetB == a -> greetA == a
 	fmt.Println(unsafe.StringData(greetA) == unsafe.StringData(greetB) && unsafe.StringData(greetB) == unsafe.StringData(a))
 	fmt.Printf("%d\n%d\n%d\n", unsafe.StringData(greetA), unsafe.StringData(greetB), unsafe.StringData(a))
 
-	fmt.Println("a changed")
+	fmt.Println("\na changed")
 	a += "s"
 
 	fmt.Printf("%d\n%d\n%d\n", unsafe.StringData(greetA), unsafe.StringData(greetB), unsafe.StringData(a))

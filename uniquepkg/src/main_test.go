@@ -55,7 +55,5 @@ func benchCanonicalising(b *testing.B, count int) {
 			b.Fatal()
 		}
 	}
-
 	b.ReportAllocs()
-
 }

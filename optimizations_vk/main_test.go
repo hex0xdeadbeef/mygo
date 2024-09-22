@@ -172,6 +172,7 @@ func BenchmarkSliceAllocationC(b *testing.B) {
 	BCE CALLING
 */
 
+// BenchmarkToUint64A-12    	1000000000	         0.2596 ns/op	       0 B/op	       0 allocs/op
 func BenchmarkToUint64A(b *testing.B) {
 	var (
 		buf = make([]byte, 8)
@@ -186,6 +187,7 @@ func BenchmarkToUint64A(b *testing.B) {
 	_ = res
 }
 
+// BenchmarkToUint64B-12    	1000000000	         0.2540 ns/op	       0 B/op	       0 allocs/op
 func BenchmarkToUint64B(b *testing.B) {
 	var (
 		buf = make([]byte, 8)

@@ -135,7 +135,10 @@ func ToUint64A(b []byte) uint64 {
 
 // Clobbering the last index
 func ToUint64B(b []byte) uint64 {
-	_ = b[7]
+	const (
+		lastIndex = 7
+	)
+	_ = b[lastIndex]
 	return uint64(b[0]) |
 		uint64(b[1])<<8 |
 		uint64(b[2])<<16 |

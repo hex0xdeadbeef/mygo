@@ -1,6 +1,8 @@
 package main
 
-import "sync"
+import (
+	"sync"
+)
 
 // https://habr.com/ru/companies/yadro/articles/842314/
 /*
@@ -30,7 +32,35 @@ import "sync"
 	If we make an operator of sync.Pool to return a slice of other sructure of large size, we will use this structure and put it back to the pool. If there are no free strucures the New() function will create and return a new instance of it.
 
 	However, if the memory that has been isn't being used at the moment, the GC will be called somewhere and it'll collect this memory. We must not consider this data to be persistent. We cannot store data in objects that will be put in sync.Pool
+3. arena
+	We can do work with memory better by using arena's.
+
+	Memory arena - is the area of memory that is not controlled by the GC. When we were working with the heap using sync.Pool's we had the problem: the GC came and dusted the memory areas. With sync.Pool and the base of memory behalf of memory arena we coped with these cleans.
+
+	There's a corner case. If we haven't guessed the size of the block of a buffer, we cannot change it at all. We need to choose the size of a buffer that we'll require from the pool.
+
+	THE OVERFLOW OF BUFFERS
+1. If we store the memory in slices and at the time of execution we cross the border of the 	possible size limitation, we should remove this buffer from the pool whie using the PutBytes() method.
+2. The non-returned area of the memory will be cleaned by the GC and put back to the areas we can
+grab and use.
+
+	HOW TO CHOOSE THE BEST METHOD?
+1. Without memory management
+	If we don't use memory actively, we needn't care about memory at all. The maximum we should do
+	is to discover our needs in terms of memory consumption and try to minimize using of it. We can make the discovery of escaping objects to the heap and prevent our code from it.
+
+	Objects are moved to the heap when:
+		- The size of object cross the border of class' size.
+		- The object is returned from a function as a pointer
+		- The object is passed to the function as an interface variable
+2. Channel Pool
+	For example we write an editor of video snapshots that is used for the smooth animation. For this program the Channel Pool fits the best because we know the size of the vault in advance.
+
+	The Channel Pool also fits the programs that is performing a fragmentational workload on memory. The gaps beetween peaks of the workload in such programs take place, but they're not often.
+3. sync.Pool Pool
+	In the cases when we don't know the number of the buffers we will want in the future we'd better to use the Pool based on the sync.Pool because we allocate memory dynamically. 
 */
+
 
 type ChanPool struct {
 	c chan *[]byte
@@ -119,3 +149,4 @@ func (sp *SyncPool) PutBytes(buf *[]byte) {
 	sp.Put(buf)
 	sp.mu.RUnlock()
 }
+

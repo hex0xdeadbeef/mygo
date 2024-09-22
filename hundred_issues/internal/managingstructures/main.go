@@ -95,6 +95,10 @@ func main() {
 	// BreakSwitchOrSelectWithCycle()
 
 	// DeferInCycles()
+
+	// workWithProdA()
+
+	workWithProdB()
 }
 
 func SkippingValInForRange() {
@@ -832,4 +836,92 @@ func readFileС(wg *sync.WaitGroup, sem *Semaphore, eP *ErrsPipe, filePath strin
 	}(filePath)
 
 	// some logic...
+}
+
+func getProducerA() <-chan int {
+	var (
+		prod = make(chan int)
+	)
+
+	go func() {
+		defer close(prod)
+
+		for i := 1; i <= 100; i++ {
+
+			prod <- i
+		}
+
+	}()
+
+	return prod
+}
+
+func getProducerB() (<-chan int, <-chan struct{}) {
+	var (
+		prod = make(chan int, 100)
+		done = make(chan struct{})
+	)
+
+	go func() {
+		defer close(prod)
+
+		for i := 1; i <= 100; i++ {
+			prod <- i
+		}
+
+		close(done)
+	}()
+
+	return prod, done
+}
+
+func workWithProdA() {
+	const (
+		topBound = 50
+	)
+
+	var (
+		prod = getProducerA()
+	)
+
+	for v := range prod {
+		fmt.Println(v)
+
+		if v == topBound {
+			prod = make(<-chan int)
+			continue
+		}
+	}
+}
+
+func workWithProdB() {
+	defer fmt.Println("return from func")
+
+	const (
+		topBound = 50
+	)
+
+	var (
+		prod, done = getProducerB()
+	)
+	<-done
+
+	for {
+		select {
+		case v, ok := <-prod:
+			if !ok {
+				return
+			}
+
+			fmt.Println(v)
+			if v == topBound {
+				prod = make(<-chan int)
+			}
+
+		default:
+			fmt.Println("new producer provided")
+			return
+		}
+	}
+
 }

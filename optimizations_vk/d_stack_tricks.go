@@ -8,7 +8,7 @@ package main
 	2) The object is returned from function as a pointer
 	3) The object is passed to a function as an interface parameter
 3. More allocations in the stack lead to blowing the stack frame up, then reallocation of the stack gets more expansive.
-4. The backdoor of this situation is to create slice directly by pointing the index and value of the last element in the slice. 
+4. The backdoor of this situation is to create slice directly by pointing the index and value of the last element in the slice.
 */
 
 func SliceAllocationA() {
@@ -21,7 +21,7 @@ func SliceAllocationA() {
 
 func SliceAllocationB() {
 	var (
-		s = make([]byte, (1<<6)*(1<<10)+1)
+		s = make([]byte, 1<<30)
 	)
 
 	_ = s
@@ -29,7 +29,7 @@ func SliceAllocationB() {
 
 func SliceAllocationC() {
 	var (
-		s = []int{1 << 20: 1}
+		s = []int{1 << 30: 1}
 	)
 
 	_ = s

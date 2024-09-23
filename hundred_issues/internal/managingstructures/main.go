@@ -565,11 +565,12 @@ func UpdatingMapDuringIteration() {
 func BreakSwitchOrSelectWithCycle() {
 	var (
 		a = func() {
+		Out:
 			for i := 0; i < 5; i++ {
 				switch i {
 				case 2:
 					// This statement breaks the switch only, not the cycle
-					break
+					break Out
 				default:
 					fmt.Println(i)
 				}
@@ -760,8 +761,8 @@ type (
 	}
 
 	FileWorker struct {
-		filepath string
 		file     *os.File
+		filepath string
 	}
 
 	ErrsPipe struct {

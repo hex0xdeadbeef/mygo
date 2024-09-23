@@ -332,6 +332,7 @@ func setup() {
 	if b.Load() {
 		log.Println(len(str))
 	}
+
 }
 
 func MemoryBarrierB() {

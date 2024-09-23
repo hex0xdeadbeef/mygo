@@ -154,14 +154,14 @@ func BenchmarkSliceAllocationA(b *testing.B) {
 	}
 }
 
-// BenchmarkSliceAllocationB-12    	  374515	      3219 ns/op	   73728 B/op	       1 allocs/op
+// BenchmarkSliceAllocationB-12    	     142	   7775394 ns/op	1073741877 B/op	       1 allocs/op
 func BenchmarkSliceAllocationB(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		SliceAllocationB()
 	}
 }
 
-// BenchmarkSliceAllocationC-12    	1000000000	         0.2549 ns/op	       0 B/op	       0 allocs/op
+// BenchmarkSliceAllocationC-12    	1000000000	         0.2566 ns/op	       0 B/op	       0 allocs/op
 func BenchmarkSliceAllocationC(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		SliceAllocationC()

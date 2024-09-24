@@ -29,7 +29,7 @@ import (
 	GC Took: 295.667µs
 4. Compairing two types of map keys we see that the difference is colossal.
 5. Using the map in production we need to hash the strings into the integer numbers. The subtlety is the following trick:
-	If we allocate a giant []byte, []int and etc. or an array of pointerless structs, Go treats if as "nonscan" so the GC's scanning phase gets a break. It can require gimmlicks
+	If we allocate a giant []byte, []int and etc. or an array of pointerless structs, Go treats if as "non-scan" so the GC's scanning phase gets a break. It can require gimmlicks
 	like using numeric IDs/Offsets instead of pointers, much as if we were implementing an on-disk database, but we can continue to use language constructs to allocate instead of
 	having to go to the OS.
 */
@@ -43,7 +43,6 @@ var (
 )
 
 func init() {
-
 	const (
 		digitsNumber   = 10
 		digitStartByte = '0'
@@ -145,7 +144,7 @@ func getToken() Token {
 }
 
 const (
-	maxTokenCacheSize = 1e7
+	maxTokenCacheSize = 1e8
 )
 
 func testGCTimeA() {

@@ -8,10 +8,10 @@ import (
 
 /*
 	sync.Pool USAGE
-1. Before the version 1.13 the sync.Pool is being cleaned at each iteration of the GC. It can negatively impact the performance of our programs that allocate much memory. Starting from 1.13
-	more objects are kept alive after cleaning up by the GC.
-2. Before backing an object up to the sync.Pool, the fields of the object should be cast to the default value relatively to the type. If we don't do it, we can get "dirty" object from the
-	sync.Pool.
+1. Before the version 1.13 the sync.Pool is being cleaned at each iteration of the GC. It can negatively impact the performance of our programs that allocate much memory. Starting
+	from 1.13 more objects are kept alive after cleaning up by the GC.
+2. Before backing an object up to the sync.Pool, the fields of the object should be cast to the default value relatively to the type. If we don't do it, we can get "dirty" object
+	from the sync.Pool.
 3. The case when we needn't null the object is when we use the memory, that is used to write into it.
 */
 

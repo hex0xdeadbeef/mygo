@@ -21,7 +21,7 @@ package main
 		// It doesn't know how to marshal itself. Do default reflection based marshallling.
 		return marshal(obj)
 	}
-3. I we know the process of marshaling we should explicitly write code for marshaling /
+3. If we know the process of marshaling we should explicitly write code for marshaling /
 	unmarshaling. But doing it manually takes a lot of time. The method that beats this problem is
 	code generation.
 

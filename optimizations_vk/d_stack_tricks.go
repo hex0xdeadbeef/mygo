@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"runtime"
+)
+
 /*
 	STACK TRICKS
 1. Every type of an object has the specific class of object and realtively the maximum size of the class the object will be allocated either on the stack or the heap.
@@ -21,16 +26,36 @@ func SliceAllocationA() {
 
 func SliceAllocationB() {
 	var (
-		s = make([]byte, 1<<30)
+		s = make([]byte, 1<<28)
 	)
 
 	_ = s
 }
 
 func SliceAllocationC() {
+	printAlloc()
+
 	var (
-		s = []int{1 << 30: 1}
+		// referencing to the last index and assigning a value to it
+		s = []byte{1 << 28: 1}
 	)
 
+	printAlloc()
+
+	s = append(s, s...)
+
+	printAlloc()
+
 	_ = s
+
+	runtime.KeepAlive(&s)
+}
+
+func printAlloc() {
+	var (
+		m runtime.MemStats
+	)
+
+	runtime.ReadMemStats(&m)
+	fmt.Printf("%d MB\n", m.Alloc/(1<<20))
 }

@@ -8,7 +8,7 @@ package main
 
 3. There's no allocation when we make a convertation []bytes -> string to find an element in the map.
 
-4. Relatively to https://github.com/golang/go/issues/61725#issuecomment-1788751754, sort.Strings() works 30% better than slices.Sort. It works in this way because sort.Strings makes the only one comparison instead of using 3. 
+4. Relatively to https://github.com/golang/go/issues/61725#issuecomment-1788751754, sort.Strings() works 30% better than slices.Sort. It works in this way because sort.Strings makes the only one comparison instead of using 3.
 */
 
 func StringConvertationInForRange() {
@@ -28,4 +28,5 @@ func BytesComparison(a, b []byte) bool {
 func IsElemInMap(m map[string]struct{}, key []byte) bool {
 	_, ok := m[string(key)]
 	return ok
+
 }

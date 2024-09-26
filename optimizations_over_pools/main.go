@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -58,9 +59,8 @@ grab and use.
 
 	The Channel Pool also fits the programs that is performing a fragmentational workload on memory. The gaps beetween peaks of the workload in such programs take place, but they're not often.
 3. sync.Pool Pool
-	In the cases when we don't know the number of the buffers we will want in the future we'd better to use the Pool based on the sync.Pool because we allocate memory dynamically. 
+	In the cases when we don't know the number of the buffers we will want in the future we'd better to use the Pool based on the sync.Pool because we allocate memory dynamically.
 */
-
 
 type ChanPool struct {
 	c chan *[]byte
@@ -150,3 +150,94 @@ func (sp *SyncPool) PutBytes(buf *[]byte) {
 	sp.mu.RUnlock()
 }
 
+func main() {
+	workWithProdA()
+}
+
+func workWithProdA() {
+	const (
+		topBound = 50
+	)
+
+	var (
+		prod = getProducerA()
+	)
+
+	for v := range prod {
+		fmt.Println(v)
+
+		if v == topBound {
+			prod = make(<-chan int)
+			continue
+		}
+	}
+}
+
+func getProducerA() <-chan int {
+	var (
+		prod = make(chan int)
+	)
+
+	go func() {
+		defer close(prod)
+
+		for i := 1; i <= 100; i++ {
+
+			prod <- i
+		}
+
+	}()
+
+	return prod
+}
+
+func workWithProdB() {
+	defer fmt.Println("return from func")
+
+	const (
+		topBound = 50
+	)
+
+	var (
+		prod, done = getProducerB()
+	)
+	<-done
+
+	for {
+		select {
+		case v, ok := <-prod:
+			if !ok {
+				return
+			}
+
+			fmt.Println(v)
+			if v == topBound {
+				prod = make(<-chan int)
+				fmt.Println("New producer provided")
+			}
+
+		default:
+			return
+		}
+	}
+
+}
+
+func getProducerB() (<-chan int, <-chan struct{}) {
+	var (
+		prod = make(chan int, 100)
+		done = make(chan struct{})
+	)
+
+	go func() {
+		defer close(prod)
+
+		for i := 1; i <= 100; i++ {
+			prod <- i
+		}
+
+		close(done)
+	}()
+
+	return prod, done
+}

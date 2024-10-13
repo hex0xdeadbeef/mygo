@@ -1,29 +1,25 @@
 package main
 
-import (
-	"fmt"
-	"sync"
-)
+import "math/rand/v2"
 
 func main() {
 	// workWithProdA()
 	// workWithProdB()
 }
 
-func Func() {
-	var (
-		wg sync.WaitGroup
-	)
+func getProducer() <-chan struct{} {
+	res := make(chan struct{})
 
-	for i := 0; i < 5; i++ {
+	go func() {
+		var (
+			randomSendingTimeInSecs = rand.IntN(10)
 
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
+			time.Sleep()
+		)
+	}()
 
-			fmt.Println(i)
-		}(i)
-	}
 
-	wg.Wait()
+	return res
+
+
 }

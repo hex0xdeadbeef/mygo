@@ -126,6 +126,7 @@ func sliceHeaderUsage() {
 	}
 
 	header := (*sliceHeader)(unsafe.Pointer(&slice))
+
 	fmt.Printf("sliceHeader: %v %v %v\n", header.array, header.len, header.cap)
 }
 
@@ -135,7 +136,7 @@ func fullSliceExpressions() {
 
 	extendedSlice := append(slice, 333)
 
-	fmt.Println("Beforew appending:")
+	fmt.Println("Before appending:")
 	fmt.Println(arr, "\n", slice, "\n", extendedSlice)
 
 	slice = append(slice, 777)

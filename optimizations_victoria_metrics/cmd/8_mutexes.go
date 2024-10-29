@@ -8,10 +8,11 @@ import (
 
 /*
 	MUTEXES
-1. Mutex, or MUtual EXclusion, in Go is basically a way to make sure that only one goroutine is messing with a shared resource at a time. This resource can be a piece of code, an integer, a map, a struct, a channel, or pretty much anything.
+1. Mutex, or MUtual EXclusion, in Go is basically a way to make sure that only one goroutine is messing with a shared resource at a time. This resource can be a piece of code, an integer, a map, a
+	struct, a channel, or pretty much anything.
 
 	WHY DO WE NEED sync.Mutex?
-1. A datarace happens when multiple gorotines try to access and change shared data at the same time without proper synchronization.
+1. A datarace happens when multiple goroutines try to access and change shared data at the same time without proper synchronization.
 
 2. In fact, The operation `counter++` consists of three ops:
 	MOVD	main.counter(SB), R0
@@ -20,7 +21,8 @@ import (
 
 	The `counter++` is a read-modify operation and these steps above aren't atomic (in the case of NOT using mutex), meaning they're not executed as a single, uninterruptible action.
 
-	For instance, goroutine G1 reads the value of counter, and `before` it writes the updated value, goroutine G2 reads the same value. Both of then write their updated values back, but since they read the same original value, one increment is practically lost.
+	For instance, goroutine G1 reads the value of counter, and `before` it writes the updated value, goroutine G2 reads the same value. Both then write their updated values back, but since they
+	read the same original value, one increment is practically lost.
 
 3. If we call Unlock() on an already unlocked mutex, it'll cause a fatal error:
 	sync: unlock of unlocked mutex
@@ -74,13 +76,15 @@ import (
 		m.lockSlow()
 	}
 
-	The fast path is designed to be really quick and is expected to handle most lock acquisitions where the mutex isn't already in use. This path is also inlined, meaning it's embedded directly into the calling function.
+	The fast path is designed to be really quick and is expected to handle most lock acquisitions where the mutex isn't already in use. This path is also inlined, meaning it's embedded directly
+	into the calling function.
 
 	FYI, this inlined fast path is neat trick that utilizes Go's inline optimization, and it's used a lot in Go's source code.
 
 	When the CAS (Compare And Swap) operation in the fast path fails, it means the state field wasn't 0, so the mutex is currently locked.
 
-	The real concern here is the slow path m.lockSlow(), which does most of the heavy lifting. In the slow path, the goroutine keeps actively spinning to try to acquire the lock, it doesn't just go straight to the waiting queue.
+	The real concern here is the slow path m.lockSlow(), which does most of the heavy lifting. In the slow path, the goroutine keeps actively spinning to try to acquire the lock, it doesn't just
+	go straight to the waiting queue.
 
 	WHAT DO YOU MEAN SPINNING?
 1. Spinning means the goroutine enters a tight loop, repeatedly checking the state of the mutex without giving up the CPU.
@@ -95,14 +99,17 @@ import (
 			RET
 	YIELD returns an access to other threads in a system to prevent the process from busy waiting in a cycle.
 
-	Firstly, a thread that is waiting for a mutex tries to acquire the mutex by using YIELD. YEILD is used as a `lightweigh pause`, and if the waiting exceeds the limit set, the thread can move to the blocking methods.
+	Firstly, a thread that is waiting for a mutex tries to acquire the mutex by using YIELD. YEILD is used as a `lightweigh pause`, and if the waiting exceeds the limit set, the thread can move to
+	the blocking methods.
 
 	CBNZ R0, again - the command "Compare and Branch if Not Zero" checks the value of the R0 registry. If it's not zero, the flow returs to `again`. It keeps the cycle working until the value is 0.
 
-	The conclusion is: `YIELD` in mutexes' realization helps to optimize the concurrent access to resources. It provides the balance between active waiting and full blocking. This is relevant in multi-threaded environments, where high concurrency takes place.
+	The conclusion is: `YIELD` in mutexes' realization helps to optimize the concurrent access to resources. It provides the balance between active waiting and full blocking. This is relevant in
+	multi-threaded environments, where high concurrency takes place.
 
-	The Algoright of Mutex working:
-		1) In our case the number of cycles is 30 (runtime.procyield(30)). It means that the assembly code runs a tight loop for 30 cycles, repeatedly yeilding the CPU and decrementing the spin counter.
+	The Algorithm of Mutex working:
+		1) In our case the number of cycles is 30 (runtime.procyield(30)). It means that the assembly code runs a tight loop for 30 cycles, repeatedly yeilding the CPU and decrementing the spin
+		counter.
 
 		2) After spinning, it tries to acquire the lock again. If it fails, it has three more chances to spin before giving up. So, in total, it tries for up to 120 cycles.
 
@@ -116,9 +123,10 @@ import (
 	WHAT IF ANOTHER GOROUTINE IS ALREADY WAITING FOR A MUTEX? IT DOESN'T SEEM FAIR IF THIS GOROUTINE TAKES THE LOCK FIRST.
 1. That's why our mutex has two modes:
 	1) Normal
-	2) Starvation. Spining isn't working in starvation mode.
+	2) Starvation. Spinning isn't working in starvation mode.
 
-	In normal mode, goroutines waiting for the mutex are organized in a first-in, first-out (FIFO) queue. When a goroutine wakes up to try grab the mutex, it doesn't get control immediately. Instead, it has to compete with any new goroutines that also want the mutex at that time.
+	In normal mode, goroutines waiting for the mutex are organized in a first-in, first-out (FIFO) queue. When a goroutine wakes up to try grab the mutex, it doesn't get control immediately.
+	Instead, it has to compete with any new goroutines that also want the mutex at that time.
 
 	This competition is tilted in favor of new goroutines because they're already running on the CPU and can quickly try to grab the mutex, while the queued goroutine is still waking up.
 
@@ -127,18 +135,20 @@ import (
 	WHAT IF THAT GOROUTINE IS UNLUCKY AND ALWAYS WAKES UP WHEN A NEW GOROUTINE ARRIVES?
 1. Starvation mode kicks in if a goroutine fails acquire the lock for more than 1 millisecond. It's designed to make sure that waiting goroutines eventually get a fair chance at the mutex.
 
-	In this mode, when a goroutine releases the mutex, it directly passes control to the goroutine at the front of the queue. This means no competition, no race, from new goroutines. They don't even try to acquire it and just join the end of the waiting queue.
+	In this mode, when a goroutine releases the mutex, it directly passes control to the goroutine at the front of the queue. This means no competition, no race, from new goroutines. They don't
+	even try to acquire it and just join the end of the waiting queue.
 
 	MUTEX UNLOCK FLOW
 1. The unlock flow is simpler than the lock flow. We still have two paths:
-		1) Inlined path. The fast path drops the locked bit in the state of the mutex. If dropping this bit makes the state zero, it means no other flags are set (like waiting goroutines), and our mutex is now completely free.
+		1) Inlined path. The fast path drops the locked bit in the state of the mutex. If dropping this bit makes the state zero, it means no other flags are set (like waiting goroutines), and our
+		mutex is now completely free.
 
 		2) Slow path, which handles unusual cases
 2. The slow unlock.
 	That's where the slow path comes in and it needs to know if our mutex is in normal mode or starvation mode.
 
 	func (m *Mutex) unlockSlow(new int32) {
-	// 1. Attempting to unlock an already unlcoked mutex will cause a fatal error
+	// 1. Attempting to unlock an already unlocked mutex will cause a fatal error
 		if (new + mutexLocked)&mutexLocked == 0 {
 			fatal("sync: unlock of unlcoked mutex")
 		}
@@ -166,9 +176,11 @@ import (
 		}
 	}
 
-	In normal mode, if there are waiters and no other goroutine has been woken or acquired the lock, the mutex tries to decrement the waiter count and turn on the mutexWoken flag atomically. If successful, it releases the semaphore to wake up one of the waiting goroutines to acquire the mutex.
+	In normal mode, if there are waiters and no other goroutine has been woken or acquired the lock, the mutex tries to decrement the waiter count and turn on the mutexWoken flag atomically. If
+	successful, it releases the semaphore to wake up one of the waiting goroutines to acquire the mutex.
 
-	In starvation mode, it atomically increments the semaphore and hands off mutex ownership directly to the first waiting goroutine in the queue. The second argument of runtime_Semrelease determines if the handoff is true. 
+	In starvation mode, it atomically increments the semaphore and hands off mutex ownership directly to the first waiting goroutine in the queue. The second argument of runtime_Semrelease
+	determines if the handoff is true.
 
 
 */

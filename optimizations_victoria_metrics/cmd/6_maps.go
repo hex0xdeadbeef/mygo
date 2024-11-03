@@ -6,7 +6,7 @@ import "fmt"
 	MAP
 1. Properties of the map type:
 	- A for-range loop over a map won't return the keys in any specific order.
-	- Maps aren't thread-safe, the Go runtime will cause a fatal error if we try to read/write/iterate.
+	- Maps aren't thread-safe, the Go runtime will cause a fatal error if we try to read/iterate + write simultaneously.
 	- We can check if a key is in a map doing a simple `ok` check: _, ok := m[key]
 	- The key type for a map must be comparable
 2. Interfaces can be both comparable and non-comparable.
@@ -17,15 +17,19 @@ import "fmt"
 
 	MAP ANATOMY
 1. The strucure of map:
-	type hmap struct {
-	...
-	buckets unsafe.Pointer
-	...
+	package runtime
 
-	A map contains a pointer that points to the bucket array. This is why when we assign a map to a variable or pass it to a function, both the variable and the function's argument are sharing the same pointer.
+	type hmap struct {
+		...
+		buckets unsafe.Pointer
+		...
+
+		A map contains a pointer that points to the buckets array. This is why when we assign a map to a variable or pass it to a function, both the variable and the function's argument are sharing
+		the same pointer.
 	}
 
-2. Maps are pointers to the `hmap` under the hood, but they aren't reference types, nor are they passed by reference like a ref argument in C#, if we change the map parameter setting it to nil, it won't reflect in the caller's functiom.
+2. Maps are pointers to the `hmap` under the hood, but they aren't reference types, nor are they passed by reference like a ref argument in C#, if we change the map parameter setting it to nil, it
+	won't reflect in the caller's functiom.
 
 3. In Go everything is passed by value.
 
@@ -41,7 +45,8 @@ import "fmt"
 
 	If there are too many overflow buckets, it's better to redistribute the entries rather than just adding more memory.
 
-	When the load factor goes beyond this threshold, the map is considered overloaded. In this case, it'll grow by allocating a new array of buckets that's twice the size of the current one, and then rehashing the elements into these two buckets.
+	When the load factor goes beyond this threshold, the map is considered overloaded. In this case, it'll grow by allocating a new array of buckets that's twice the size of the current one, and
+	then rehashing the elements into these two buckets.
 
 	The reason we need to grow the map even when a bucket is just almost full comes down to performance. We usually think that accessing and assigning values in a map is O(1), but it's not always that simple.
 
@@ -56,7 +61,7 @@ import "fmt"
 
 	This hint helps minimize the number of times the map needs to grow as we add elements.
 
-	Since each growth operation involves allocating a new array of buckets and copying existing elements over, it's not the most efficient process. Starting with a larger initial capacity can help avoid some of these costly growth ops. 
+	Since each growth operation involves allocating a new array of buckets and copying existing elements over, it's not the most efficient process. Starting with a larger initial capacity can help avoid some of these costly growth ops.
 */
 
 func interfaceMapKey() {

@@ -14,6 +14,7 @@ import (
 	- Stack-allocated defer
 
 	Each one has different scenarios where they're best used, which is good to know if we want to optimize performance.
+
 2. Defer is called when the function returns, even if a panic (runtime error) happens.
 
 3. We mustn't put a wrapped recover handling into a closure. Instead, we must defer this processing function directly.
@@ -30,6 +31,7 @@ import (
 	1) Heap-allocated
 	2) Stack-allocated
 	3) Open-coded defer
+
 2. When we call defer, we're creating a structure called a defer object `_defer`, which holds all the necessary information about the deferred call.
 
 	This object gets pushed into the goroutine's defer chain, as we discussed earlier.
@@ -38,7 +40,7 @@ import (
 
 3. The difference between heap-allocated and stack-allocated defer types is where the defer object is allocated. Below Go 1.13, we only had heap-allocated defer.
 
-4. Currently, in Go 1.22, of we use defer in a loop, it'll be heap-allocated.
+4. Currently, in Go 1.22, if we use defer in a loop, it'll be heap-allocated.
 
 	The heap allocation here is necessary because the number of defer objects can change at runtime. So, the heap ensures that the program can handle any number of defers, no matter how many or where they appear in the function, without bloating the stack.
 
@@ -56,6 +58,7 @@ import (
 	If the defer statement within the `if` block is invoked only once and not in a loop or another dynamic context, it benefits from the optimization in Go 1.13, meaning the defer object will be stack-allocated.
 
 	With this optimization, according to the `Open-coded defers proposal` in the `cmd/go` binary, this optimization applies to 363/370 static defer sites. As a result, these sites see a 30% performance improvement compared to the previous approach where defer objects were heap-allocated.
+
 2. Open-coded defer
 	What if we put the defer at the end of the function?
 
@@ -69,7 +72,6 @@ import (
 
 	If the number of defer statements is more than 8, open-coded defer will not be applied.
 */
-
 
 func erorrneousRecoverHandlingA() {
 	defer func() {
@@ -110,7 +112,7 @@ func erorrneousRecoverHandlingB() {
 func deferInLoop() {
 	for i := 0; i < 100; i++ {
 		// Heap-allocated defer
-		fmt.Println(i)
+		defer fmt.Println(i)
 	}
 }
 

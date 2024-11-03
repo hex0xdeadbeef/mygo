@@ -25,7 +25,7 @@ import (
 
 3. If we keep adding elems to a slice and it surpasses its current cap, Go will automatically create a larger array, copy the the elems and use that new array as the slice's underlying array.
 
-4. This is also a common mistak new developers make when two slices that used to share the same data no longer do after an append() op. The most typical scenario is when a slice is passed as a
+4. This is also a common mistake new developers make when two slices that used to share the same data no longer do after an append() op. The most typical scenario is when a slice is passed as a
 	function argument.
 
 	THE CAPACITY OF SLICE
@@ -33,7 +33,7 @@ import (
 
 2. The table of slice growing: https://victoriametrics.com/blog/go-slice/index.html
 
-3. But doubling capacity indefinitely would lead to huge memory allocations as the slice gets larger. To avoid that, Go adjusts the growth rate once thw slice reaches a certain size, typically
+3. But doubling capacity indefinitely would lead to huge memory allocations as the slice gets larger. To avoid that, Go adjusts the growth rate once the slice reaches a certain size, typically
 	around 256.
 
 	At this point, the growth slows down, following this formula:
@@ -70,7 +70,7 @@ import (
 
 4. The second case: The underlying array starts on the stack, then grows to the heap.
 
-	In the second case the addres of the underlying array changes dramatically when the slice exceeds its capacity.
+	In the second case the address of the underlying array changes dramatically when the slice exceeds its capacity.
 
 	At this point, it's no longer on our goroutine stack.
 
@@ -87,7 +87,7 @@ import (
 6. Forcing the underlying array to be allocated on the heap.
 	It's pretty easy to force the underlying array to be allocated on the heap, anything dynamic at compile time end up there.
 
-	The stack size is determined at compile time, the underlying array of slice will definitely be on the heap as it size is n, which is determined at runtime.
+	The stack size is determined at compile time, the underlying array of slice will definitely be on the heap as it size is `n`, which is determined at runtime.
 
 7. What should we do to avoid heap allocations in these cases?
 	- In most situations, it's enough to estimate the size of a slice at
@@ -109,7 +109,6 @@ func zerobaseIdentifying() {
 
 	var emptiedSlice = make([]int, 0)
 	fmt.Printf("zerobase: %p\n", emptiedSlice)
-
 }
 
 func sliceHeaderUsage() {
@@ -177,10 +176,11 @@ func changeSlice(s []int) {
 }
 
 func lengthIncreasingTrick() {
+	const indexPad = 1
 	s := []int{1, 2, 3, 4, 5, 6}
 
 	sPartCopied := s[1:3]
-	sPartCopied = sPartCopied[:len(sPartCopied)+1]
+	sPartCopied = sPartCopied[:len(sPartCopied)+indexPad]
 
 	fmt.Println(sPartCopied)
 }

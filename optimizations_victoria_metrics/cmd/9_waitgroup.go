@@ -63,9 +63,9 @@ import (
 	When we talk about alignment, we're referring to the need for data types to be stored at specific memory addresses to allow for efficient access.
 
 	For example, on a 64-bit system, a 64-bit value like uint64 should be ideally be stored at a memory address that's a multiple of 8 bytes. The reason is, the CPU can grab aligned data
-	in one go, but if the data isn't aligned, it might take multiple ops to access it.
+	in one step, but if the data isn't aligned, it might take multiple ops to access it.
 
-2. On 32-bit architectures, the compiler doesn't guarantee that 64-bit values will be aligned on a 8-byte boundary. Instead, they might only be aligned on a 4-byte boundary.
+2. On 32-bit architectures, the compiler doesn't guarantee that 64-bit values will be aligned on an 8-byte boundary. Instead, they might only be aligned on a 4-byte boundary.
 
 	This becomes a problem when we use the atomic package to perform ops on the state variable. The atomic package specifically notes:
 		On ARM, 386, and 32-bit MIPS, it is the caller’s responsibility to arrange for 64-bit alignment of 64-bit words accessed atomically via the primitive atomic functions
@@ -81,7 +81,7 @@ import (
 			v uint64
 		}
 
-		// align64 may be added to structs that must be 64-bit aligned.
+		// `align64` may be added to structs that must be 64-bit aligned.
 		// This struct is recognized by a special case in the compiler
 		// and won't be work if copied to any other package.
 		type align64 struct{}
@@ -130,7 +130,7 @@ import (
 		v := int32(state >> 32)
 		w := uint32(state)
 
-		if < 0 {
+		if v < 0 {
 			panic("sync: negative WaitGroup counter")
 		}
 
@@ -180,21 +180,23 @@ import (
 				// ...
 				return
 			}
-		}
 
-		// Increment waiters count
-		if wg.state.CompareAndSwap(state, state + 1) {
-			// ...
+			// Increment waiters count
+			if wg.state.CompareAndSwap(state, state + 1) {
+				// ...
 
-			runtime_Semacquire(&wg.sema)
-			if wg.state.Load() != 0 {
-				panic("sync: WaitGroup is reused before previous Wait has returned")
+				runtime_Semacquire(&wg.sema)
+				if wg.state.Load() != 0 {
+					panic("sync: WaitGroup is reused before previous Wait has returned")
+				}
+
+				// ...
+
+				return
 			}
-
-			// ...
-
-			return
 		}
+
+
 	}
 
 	If the CAS op fails, it means that another goroutine has modified the state, maybe the counter reached zero or it was incremented / decremented. In that case, wg.Wait() can't just

@@ -149,7 +149,7 @@ import (
 
 	func (m *Mutex) unlockSlow(new int32) {
 	// 1. Attempting to unlock an already unlocked mutex will cause a fatal error
-		if (new + mutexLocked)&mutexLocked == 0 {
+		if (new + mutexLocked)&mutexLocked == 0 { 
 			fatal("sync: unlock of unlcoked mutex")
 		}
 

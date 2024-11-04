@@ -29,7 +29,7 @@ import "sync"
          package http
 
          var (
-            bufioReaderPool 	sync.Pool
+            bufioReaderPool 	   sync.Pool
             bufioWriter2kPool 	sync.Pool
             bufioWriter4kPool 	sync.Pool
          )
@@ -66,7 +66,6 @@ import "sync"
    This situation creates a cycle where high concurrency leads to high memory usage, which then slows down the GC. sync.Pool is designed to help break this cycle.
 
 2. To create a pool, we can provide a New() function that returns a new object when the pool is empty.
-
   - This function is optional, if we don't provide it, the pool just returns nil. If it's empty.
 
 3. For instance, if the slice grows to 8192 bytes during use, we can reset its length to zero before putting it back in the pool. The underlying array still has a capacity of 8192, so
@@ -106,14 +105,14 @@ pool, but it's not mandatory, it's a common practice.
 
       The generic wrapper gives us a more type-safe way to work with the pool, avoiding type assertions.
 
-      Just note that, it adds a tiny bit of overhead due to the extra layr of indirection. In most cases, this overhead is minimal, but if we're in a highly CPU-sensitive environment,
+      Just note that, it adds a tiny bit of overhead due to the extra layer of indirection. In most cases, this overhead is minimal, but if we're in a highly CPU-sensitive environment,
       it's a good idea to run benchmarks to see if it's worth it.
 */
 
 /*
 	sync.Pool AND ALLOCATION TRAP
 
-1. If we've noticed, from many previous examples, including those in the standart library, what we store in the pool is typically not hte object itself but a pointer to the object.
+1. If we've noticed, from many previous examples, including those in the standart library, what we store in the pool is typically not the object itself but a pointer to the object.
 
 2. For example:
    var pool = sync.Pool{
@@ -136,7 +135,7 @@ pool, but it's not mandatory, it's a common practice.
 
    Now, we don't say our variable `bytes` moves to the heap, we say `the value of bytes escapes to the heap`
 
-3. To really get why this happens, we'd need to dig into how escape analysis work (which we might do in another article). However, if we pass a pointer to pool.Put(), there's no extra
+3. To really get why this happens, we'd need to dig into how escape analysis work (which we might do in another article). However, if we pass a pointer to pool.Put(...), there's no extra
     allocation.
 
     var pool = sync.Pool{
@@ -152,7 +151,7 @@ pool, but it's not mandatory, it's a common practice.
       _ = bytes
 
       pool.Put(bytes)
-      }
+   }
 
    If we run the escape analysis again, we won't see that the value escapes to the heap. (https://github.com/golang/go/blob/2580d0e08d5e9f979b943758d3c49877fb2324cb/src/sync/
    example_pool_test.go#L15)
@@ -160,7 +159,7 @@ pool, but it's not mandatory, it's a common practice.
 4. Documentation says:
    The Pool's New() function should generally only return a pointer
    types, since a pointer can be put into the return interface value
-   without an allocation
+   without an allocation.
 */
 
 /*
@@ -170,7 +169,6 @@ pool, but it's not mandatory, it's a common practice.
 
 2. At any one time, only one goroutine (G) can run on a single processor (P). So, when a P1 is busy with a G, no other G can run on that P1 until the current G either gets blocked,
    finishes up, or something else happens to free it up.
-
 */
 
 /*
@@ -195,9 +193,9 @@ pool, but it's not mandatory, it's a common practice.
 1. Earlier, we mentioned that `Only one goroutine can access the P-local pool at the same time`, but the reality is a bit more nuanced.
 
 2. Each `P-local pool` actually has two main parts:
-  - The shared pool chain `shared`
-  - Private object `private`
-  - Padding
+   - Private object `private`
+   - The shared pool chain `shared`
+   - Cache padding
 
    Here's the definition of local pool in Go source code:
       type poolLocal struct {
@@ -210,27 +208,25 @@ pool, but it's not mandatory, it's a common practice.
          shared poolChain
       }
 
-	The `private` field is where a single object is stored, and only the `P` that owns this `P-local pool` can access it, let's call it the private object.
+	The `private` field is where a single object is stored, and only the `P` that owns this `P-local pool` can access it, let's call it the` private object`.
 
 	It's designed so a goroutine can quickly grab a reusable object (which is private object) without needing to mess with any mutex or synchronization tricks. In other words, only one
 	goroutine can access its own private object, no other goroutine can compete with it.
 
 	But if the private object isn't available, that's when the shared pool chain `shared` steps in.
 
-3. Why wouldn't private object be available? I thought only one goroutine could get and put the object the private object back
-into the pool. So, who's the competition?
+3. Why wouldn't private object be available? I thought only one goroutine could get and put the object the private object back into the pool. So, who's the competition?
    While it's true that only one goroutine can access the private of a P at a time, there's a catch. If G `A` grabs the private object and then gets blocked or preempted, G `B`
    might start running on that same P. When that happens, G `B` won't be able to access the private object because G `A` still has it. Now, unlike the simple of private object, the
    `shared` pool chain is a bit more complex.
 
    The diagram 3 isn't entirely accurate since it doesn't account for the `victim pool`.
 
-   If the shared pool chain is empty as well, sync.Pool will either create a new object (assuming we've provided a New() function) or just return `nil`.
+   If the `shared pool chain` is empty as well, sync.Pool will either create a new object (assuming we've provided a New() function) or just return `nil`.
 
    And, by the way, there's also a `victim mechanism` inside the shared pool.
 
 4. Wait, I see the pad field in the `P-local pool`. What's that all about?
-
    One thing that jumps out when we look at the `P-local` pool structure is this pad attribute. It's something that VM' CTO adjusted in his commit.
 
    type poolLocal struct {
@@ -268,6 +264,7 @@ into the pool. So, who's the competition?
       - Each node in this list isn't just a reusable object.
       - Instead, it's another structure called a `pool dequeue` (`poolDequeue`)
 
+   `shared` is:
    type poolChain struct {
       head *poolChainElt
       tail atomic.Pointer[poolChainElt]
@@ -280,8 +277,8 @@ into the pool. So, who's the competition?
 
    The design of the poolChain is pretty strategic, the diagram 4 show us something.
 
-   When the current pool dequeue (the one at the of the list) gets full, a new pool dequeue is created that's double the size of the previous one. This new, larger pool is then added to |
-   the chain.
+   When the current pool dequeue (the one at the head of the list) gets full, a new `pool dequeue` is created that's double the size of the previous one. This new, larger pool is then
+   added to the chain.
 
    If we take a look at the poolChain we'll notice it has two fields:
          1) `head` *poolChainElt
@@ -308,7 +305,7 @@ into the pool. So, who's the competition?
    The producer (which is the current P) can add new items to the front of the queue or take items from it. Meanwhile, the consumers only take items from the tail of the queue. This
    queue is lock-free, which means it doesn't use locks to manage the coordination between the producer and consumers, only using atomic ops.
 
-   We can think of this queue as a kind of ting buffer. A ring buffer, or circular buffer, is a data structure that uses a fixed-size array to store elems in a loop-like fashion. It's
+   We can think of this queue as a kind of ring buffer. A ring buffer, or circular buffer, is a data structure that uses a fixed-size array to store elems in a loop-like fashion. It's
    called a "ring" because, in a way, the end of the buffer wraps around to meet the beginning, making it look like a circle.
 
    In the context of the pool dequeue we're talking about the `headTail` field is a 64-bit integer that packs two 32-bit indexes into a single value. These indexes are the `head` and
@@ -317,7 +314,7 @@ into the pool. So, who's the competition?
       2) The `head index` is where the next piece of data will be written. As new data comes in, it's placed at this head index, and then the index moves to the next available slot.
 
    By packing the `head` and `tail` indices into a single 64-bit value, the code can update both indices in one go, making the operation atomic. This is especially useful when two
-   consumers (or a consumer and a producer) try to pop an item from the queue at the same time. The CAS op, d.headTail.CompareAndSwap(ptrs, ptrs2), ensures tht only one of them succeeds.
+   consumers (or a consumer and a producer) try to pop an item from the queue at the same time. The CAS op, d.headTail.CompareAndSwap(ptrs, ptrs2), ensures that only one of them succeeds.
    The other one fails and retries, keeping things orderly without any complex locking.
 
    The actual data in the queue is stored in a circular buffer called `vals`, which has to be a power of two in size.
@@ -325,8 +322,8 @@ into the pool. So, who's the competition?
    This design choice makes it easier to handle the queue wrapping around when it reaches the end of the buffer. Each slot in this buffer is an `eface` value, which is how Go represents
    an `empty` interface (`interface{}`) under the hood.
       type eface struct {
-         typ. val unsafe.Pointer
-      }
+         typ, val unsafe.Pointer
+      }  
    A slot in the buffer stays `in use` until two things happen:
       1) The tail index moves past the slot, meaning the data in that slot has been consumed by one of the consumers.
       2) The consumer who accessed that slot sets it to nil, signaling that the producer can now use that slot to store new data.

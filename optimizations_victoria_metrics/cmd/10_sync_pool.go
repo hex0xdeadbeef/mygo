@@ -323,12 +323,71 @@ pool, but it's not mandatory, it's a common practice.
    an `empty` interface (`interface{}`) under the hood.
       type eface struct {
          typ, val unsafe.Pointer
-      }  
+      }
    A slot in the buffer stays `in use` until two things happen:
       1) The tail index moves past the slot, meaning the data in that slot has been consumed by one of the consumers.
       2) The consumer who accessed that slot sets it to nil, signaling that the producer can now use that slot to store new data.
    In short, the pool chain combines a linked list and a ring buffer for each node. When one dequeue fills up, a new, larger one is created and linked to the head of the chain. This
    setup helps manage a high volume objects efficiently.
+*/
+
+/*
+   Pool.Put()
+1. Let's start with the Put(...) flow because it's a bit more straightforward than Get(), plus it ties into another process:
+   pinning a goroutine to a P.
+
+   When a goroutine calls Put() on a sync.Pool, the first thing it tries to do is to store the object in the `private` spot of the `P-local pool` for the current P. If that private spot is already occupied, that object gets pushed to the `head` of the pool chain, wbich is the shared part.
+
+   func (p *Pool) Put(x interface{}) {
+      // if the object is nil, just return
+      if x == nil {
+         return
+      }
+
+      // Pin the current P's P-local pool
+      l, _ := p.pin()
+
+      // If the private pool is not there, create it and set the object to it
+      if l.private == nil {
+         l.private = x
+         x = nil
+      }
+
+      // If the private object is there, push it to the head of the shared chain
+      if x != nil {
+         l.shared.pushHead(x)
+      }
+
+      // Unpin the current P
+      runtime_procUnpin()
+   }
+
+   We haven't talked about the pin() or runtime_procUnpin() functions yet, but they're important for both Get() and Put() ops because they ensure the goroutines stays `pinned` to the current `P`. It means:
+      Starting with Go 1.14, Go introduced preemptive scheduling, which means the runtime can pause a goroutine if it's been running on a processor P for too long, usually around 10ms, to give other goroutines a chance to run.
+
+      This is generally good for keeping things fair and responsive,
+      but it can cause issues when dealing with sync.Pool.
+   Operations like Put() and Get() in sync.Pool assume that the goroutine stays on the same processor (say, P1) throughout the entire op. If the goroutine is preempted in the middle of these ops and then resumed on a different processor (P2), the local data it was working with could end up being from the wrong processor.
+
+   So, what doest the pin() function do?
+      // pin pins the current G to P, disables preemption and
+      // returns poolLocal pool for the P and the P's id.
+      // Caller must call runtime_procUnpin() when done with the pool.
+      func (p *Pool) pin() (*poolLocal, int) {...}
+   Basically, pin() temporarily disables the scheduler's ability to preempt the goroutine while it's putting an object into the pool.
+
+   Even though it says `pins the current goroutine to P`, what's actually happening is that the current thread M is locked to the processor P, which prevents it from being preempted. As a result, the G running on that thread will also not be preempted.
+
+   As a side effect, pin() also updates the number of processors (Ps) if we happen to change GOMAXPROCS(n) (which controls the number of Ps) at runtime.
+
+   How about the shared pool chain?
+      When we need to add an item to the chain, the op first checks the head of the chain, Remember the *poolChainElt pointer? That's the most recent pool dequeue in the list.
+   Depending on the situation, here's what can happen:
+      1) If the head buffer of the chain is `nil`, meaning there's no pool dequeue in the chain yet, a new pool dequeue is created with an initial buffer size of `8`. The item is then placed into this brand-new pool dequeue.
+      2) If the head buffer of the chain isn't `nil` and that buffer isn't full, the item is simply added to the buffer at the `head` position.
+      3) If the head buffer of the chain isn't `nil`, but that buffer is full, meaning that the head index has wrapped around and caught up with the tail index, then a new pool dequeue is created. This new pool has a buffer size that's double of the current head. The item is placed into this new pool dequeue, and the head of the pool chain is updated to point to this new pool.
+
+   And that's pretty much it for the Put() flow. It's a relatively simple process because it doesn't involve interacting with the local pool other processors (Ps); everything happens within the current head of the pool chain.
 */
 const defaultCap = 1 << 10
 

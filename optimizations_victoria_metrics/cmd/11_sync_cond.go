@@ -18,40 +18,41 @@ import (
 
 	// or
 	for !condition {
-		time.Sleep(1100*time.Millisecond)
+		time.Sleep(100*time.Millisecond)
 	}
 
 	Not this isn't really efficient as that loop is still running in the background, burning through CPU cycles, even when nothing's changed.
 
-2. Technically, it's a `condition variable` if we're running from a more academic background.
+2. Technically, sync.Cond is a `condition variable` if we're running from a more academic background.
 	- When a goroutine is waiting for something to happen (waiting for a certain condition to become true), it can call Wait()
 	- Another goroutine, once it knows that the condition might be met, can call Signal() or Broadcast() to wake up the waiting goroutine(s) and let them know it's time to move on.
 
 3. The interface that sync.Cond provides:
 	// Wait suspends the calling goroutine until the condition is met
-	func (c *Cond) Wait() {}
+	func (c *Cond) Wait() {...}
 
-	// Wakes up a single goroutine, if there's one
-	func (c *Cond) Signal() {}
+	// Signal wakes up a single goroutine, if there's one
+	func (c *Cond) Signal() {...}
 
-	// Wakes up all the waiting goroutines
-	func (c *Cond) Broadcast() {}
+	// Broadcast wakes up all waiting goroutines
+	func (c *Cond) Broadcast() {...}
+
 4. In the function CondUsage:
 	- One goroutine is waiting for `Pikachu` to show up, while another one (the producer) randomly selects a Pokemon from the list and signals the consumer when a new one appears.
 	- When a producer sends the signal, the consumer wakes up and checks if the right Pokemon has appeared:
 		1) If it has, we catch the Pokemon
 		2) If not, the consumer goes back to sleep and waits for the next one.
 
-	The problem is, there's a gap between the producer sending the signal and the consumer actuablly waking up. In the meantime, the Pokemon could change, because the consumer goroutine
+	The problem is, there's a gap between the producer sending the signal and the consumer actually waking up. In the meantime, the Pokemon could change, because the consumer goroutine
 	might wake up later than 1 ms (rarely) or other goroutine modifies the shared pokemon. So sync.Cond is basically saying: `Hey! something changed! Wake up and check it out, but if
 	you're too late, it might change again.`
 
 5. If the consumer wakes up late, the Pokemon might run away, and the goroutine will go back to sleep.
 
 6. Huh, I could use a channel to send the pokemon name or a signal to the other goroutine.
-	Absolutely. In fact, channels are generally preferred over sync.Cond in Go because they're simpler, more idiomatic, and familiar to most developers.
+	Absolutely. In fact, channels are generally preferred over `sync.Cond` in Go because they're simpler, more idiomatic, and familiar to most developers.
 
-	In our case we could easily send the Pokemon name through a channel, or just use an empty struct{} to signal without sending any data. But our issue isn't just about passing messages
+	In our case we could easily send the Pokemon name through a channel, or just use an empty struct{} value to signal without sending any data. But our issue isn't just about passing messages
 	through channels, it's about dealing with a shared state.
 
 7. Our example is pretty simple, but if multiple goroutines are accessing the shared pokemon variable, let's look at what happens if we use a channel:
@@ -60,7 +61,7 @@ import (
 	- If we check for Pikachu in the producer and then send it trough the channel, we'd also need a mutex. On top of that, we'd violate the separation of concerns principle, where the
 		producer is taking on the logic that really belongs to the consumer.
 
-	That said, when multiple goroutines are modifying shared data, a mutex is still necessary to protect it. We'll often see a combination of channels ad mutexes in these cases to ensure
+	That said, when multiple goroutines are modifying shared data, a mutex is still necessary to protect it. We'll often see a combination of channels and mutexes in these cases to ensure
 	proper synchronization and data safety.
 
 8. Okay, but what about broadcasting signals?
@@ -93,6 +94,18 @@ import (
 
 	HOW TO USE sync.Cond?
 1. We always lock the mutex before waiting (.Wait()) on the condition, and we unlock it after the condition is met.
+	func f(c *sync.Cond) {
+		c.L.Lock()
+
+		for !condition() {
+			c.Wait()
+		}
+
+		// ...
+
+		c.L.Unlock()
+
+	}
 
 2. Plus, we wrap the waiting condition inside a loop, here's a refresher:
 	// Consumer
@@ -118,7 +131,7 @@ import (
 4. Here's a look at how Wait() works under the good:
 
 	func (c *Cond) Wait() {
-		// Check if Cond has been copied
+		// Check if Cond has been copied and panic() if it's been copied
 		c.checker.check()
 
 		// Get the ticket number
@@ -138,7 +151,7 @@ import (
 		- There's a checker to prevent copying the `Cond` instance, it would be panic if we do so.
 		- Calling cond.Wait() immediately unlocks the mutex, so the mutex must be locked before calling cond.Wait(), otherwise, it'll panic.
 		- After being woken up, cond.Wait() re-locks the mutex, which means we'll need to unlock it again after we're done with the shared data.
-		- Most of sync.Cond's functionality is implemented in the Go runtime with an internal data structure called notifyList, which uses a ticket-based system for notifications.
+		- Most of sync.Cond's functionality is implemented in the Go runtime with an internal data structure called `notifyList`, which uses a ticket-based system for notifications.
 
 5. Because of this lock/unlock behavior, there's a typical pattern we'll follow when using sync.Cond.Wait() to avoid common mistakes:
 	// Consumer function
@@ -165,28 +178,30 @@ import (
 	FUNCTIONS Cons.Signal() & Cond.Broadcast()
 1. The Signal() method is used to wake up a single goroutine that's currently waiting on a condition variable.
 	- If there are no goroutines currently waiting, Signal() doesn't do anything, it's basically no-op in this case.
-	- If there are goroutines waiting, Signal() wakes up the first one in the queue. So if we've fired off a bunch of goroutines, like from 0 to N, the 0th goroutine will be the first
+	- If there are goroutines waiting, Signal() wakes up `the first` one in the queue. So if we've fired off a bunch of goroutines, like from 0 to N, the 0th goroutine will be the first
 		one woken up by the Signal() call.
 
 2. The idea of SignalGoroutinePriority() is that Signal() is used to wake up one goroutine and tell it that the condition might be satisfied. Here's what the Signal() implementation
 	looks like:
 		func (c *Cond) Singal() {
 			c.checker.check()
+
 			runtime_notifyListNotifyOne(&c.notify)
 		}
 
-	We don't have to lock the mutex before calling Signal(), but it's generally a good idea to do so, especially if we're modifying shared data and it's being accessed concurrently.
+	We don't have to lock the mutex before calling Signal(), `but it's generally a good idea to do so`, especially if we're modifying shared data and it's being accessed concurrently.
 
 3. The contents of Broadcast is:
 	func (c *Cond) Broadcast() {
 		c.checker.check()
+
 		runtime_notifyListNotifyAll(&c.notify)
 	}
 
 	When we call Broadcast(), it wakes up all the waiting goroutines and removes them from the queue. The internal logic here is still pretty simple, hidden behind the
 	runtime_notifyListNotifyAll() function.
 
-	In the case of Broadcast(), all the goroutines are woken up within the 100 milliseconds, but there's no specific order how they're woken up.
+	In the case of Broadcast(), all the goroutines are woken up within the 100 milliseconds, but `there's no specific order how they're woken up`.
 
 	When Broadcast() is called, it marks all the waiting goroutines as ready to run, but they don't run immediately, they're picked based on the Go scheduler's underlying algorithm,
 	which can be a bit unpredictable.
@@ -199,13 +214,14 @@ import (
 
 	If the `Cond` gets copied after that first use, the program will panic with the error `sync.Cond is copied`
 
-	We might have seen something similar in sync.WaitGroup or sync.Pool, where they use a `noCopy` filed to prevent copying, but in those cases, it just avoids the ussue without causing
+	We might have seen something similar in sync.WaitGroup or sync.Pool, where they use a `noCopy` field to prevent copying, but in those cases, it just avoids the issue without causing
 	a panic.
 
 	Now, this `copyChecker` is actually just a `uintptr`, which is basically an `integer that holds a memory address`, here's how it works:
 		- After the first time we use sync.Cond, the `copyChecker` stores the memory address of itself, basically pointing to the `cond.copyChecker` object.
 		- If the object gets copied, the memory address of the copy checker (&cond.copyChecker) changes (since a new copy lives in a different location in memory), but the `uintptr` that
 			the copy checker holds doesn't change.
+
 	The check is simple:
 		Compare the memory addresses. If they're different, boom, there's a panic.
 
@@ -224,6 +240,7 @@ import (
 	Let's break this down into two main checks, since the first and last checks are doing pretty much the same thing.
 		1) The first check uintptr(*c) != uintptr(unsafe.Pointer(c)), looks to see if the memory address has changed. If it has, the object's been copied. But, there's a catch, if this
 			is the first time `copyChecker` is being used, it'll be 0 since it's not initialized yet.
+
 		2) The second check !atomic.CompareAndSwapUintptr((*uintptr)(c), 0, uintptr(unsafe.Pointer(c))), is where we use a Compare-And-Swap (CAS) op to handle both initialization and
 			checking.
 				- If CAS succeeds, it means the `copyChecker` was just initialized, so the object hasn't been copied yet, and we're good to go.
@@ -249,7 +266,7 @@ import (
 		noCopy 	noCopy
 		L 		Locker
 
-		notify 	notifyList
+		`notify 	notifyList`
 
 		checker copyChecker
 	}
@@ -267,6 +284,8 @@ import (
 
 	Now, the `notifyList` in the `sync` package and the one in the `runtime` package are different but share the same name and memory layout (in purpose). To really understand how it
 	works, we'll need to look at the version in the `runtime` package:
+
+		package runtime
 
 		type notifyList struct {
 			wait atomic.Uint32
@@ -312,7 +331,9 @@ import (
 
 	The ticket assignment is handled by an atomic counter. So when a goroutine calls
 	notifyListAdd(), that counter ticks up, and the goroutine is handed the next available ticket
-	number. Every goroutine gets its own unique ticket number, and this process happens `without
+	number.
+
+	Every goroutine gets its own unique ticket number, and this process happens `without
 	any lock`. This means that multiple goroutines can request tickets at the same time without
 	waiting for each other.
 

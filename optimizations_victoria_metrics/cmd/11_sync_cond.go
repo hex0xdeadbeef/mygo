@@ -44,10 +44,10 @@ import (
 		2) If not, the consumer goes back to sleep and waits for the next one.
 
 	The problem is, there's a gap between the producer sending the signal and the consumer actually waking up. In the meantime, the Pokemon could change, because the consumer goroutine
-	might wake up later than 1 ms (rarely) or other goroutine modifies the shared pokemon. So sync.Cond is basically saying: `Hey! something changed! Wake up and check it out, but if
+	might wake up later than 1 ms (rarely) or other goroutine modifies the shared pokemon. So sync.Cond is basically saying: `Hey! something has changed! Wake up and check it out, but if
 	you're too late, it might change again.`
 
-5. If the consumer wakes up late, the Pokemon might run away, and the goroutine will go back to sleep.
+5. If the consumer wakes up late, the Pokemon might run away (other goroutines can change its value), and the goroutine will go back to sleep.
 
 6. Huh, I could use a channel to send the pokemon name or a signal to the other goroutine.
 	Absolutely. In fact, channels are generally preferred over `sync.Cond` in Go because they're simpler, more idiomatic, and familiar to most developers.
@@ -93,9 +93,9 @@ import (
 
 
 	HOW TO USE sync.Cond?
-1. We always lock the mutex before waiting (.Wait()) on the condition, and we unlock it after the condition is met.
+1. We always lock the mutex before waiting (.Wait()) on the condition, and we unlock it after the condition is likely met.
 	func f(c *sync.Cond) {
-		c.L.Lock()
+		c.L.Lock() // !!!
 
 		for !condition() {
 			c.Wait()
@@ -103,7 +103,7 @@ import (
 
 		// ...
 
-		c.L.Unlock()
+		c.L.Unlock() // !!!
 
 	}
 
@@ -122,11 +122,12 @@ import (
 	}
 
 3. When we call Wait() on a sync.Cond, we're telling the current goroutine to hang tight until some condition is met. Here's what's happening behind the scenes:
-	- The goroutine gets added to a list of other goroutines that are also waiting on this same condition. All these goroutines are blocked, meaning they can't continue until they're
+	1) The goroutine gets added to a list of other goroutines that are also waiting on this same condition. All these goroutines are blocked, meaning they can't continue until they're
 		"woken up" by either a Signal() or Broadcast() call.
-	- The key part here is that the mutex must be locked before calling Wait() because Wait() does something important, it automatically releases the lock (calls Unlock()) before putting
+	2) The key part here is that the mutex must be locked before calling Wait() because Wait() does something important, it automatically releases the lock (calls Unlock()) before putting
 		the goroutine to sleep. This allows other goroutines to grab the lock and do their work while the original goroutine is waiting.
-	- When the waiting goroutine gets woken up (by Signal() or Broadcast()), it doesn't immediately resume work. First, it has to re-acquire the lock (Lock()).
+	3) When the waiting goroutine gets woken up (by Signal() or Broadcast()), it doesn't immediately resume work.
+		- First, it has to re-acquire the lock (Lock()).
 
 4. Here's a look at how Wait() works under the good:
 
@@ -143,7 +144,7 @@ import (
 		// Suspend the goroutine until being woken up
 		runtime_notifyListWait(&c.notify, t)
 
-		// Re-lock the mutex
+		// Re-lock the mutex, it takes some time.
 		c.L.Lock()
 	}
 
@@ -339,7 +340,7 @@ import (
 
 	For example, if the current ticket number at 5, the goroutine that calls notifyListAdd() next
 	will get ticket number 5, and the wait counter will then bump up to 6, ready for the next one
-	in line. The wait `field` always points to the next ticket number that'll be issued.
+	in line. The `wait` field always points to the next ticket number that'll be issued.
 
 	But here's where things get a little tricky
 
@@ -347,6 +348,139 @@ import (
 	necessarily guaranteed, even though the ticket numbers are issued sequentially, the order in which the goroutines get added to the linked list might not be `1,2,3`. Instead, it
 	could end up being `3,2,1`, or `2,1,3`, it all depends on the timing.
 
+2. After getting its ticket, the next step for the goroutine is to `wait` for its turn to be notified. This happens when the goroutine calls notifyListWait(t), where `t` is the ticket number it just got.
+
+		func notifyListWait(l *notifyList, t uint32) {
+			lockWithRank(&l.lock, lockRankNotifyList)
+
+			// Return right away if this ticket has already been notified.
+			if less(t, l.notify) {
+				unlock(&l.lock)
+				return
+			}
+
+			// Enqueue itself.
+			s := acquireSudog()
+
+			...
+
+			if l.tail == nil {
+				l.head = s
+			} else {
+				l.tail.next = s
+			}
+
+			l.tail.next = s
+
+			goparkunlock(&l.lock, waitReasonSyncCondWait, traceBlockCondWait, 3)
+
+			...
+
+			releaseSudog(s)
+		}
+
+	Before doing anything else, the goroutine checks if its ticket has already been notified.
+
+	It compares its own ticket `t` with the current notify number. If the `notify` number has already passed the goroutine's ticket, it doesn't have to wait at all - it can't jump straight
+	to the shared resource and get to work.
+
+	It turns out, this quick check is really important, especially when we dive into how Signal() and Broadcast() work. But if the goroutine's ticket hasn't been notified yet, it adds itself
+	to the waiting list and then goes to sleep, or `parks`, until being notified.
+
+3. notifyListNotifyOne()
+	When it's time to notify waiting goroutines, the system starts with the smallest ticket number that hasn't been notified yet, this is tracked by l.notify.
+
+	func notifyListNotifyOne(l *notifyList) {
+		// Fast path: If there are no new waiters, do nothing.
+		if l.wait.Add() == atomic.Load(&l.notify) {
+			return
+		}
+
+		lockWithRank(&l.lock, lockRankNotifyList)
+
+		// Re-check under the lock to make sure there's something to do.
+		t := l.notify
+		if t == l.wait.Load() {
+			unlock(&l.lock)
+			return
+		}
+
+		atomic.Store(&l.notify, t + 1)
+
+		// Find the goroutine with the matching ticket in the list
+		for p, s := (*sudog)(nil), l.head; s != nil; p, s = s, s.next {
+			if s.ticket == t {
+				// Found the goroutine with the ticket
+				n := s.next
+
+				if p != nil {
+					p.next = n
+				} else {
+					l.head = n
+				}
+
+				if n == nil {
+					l.tail = p
+				}
+
+				unlock(&l.lock)
+				s.next = nil
+				readyWithTime(s, 4) // Mark goroutine as ready.
+				return
+			}
+		}
+	}
+
+	Remember how we talked about the ticket order not being guaranteed?
+	We might have goroutines with tickets `2,1,3`, but the notify number is always increasing sequentially. So, when the system is ready to wake up a goroutine, it loops through the linked
+	list, looking for the goroutine holding the next ticket in line (the 1st). Once it finds it, it removes the goroutine from the list and marks it as ready to run.
+
+	But here's where it gets interesting.
+	There's sometimes a timing issue. Let's say a goroutine has grabbed a ticket, but hasn't yet been added to the list of waiting goroutines by the time this function runs.
+
+	What happens then? For example, the sequence could go like this:
+		1) notifyListAdd()
+		2) notifyListNotifyOne()
+		3) notifyListWait()
+	In that case, the function scans through the list, but does't find a goroutine with the matching ticket. No worries, though, notifyListWait() takes care of this situation when the
+	goroutine eventually calls it.
+
+	Remember that important check I mentioned earlier? The one in the notifyListWait() function: `if less(t, l.notify) {...}`
+
+	This check is important because it allows a goroutine holding a ticket number less than the current `l.notify` to realize, "Hey, my turn's already passed, I can go now.". In that case,
+	the goroutine skips waiting and immediately proceeds to access the shared resource.
+
+	So, even if the goroutine hasn't entered the linked list yet, it can still be notified if it's holding a valid ticket. This is what makes the design so smooth, each goroutine can grab its
+	ticket right away, without having to wait for others or for its turn to be added to the list. It keeps everything moving without unnecessary blocking.
+
+4. notifyListNotifyAll()
+	Now let's talk about the last piece, Broadcast() or notifyListNotifyAll. This one is a lot simpler compared to notifyListNotifyOne():
+
+		func notifyListNotifyAll(l *notifyList) {
+			// Fast path: If there are no new waiters, do nothing.
+			if l.wait.Load() == atomic.Load(&l.notify) {
+				return
+			}
+
+			lockWithRank(&l.lock, lockRankNotifyList)
+			s := l.head
+			l.head = nil
+			l.tail = nil
+
+			atomic.Store(&l.notify, l.wait.Load())
+			unlock(&l.lock)
+
+			// Ready all waiters in the list
+			for s != nil {
+				next = s.next
+				s.next = nil
+				readyWithTime(s, 4)
+				s = next
+			}
+		}
+
+	The code is pretty simple, and I think, we've got the gist already. Basically, Broadcast() goest through the entire list of waiting goroutines, marks all of them as ready, and clears out
+	the list.
 */
 
 func CondUsage() {

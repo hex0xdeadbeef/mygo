@@ -86,9 +86,11 @@ import (
 	wakes up. This process can feel awkward and is pretty prone to errors, like forgetting to lock or unlock at the right time.
 
 	Typically, goroutines that call cond.Wait() need to check some shared state in a loop, like this:
+
 		for !checkSomeSharedState() {
 			cond.Wait()
 		}
+
 	The lock embedded in sync.Cond() helps handle the lock/unlock process for us, making the code cleaner and less error prone, we'll discuss the pattern in detail soon.
 
 
@@ -96,22 +98,20 @@ import (
 1. We always lock the mutex before waiting (.Wait()) on the condition, and we unlock it after the condition is likely met.
 	func f(c *sync.Cond) {
 		c.L.Lock() // !!!
+		defer c.L.Unlock() // !!!
 
 		for !condition() {
 			c.Wait()
 		}
 
 		// ...
-
-		c.L.Unlock() // !!!
-
 	}
 
 2. Plus, we wrap the waiting condition inside a loop, here's a refresher:
 	// Consumer
 	go func() {
-		cond.L.Lock()
-		defer cond.L.Unlock()
+		cond.L.Lock() // !!!
+		defer cond.L.Unlock() // !!!
 
 		// waits until Pickachu appears
 		for curPokemon != "Pickachu" {
@@ -126,8 +126,8 @@ import (
 		"woken up" by either a Signal() or Broadcast() call.
 	2) The key part here is that the mutex must be locked before calling Wait() because Wait() does something important, it automatically releases the lock (calls Unlock()) before putting
 		the goroutine to sleep. This allows other goroutines to grab the lock and do their work while the original goroutine is waiting.
-	3) When the waiting goroutine gets woken up (by Signal() or Broadcast()), it doesn't immediately resume work.
-		- First, it has to re-acquire the lock (Lock()).
+	3) When the waiting goroutine gets woken up (by Signal() or Broadcast()), it doesn't immediately resume work:
+		First, it has to re-acquire the lock (Lock()).
 
 4. Here's a look at how Wait() works under the good:
 
@@ -254,8 +254,8 @@ import (
 
 	There's a race condition during the initialization.
 
-	if this is the first time the copyChecker is being used, it hasn't been initialized yet, and its value will be zero. In this case, the check will pass incorrectly, even though the
-	object hasn't been copied but just hasn't been initialized.
+	If this is the first time the copyChecker is being used, it hasn't been initialized yet, and its value will be zero. In this case, the check will pass incorrectly, even though the
+	object hasn't been copied but just has been initialized.
 
 
 	notifyList - TICK-BASED NOTIFICATION LIST
@@ -264,15 +264,17 @@ import (
 2. The internal structure of Cond type is:
 
 	type Cond struct {
+		checker copyChecker
+
 		noCopy 	noCopy
 		L 		Locker
 
 		`notify 	notifyList`
-
-		checker copyChecker
 	}
 
 	The version in the `sync` package:
+		package sync
+
 		type notifyList struct {
 			wait 	uint32
 			notify 	uint32
@@ -289,7 +291,7 @@ import (
 		package runtime
 
 		type notifyList struct {
-			wait atomic.Uint32
+			wait atomic.Uint32 // !!!
 			notify uint32
 
 			lock mutex
@@ -321,8 +323,10 @@ import (
 		t := runtime_notifyListAdd(*c.notify)
 
 		c.L.Unlock()
+
 		// Add the goroutine to the list and suspend it
 		runtime_notifyListWait(&c.notify, t)
+		
 		c.L.Lock()
 	}
 

@@ -332,181 +332,188 @@ pool, but it's not mandatory, it's a common practice.
 */
 
 /*
-   Pool.Put()
+	Pool.Put()
+
 1. Let's start with the Put(...) flow because it's a bit more straightforward than Get(), plus it ties into another process:
-      - pinning a goroutine to a P.
 
-   When a goroutine calls Put() on a sync.Pool, the first thing it tries to do is to store the object in the `private` spot of the `P-local pool` for the current P. If that private spot is already occupied, that object gets pushed to the `head` of the pool chain, wbich is the shared part.
+  - pinning a goroutine to a P.
 
-   func (p *Pool) Put(x interface{}) {
-      // if the object is nil, just return
-      if x == nil {
-         return
-      }
+    When a goroutine calls Put() on a sync.Pool, the first thing it tries to do is to store the object in the `private` spot of the `P-local pool` for the current P. If that private spot is already occupied, that object gets pushed to the `head` of the pool chain, wbich is the shared part.
 
-      // Pin the current P's P-local pool
-      l, _ := p.pin()
+    func (p *Pool) Put(x interface{}) {
+    // if the object is nil, just return
+    if x == nil {
+    return
+    }
 
-      // If the private pool is not there, create it and set the object to it
-      if l.private == nil {
-         l.private = x
-         x = nil
-      }
+    // Pin the current P's P-local pool
+    l, _ := p.pin()
 
-      // If the private object is there, push it to the head of the shared chain
-      if x != nil {
-         l.shared.pushHead(x)
-      }
+    // If the private pool is not there, create it and set the object to it
+    if l.private == nil {
+    l.private = x
+    x = nil
+    }
 
-      // Unpin the current P
-      runtime_procUnpin()
-   }
+    // If the private object is there, push it to the head of the shared chain
+    if x != nil {
+    l.shared.pushHead(x)
+    }
 
-   We haven't talked about the pin() or runtime_procUnpin() functions yet, but they're important for both Get() and Put() ops because they ensure the goroutines stays `pinned` to the current `P`. It means:
-      Starting with Go 1.14, Go introduced preemptive scheduling, which means the runtime can pause a goroutine if it's been running on a processor P for too long, usually around 10ms, to give other goroutines a chance to run.
+    // Unpin the current P
+    runtime_procUnpin()
+    }
 
-      This is generally good for keeping things fair and responsive,
-      but it can cause issues when dealing with sync.Pool.
-   Operations like Put() and Get() in sync.Pool assume that the goroutine stays on the same processor (say, P1) throughout the entire op. If the goroutine is preempted in the middle of these ops and then resumed on a different processor (P2), the local data it was working with could end up being from the wrong processor.
+    We haven't talked about the pin() or runtime_procUnpin() functions yet, but they're important for both Get() and Put() ops because they ensure the goroutines stays `pinned` to the current `P`. It means:
+    Starting with Go 1.14, Go introduced preemptive scheduling, which means the runtime can pause a goroutine if it's been running on a processor P for too long, usually around 10ms, to give other goroutines a chance to run.
 
-   So, what doest the pin() function do?
-      // pin pins the current G to P, disables preemption and
-      // returns poolLocal pool for the P and the P's id.
-      // Caller must call runtime_procUnpin() when done with the pool.
-      func (p *Pool) pin() (*poolLocal, int) {...}
-   Basically, pin() temporarily disables the scheduler's ability to preempt the goroutine while it's putting an object into the pool.
+    This is generally good for keeping things fair and responsive,
+    but it can cause issues when dealing with sync.Pool.
+    Operations like Put() and Get() in sync.Pool assume that the goroutine stays on the same processor (say, P1) throughout the entire op. If the goroutine is preempted in the middle of these ops and then resumed on a different processor (P2), the local data it was working with could end up being from the wrong processor.
 
-   Even though it says `pins the current goroutine to P`, what's actually happening is that the current thread M is locked to the processor P, which prevents it from being preempted. As a result, the G running on that thread will also not be preempted.
+    So, what doest the pin() function do?
+    // pin pins the current G to P, disables preemption and
+    // returns poolLocal pool for the P and the P's id.
+    // Caller must call runtime_procUnpin() when done with the pool.
+    func (p *Pool) pin() (*poolLocal, int) {...}
+    Basically, pin() temporarily disables the scheduler's ability to preempt the goroutine while it's putting an object into the pool.
 
-   As a side effect, pin() also updates the number of processors (Ps) if we happen to change GOMAXPROCS(n) (which controls the number of Ps) at runtime.
+    Even though it says `pins the current goroutine to P`, what's actually happening is that the current thread M is locked to the processor P, which prevents it from being preempted. As a result, the G running on that thread will also not be preempted.
 
-   How about the shared pool chain?
-      When we need to add an item to the chain, the op first checks the head of the chain, Remember the *poolChainElt pointer? That's the most recent pool dequeue in the list.
-   Depending on the situation, here's what can happen:
-      1) If the head buffer of the chain is `nil`, meaning there's no pool dequeue in the chain yet, a new pool dequeue is created with an initial buffer size of `8`. The item is then placed into this brand-new pool dequeue.
-      2) If the head buffer of the chain isn't `nil` and that buffer isn't full, the item is simply added to the buffer at the `head` position.
-      3) If the head buffer of the chain isn't `nil`, but that buffer is full, meaning that the head index has wrapped around and caught up with the tail index, then a new pool dequeue is created. This new pool has a buffer size that's double of the current head. The item is placed into this new pool dequeue, and the head of the pool chain is updated to point to this new pool.
+    As a side effect, pin() also updates the number of processors (Ps) if we happen to change GOMAXPROCS(n) (which controls the number of Ps) at runtime.
 
-   And that's pretty much it for the Put() flow. It's a relatively simple process because it doesn't involve interacting with the local pool other processors (Ps); everything happens within the current head of the pool chain.
+    How about the shared pool chain?
+    When we need to add an item to the chain, the op first checks the head of the chain, Remember the *poolChainElt pointer? That's the most recent pool dequeue in the list.
+    Depending on the situation, here's what can happen:
+    1) If the head buffer of the chain is `nil`, meaning there's no pool dequeue in the chain yet, a new pool dequeue is created with an initial buffer size of `8`. The item is then placed into this brand-new pool dequeue.
+    2) If the head buffer of the chain isn't `nil` and that buffer isn't full, the item is simply added to the buffer at the `head` position.
+    3) If the head buffer of the chain isn't `nil`, but that buffer is full, meaning that the head index has wrapped around and caught up with the tail index, then a new pool dequeue is created. This new pool has a buffer size that's double of the current head. The item is placed into this new pool dequeue, and the head of the pool chain is updated to point to this new pool.
 
-   sync.Pool().Get()
+    And that's pretty much it for the Put() flow. It's a relatively simple process because it doesn't involve interacting with the local pool other processors (Ps); everything happens within the current head of the pool chain.
+
+    sync.Pool().Get()
+
 1. At first glance, the Get() function seems pretty similar to Put().
 
 2. It starts by pinning the current goroutine to its P to prevent preemption, then checks and grabs the private object from its `P-local pool` without needing any synchronization. If the private object isn't there, it checks the shared pool chain and pops the head of the chain.
 
-   Only the goroutine running on the current `P-local pool` can access the head of the chain, which is why we use popHead():
-      func (p *Pool) Get() interface{} {
-         // Pin the current P's P-local pool
-         l, pid := p.pin()
+		Only the goroutine running on the current `P-local pool` can access the head of the chain, which is why we use popHead():
+		   func (p *Pool) Get() interface{} {
+		      // Pin the current P's P-local pool
+		      l, pid := p.pin()
 
-         // Get the private obj from the current P-local pool
-         x := l.private
-         l.private = nil
+		      // Get the private obj from the current P-local pool
+		      x := l.private
+		      l.private = nil
 
-         // If the private obj isn't there, pop the head of the shared pool chain
-         if x == nil {
-            x, _ = l.shared.popHead()
+		      // If the private obj isn't there, pop the head of the shared pool chain
+		      if x == nil {
+		         x, _ = l.shared.popHead()
 
-            // Steal from other P's cache
-            if x == nil {
-               x = p.getSlow(pid)
-            }
-         }
-         runtime_procUnpin()
+		         // Steal from other P's cache
+		         if x == nil {
+		            x = p.getSlow(pid)
+		         }
+		      }
+		      runtime_procUnpin()
 
-         // If the object is still not there, create a new object by using the factory function
-         if x == nil && p.New != nil {
-            x = p.New()
-         }
+		      // If the object is still not there, create a new object by using the factory function
+		      if x == nil && p.New != nil {
+		         x = p.New()
+		      }
 
-         return x
-      }
+		      return x
+		   }
 
-      Unlike in p.pin() for Put(), here we also get the `pid`, which is the ID of the P that the
-      current goroutine is running on. We need this for the stealing process, which comes into play
-      if the fast path fails.
+		   Unlike in p.pin() for Put(), here we also get the `pid`, which is the ID of the P that the
+		   current goroutine is running on. We need this for the stealing process, which comes into play
+		   if the fast path fails.
 
-      The fast path is when the object is available in the current P's cache. But if that doesn't work out, meaning the private object and the head of the shared chain are both empty, the slow path (getSlow) takes over.
+		   The fast path is when the object is available in the current P's cache. But if that doesn't work out, meaning the private object and the head of the shared chain are both empty, the slow path (getSlow) takes over.
 
-      In the slow path, we try to steal objects from the cache pools of other processors (Ps).
+		   In the slow path, we try to steal objects from the cache pools of other processors (Ps).
 
-      The idea behind stealing is to reuse objects that might be sitting idle in the caches of other processors, instead of creating new objects from scratch. If another P has extra objects in its cache pool, the current P can grab those objects and put them to use.
+		   The idea behind stealing is to reuse objects that might be sitting idle in the caches of other processors, instead of creating new objects from scratch. If another P has extra objects in its cache pool, the current P can grab those objects and put them to use.
 
-      The stealing process basically loops through all the Ps, except the current one (pid) and tries to grab an object from each P's shared pool chain.
-         for i := 0; i < int(size); i++ {
-            l := indexLocal(locals, (pid+i+1)%int(size))
-            if x, _ := l.shared.popTail(); x != nil {
-               return x
-            }
-         }
-      As we've talked about before, in a poolChain, the provider (the current P) pushes and pops at the head, while multiple consumers (other Ps) pop from the tail. So popTail looks at the last pool dequeue in the linked list and tries to grab data from the end of that dequeue:
-         1) If it finds data, the steal is successful, and the data is returned.
-         2) If it doesn't find any data in that pool dequeue, the tail index increases, and that pool dequeue gets removed from the chain.
-      This process continues until it either successfully steals some data or runs out of options in all the pool chains.
+		   The stealing process basically loops through all the Ps, except the current one (pid) and tries to grab an object from each P's shared pool chain.
+		      for i := 0; i < int(size); i++ {
+		         l := indexLocal(locals, (pid+i+1)%int(size))
+		         if x, _ := l.shared.popTail(); x != nil {
+		            return x
+		         }
+		      }
+		   As we've talked about before, in a poolChain, the provider (the current P) pushes and pops at the head, while multiple consumers (other Ps) pop from the tail. So popTail looks at the last pool dequeue in the linked list and tries to grab data from the end of that dequeue:
+		      1) If it finds data, the steal is successful, and the data is returned.
+		      2) If it doesn't find any data in that pool dequeue, the tail index increases, and that pool dequeue gets removed from the chain.
+		   This process continues until it either successfully steals some data or runs out of options in all the pool chains.
 
-      If, after all the stealing attempts, it still can't find any data, the function tries to get data from what's called the `victim`. This is a new concept related to how sync.Pool cleans up objects.
+		   If, after all the stealing attempts, it still can't find any data, the function tries to get data from what's called the `victim`. This is a new concept related to how sync.Pool cleans up objects.
 
-      We're trying to grab an object in every possible way, and if nothing is found, it finally creates a new object using New(). But if New() is nil, it just returns `nil`. Simple as that.
+		   We're trying to grab an object in every possible way, and if nothing is found, it finally creates a new object using New(). But if New() is nil, it just returns `nil`. Simple as that.
 
-      Now, after the attempt with the victim pool, it's atomically marked as empty (though concurrent accesses may still retrieve from it). Subsequent Get() ops will skip checking the victim cache until it's filled up again.
+		   Now, after the attempt with the victim pool, it's atomically marked as empty (though concurrent accesses may still retrieve from it). Subsequent Get() ops will skip checking the victim cache until it's filled up again.
 
-      VICTIM POOL
-1. Even though `sync.Pool` is built for better manage resources, it doesn't give us, developers, direct tools to clean up or manage object lifecycles. Instead, `sync.Pool` handles
-   cleanup behind the scenes to avoid uncheked growth, which could lead to memory leaks.
+		   VICTIM POOL
 
-   The primary way this cleanup happens is through Go's GC.
+	 1. Even though `sync.Pool` is built for better manage resources, it doesn't give us, developers, direct tools to clean up or manage object lifecycles. Instead, `sync.Pool` handles
+	    cleanup behind the scenes to avoid uncheked growth, which could lead to memory leaks.
 
-   Remember when we talked about pin()? It turns out pin() has another side effect.
-      Every time a sync.Pool calls pin() for the first time (or after the number of Ps has changed via GOMAXPROCS), it gets added to a global slice called allPools in the sync package.
+	    The primary way this cleanup happens is through Go's GC.
 
-      package sync
+	    Remember when we talked about pin()? It turns out pin() has another side effect.
+	    Every time a sync.Pool calls pin() for the first time (or after the number of Ps has changed via GOMAXPROCS), it gets added to a global slice called allPools in the sync package.
 
-      var (
-         allPoolsMu Mutex
+	    package sync
 
-         // allPools is the set of pools that have non-empty primary caches. Protected by either 1) allPoolsMu and pinning or 2) STW
-         allPools []*Pool
+	    var (
+	    allPoolsMu Mutex
 
-         // oldPools is the set of pools that may have non-empty victim caches. Protected by STW.
-         oldPools []*Pool
-      )
-   This `allPools []*Pool` slice keeps track of all the active sync.Pool instances in our application.
+	    // allPools is the set of pools that have non-empty primary caches. Protected by either 1) allPoolsMu and pinning or 2) STW
+	    allPools []*Pool
 
-   Before each GC cycle starts, Go's runtime triggers a cleanup process that clears out the `allPools` slice. Here's how it works:
-      1) Before the GC kicks in, it calls `clearPool`, which transfers all the objects, including the private objects and shared pool chains, over to what's called the victim area.
-      2) These objects aren't immediately thrown away, they're held in this victim area for now.
-      3) Meanwhile, the objects that were already in the `victim area` from the last GC cycle get fully cleared out during the current GC cycle.
+	    // oldPools is the set of pools that may have non-empty victim caches. Protected by STW.
+	    oldPools []*Pool
+	    )
+	    This `allPools []*Pool` slice keeps track of all the active sync.Pool instances in our application.
 
-      func poolCleanup() {
-         // Drop victim caches from all pools
-         for _, p := range oldPools {
-            p.victim = nil
-            p.victimSize = 0
-         }
+	    Before each GC cycle starts, Go's runtime triggers a cleanup process that clears out the `allPools` slice. Here's how it works:
 
-         // Move primary cache to victim cache
-         for _, p := range allPools {
-            p.victim = p.local
-            p.victimSize = p.localSize
-            p.local = nil
-            p.localSize = 0
-         }
+	 1. Before the GC kicks in, it calls `clearPool`, which transfers all the objects, including the private objects and shared pool chains, over to what's called the victim area.
 
-         // The pools with non-empty primary caches now have non-empty victim caches and no pools have primary caches.oldPools, allPools = allPools, nil
-         oldPools, allPools = allPools, nil
-      }
+	 2. These objects aren't immediately thrown away, they're held in this victim area for now.
 
-      But why do we need this victim mechanism? Why does it take up to 2 GC cycles to clear all the objects in the pool?
-         The reason for using the victim mechanism in sync.Pool is to avoid suddenly and completely emptying the pool right after a GC cycle. If the pool were emptied all at once, it
-         could lead to performance issues, as any new requests for objects would require them to be recreated from scratch. So we move objects to the victim area first, sync.Pool ensures
-         there's a buffer period where objects can still be reused before they're fully discarded.
-      To sum up, an object in sync.Pool takes `at least 2 GC cycles` to be fully removed.
+	 3. Meanwhile, the objects that were already in the `victim area` from the last GC cycle get fully cleared out during the current GC cycle.
 
-      This could be a problem for programs with a low GOGC value, which controls how frequently the GC runs to clean up unused objects. If GOGC is set tool low, the cleanup process might
-      remove unused objects too quickly, leading to more cache misses.
+	    func poolCleanup() {
+	    // Drop victim caches from all pools
+	    for _, p := range oldPools {
+	    p.victim = nil
+	    p.victimSize = 0
+	    }
 
-2. Final words: Even with sync.Pool, if we're dealing with extremely high concurrency and slow GC, we might experience more overhead. In this case a good solution could be to implement
-   rate limiting on sync.Pool usage.
+	    // Move primary cache to victim cache
+	    for _, p := range allPools {
+	    p.victim = p.local
+	    p.victimSize = p.localSize
+	    p.local = nil
+	    p.localSize = 0
+	    }
+
+	    // The pools with non-empty primary caches now have non-empty victim caches and no pools have primary caches.oldPools, allPools = allPools, nil
+	    oldPools, allPools = allPools, nil
+	    }
+
+	    But why do we need this victim mechanism? Why does it take up to 2 GC cycles to clear all the objects in the pool?
+	    The reason for using the victim mechanism in sync.Pool is to avoid suddenly and completely emptying the pool right after a GC cycle. If the pool were emptied all at once, it
+	    could lead to performance issues, as any new requests for objects would require them to be recreated from scratch. So we move objects to the victim area first, sync.Pool ensures
+	    there's a buffer period where objects can still be reused before they're fully discarded.
+	    To sum up, an object in sync.Pool takes `at least 2 GC cycles` to be fully removed.
+
+	    This could be a problem for programs with a low GOGC value, which controls how frequently the GC runs to clean up unused objects. If GOGC is set tool low, the cleanup process might
+	    remove unused objects too quickly, leading to more cache misses.
+
+	 2. Final words: Even with sync.Pool, if we're dealing with extremely high concurrency and slow GC, we might experience more overhead. In this case a good solution could be to implement
+	    rate limiting on sync.Pool usage.
 */
 const defaultCap = 1 << 10
 

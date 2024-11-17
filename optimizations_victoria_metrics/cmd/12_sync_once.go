@@ -14,7 +14,7 @@ import (
 	WHAT IS sync.Once?
 1. The sync.Once is exactly what we reach for when we need a function to run just one time, now matter how many times it gets called or how many goroutines hit it simultaneously.
 
-2. It's perfecvt for initializing a singleton resource, something that should only happen once in ours application lifecycle, such as setting up a database conn pool, initializing a logger or maybe configuring our
+2. It's perfect for initializing a singleton resource, something that should only happen once in ours application lifecycle, such as setting up a database conn pool, initializing a logger or maybe configuring our
 	metrics system.
 
 	var once sync.Once
@@ -38,7 +38,7 @@ import (
 4. Now, something important to keep in mind:
 	Once we've used a sync.Once object to run a function, that's it - we can't reuse it. Once it's done, it's done.
 
-5. There's no built-in may to reset a sync.Once either. Ocnce it's done its job, it's retired for good.
+5. There's no built-in way to reset a sync.Once either. Once it's done its job, it's retired for good.
 
 6. Now, here's interesting twist. If the function we pass to sync.Once panics while running, sync.Once still treats that as "mission accomplished". That means future calls to Do(f) won't run the function again. This can
 	be tricky, especially of we're trying to catch the panic and handle the error afterward, there's no retry.
@@ -50,7 +50,7 @@ import (
 	FUNCTIONS OnceFunc, OnceValue, and OnceValues FUNCTIONS
 1. From Go 1.21 onward, we get OnceFunc, OnceValue, and OnceValues functions. These are basically handy wrappers around sync.Once that make things smoother, without sacrificing any performance.
 
-2. OnceFunc is pretty straightforward, it takes our function `f` and wraps it in another function that we can call as many times as we wand, but `f` itself will only run once.
+2. OnceFunc is pretty straightforward, it takes our function `f` and wraps it in another function that we can call as many times as we want, but `f` itself will only run once.
 
 	Even if we call wrapper() a bunch of times, printOnce() runs only on the first call.
 

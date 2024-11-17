@@ -216,7 +216,7 @@ pool, but it's not mandatory, it's a common practice.
 	But if the private object isn't available, that's when the shared pool chain `shared` steps in.
 
 3. Why wouldn't private object be available? I thought only one goroutine could get and put the object the private object back into the pool. So, who's the competition?
-   While it's true that only one goroutine can access the private of a P at a time, there's a catch. If G `A` grabs the private object and then gets blocked or preempted, G `B`
+   While it's true that only one goroutine can access the `private` of a P at a time, there's a catch. If G `A` grabs the private object and then gets blocked or preempted, G `B`
    might start running on that same P. When that happens, G `B` won't be able to access the private object because G `A` still has it. Now, unlike the simple of private object, the
    `shared` pool chain is a bit more complex.
 
@@ -243,7 +243,6 @@ pool, but it's not mandatory, it's a common practice.
    the CPU needs to access memory, it doesn't just grab a single byte or word - it loads an entire cache line.
 
    This means that if two pieces of data are close together in memory, they might end up on the same cache line, even if they're logically separate.
-
    Now, in the context of Go's `sync.Pool`, each logical processor (P) has its own `poolLocal`, which is stored in an array, if the `poolLocal` structure is smaller than the size of a
    cache line, multiple `poolLocal` instances from different Ps can end up on the same cache line. This is where things can go sideways. If two Ps, running on different CPU cores, try to
    acces their own `poolLocal` at the same time, they could unintentionally step on each other's toes.

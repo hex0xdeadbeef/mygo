@@ -56,6 +56,7 @@ import (
 1. We need to consider two things separately:
 	1) The slice itself (which just the slice header)
 	2) The underlying array
+	
 2. The first case: Both the slice and its underlying array are allocated on the stack.
 
 	In this case the addresses are close to each other. It's easily observed by printing them.

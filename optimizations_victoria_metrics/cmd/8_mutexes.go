@@ -25,7 +25,7 @@ import (
 	read the same original value, one increment is practically lost.
 
 3. If we call Unlock() on an already unlocked mutex, it'll cause a fatal error:
-	sync: unlock of unlocked mutex
+	`sync: unlock of unlocked mutex`
 
 	MUTEX STRUCTURE: THE ANATOMY
 1. The mutex itself is:
@@ -72,7 +72,7 @@ import (
 			return
 		}
 
-		// Slow path (outlined so that the past path can be inlined)
+		// Slow path (outlined so that the fast path can be inlined)
 		m.lockSlow()
 	}
 
@@ -81,7 +81,7 @@ import (
 
 	FYI, this inlined fast path is neat trick that utilizes Go's inline optimization, and it's used a lot in Go's source code.
 
-	When the CAS (Compare And Swap) operation in the fast path fails, it means the state field wasn't 0, so the mutex is currently locked.
+	When the CAS (Compare And Swap) op in the fast path fails, it means the state field wasn't 0, so the mutex is currently locked.
 
 	The real concern here is the slow path m.lockSlow(), which does most of the heavy lifting. In the slow path, the goroutine keeps actively spinning to try to acquire the lock, it doesn't just
 	go straight to the waiting queue.
@@ -144,12 +144,13 @@ import (
 		mutex is now completely free.
 
 		2) Slow path, which handles unusual cases
+		
 2. The slow unlock.
 	That's where the slow path comes in and it needs to know if our mutex is in normal mode or starvation mode.
 
 	func (m *Mutex) unlockSlow(new int32) {
 	// 1. Attempting to unlock an already unlocked mutex will cause a fatal error
-		if (new + mutexLocked)&mutexLocked == 0 { 
+		if (new + mutexLocked)&mutexLocked == 0 {
 			fatal("sync: unlock of unlcoked mutex")
 		}
 

@@ -9,6 +9,7 @@ import "fmt"
 	- Maps aren't thread-safe, the Go runtime will cause a fatal error if we try to read/iterate + write simultaneously.
 	- We can check if a key is in a map doing a simple `ok` check: _, ok := m[key]
 	- The key type for a map must be comparable
+	
 2. Interfaces can be both comparable and non-comparable.
 
 	We can define a map with an `empty` interface as the key without any compile errors, but the internal strucures put to interface-key should be comparable.

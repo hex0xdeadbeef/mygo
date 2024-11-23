@@ -5,7 +5,7 @@ import "sync"
 /*
 	FUNCTION CACHING
 1. As an example, some of our scrape targets may generate metric labels with underscores "_", and some of our targets may generate labels with hyphens "-". Relabeling allows us to make this
-	consistent, making DB queries easire to write.
+	consistent, making DB queries easier to write.
 
 2. Relabeling, if defined, happens every time vmagent scrapes metrics from our targets, but as we've seen before, vmagent is likely to see the same metric label many times. That means if we once
 	saw foo-bar-baz and changed it to foo_bar_baz, then it's very likely we'll have to do the same transformation on the next scrape as well. In this case, caching the results of the relabeling
@@ -15,7 +15,7 @@ import "sync"
 
 4. Transformer implements function Transform which we use during during relabeling.
 
-	The Transform function first checks the cache usign the Load function. If a cached result is found, then it returns the results from the cache. Otherwise, it'll call transformFunc to do the
+	The Transform function first checks the cache using the Load function. If a cached result is found, then it returns the results from the cache. Otherwise, it'll call transformFunc to do the
 	transformation, store the result in the cache, and return it.
 
 5. Now we can use our "hot path" to make fast ops using cache / a function defined.
@@ -27,7 +27,7 @@ import "sync"
 	VM uses function result caching for its relabeling feature, but doesn't use it for caching database queries. In the cases of database queries, the range of possible values is too large and
 	it's likely our cache hit rate would be low. As with strings interning, functions results caching works the best if number of cached variants is limited, so we can achieve high cache hit rate.
 
-	
+
 */
 
 type Transformer struct {

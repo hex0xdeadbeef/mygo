@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 )
@@ -91,7 +92,7 @@ func processNumber(wg *sync.WaitGroup, prod <-chan int) {
 	defer wg.Done()
 
 	for num := range prod {
-		_ = num * num
+		fmt.Println(num * num)
 	}
 }
 
@@ -127,7 +128,10 @@ func startSemaphorePool() {
 		go func(wg *sync.WaitGroup, sem Semaphore, num int) {
 			defer wg.Done()
 
-			_ = num * num
+			sem.BookToken()
+			defer sem.ReleaseToken()
+			fmt.Println(num * num)
+
 		}(wg, sem, i)
 	}
 

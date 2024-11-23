@@ -68,7 +68,7 @@ import (
 
 	If a function has at least one heap-allocated defer, any defer in the function won't be inlined or open-coded. That means, to optimize the function headAndStackAllocatedDefers(...), we should remove or move the heap allocated defer elsewhere.
 
-	Another thing to keep in mind is that the product of the number of defers in the function and the number of return statements needs to be 15 or less to fir into this category. This is because we put the defer before every return statement. Our binary code will get pretty bloated if we have too many exit paths like that.
+	Another thing to keep in mind is that the product of the number of defers in the function and the number of return statements needs to be 15 or less to get into this category. This is because we put the defer before every return statement. Our binary code will get pretty bloated if we have too many exit paths like that.
 
 	If the number of defer statements is more than 8, open-coded defer will not be applied.
 */

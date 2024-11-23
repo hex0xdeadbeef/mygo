@@ -24,6 +24,7 @@ import (
 
 	Copying a WaitGroup can mess things up because the internal state that tracks goroutines and their synchronization can get out of sync between the copies.
 
+
 	THE FIELD noCopy
 1. The noCopy struct is included in WaitGroup as a way to help prevent copying mistakes, not by throwing errors, but by serving as a warning.
 
@@ -44,6 +45,7 @@ import (
 
 	INTERNAL STATE
 1. The state of WaitGroup is stored in an `atomic.Uint64` variable.
+
 2. The `state` consists of two parts (the size of each part is 32 bits):
 	1) Counter (high 32 bits):
 		This part keeps track of the number of goroutines the WaitGroup is waiting for. When we call wg.Add(...) with a positive value, it bumps up this counter, and when we call wg.Done
@@ -55,6 +57,7 @@ import (
 3. Then, there's the final field `sema uint32`, which is an internal semaphore managed by Go runtime. When a goroutine calls wg.Wait() and the counter part isn't zero, it increases the
 	`Waiter` part count and then blocks by runtime_Semacquire(&wg.sema). This function call puts the goroutine to sleep until it gets woken up by a corresponding runtime_Semrelease(&wg.
 	sema) call.
+
 
 	ALIGNMENT PROBLEM.
 1. The core of WaitGroup (the counter, the waiter, and semaphore) hasn't really changed across different Go versions. However, the way these elements are strucured has been modified many
@@ -71,19 +74,20 @@ import (
 		On ARM, 386, and 32-bit MIPS, it is the caller’s responsibility to arrange for 64-bit alignment of 64-bit words accessed atomically via the primitive atomic functions
 	What this means is if we don't align the `state` uint64 variable to an 8-byte boundary on these 32-bit architectures, it could cause the program to crash.
 
+
 	THE SOLUTION OF GO'S 1.20 VERSION FOR WAITGROUP
 1. In Go 1.19 a key optimization was introduced to ensure that uint64 values used in atomic ops are always aligned to 8-byte boundaries, even on 32-bit architectures.
 
 	To achieve this, Russ Cox introduced a special struct atomic.Uint64, it's basically wrapper around uint64:
 		type Uint64 struct {
 			_ noCopy
-			_ align64
+			_ align64 // !!!
 			v uint64
 		}
 
 		// `align64` may be added to structs that must be 64-bit aligned.
 		// This struct is recognized by a special case in the compiler
-		// and won't be work if copied to any other package.
+		// and won't work if copied to any other package.
 		type align64 struct{}
 
 	So, what's the deal with align64?
@@ -98,6 +102,7 @@ import (
 
 	Thanks to atomic.Uint64, the state is guaranteed to be 8-byte aligned, so we don't have to worry about the alignment issues that could mess up atomic ops on 64-bit variables.
 
+
 	HOW sync.WaitGroup INTERNALLY WORKS?
 1. Why don't we just split the `Counter` and `Waiter` into two separate `uint32` variables?
 
@@ -107,6 +112,7 @@ import (
 	delay, which can stack up when dealing with high-frequency ops.
 
 	On the other hand, we use atomic ops to modify this 64-bit variable safely, without the need to lock and unlock a mutex.
+
 2. wg.Add(delta int)
 	When we pass a value to the wg.Add(?) method, it adjusts the counter accordingly.
 
@@ -119,6 +125,7 @@ import (
 
 	However, if the negative delta causes the counter to drop below zero, the program will panic. The WaitGroup doesn't check the counter before updating it, it updates first and then
 	checks. This means that if the counter goes negative after calling wg.Add(?), it stays negative until panic occurs.
+	
 3. The internals of wg.Add():
 	func (wg *WaitGroup) Add(delta int) {
 		// race stuffs

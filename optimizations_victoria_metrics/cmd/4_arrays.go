@@ -27,7 +27,7 @@ import (
 
 4. The example is just a play around with the `unsafe` package to access memory directly for educational purposes. Don't do this in production without understanding the consequences.
 
-5. Now, an array of type T isn't a type by itself, byt an array with a specific size and type T, is considered a type. Even though both `a` and `b` are arrays of bytes, the Go compiler sees them
+5. Now, an array of type T isn't a type by itself, but an array with a specific size and type T, is considered a type. Even though both `a` and `b` are arrays of bytes, the Go compiler sees them
 	as completely different types, the %T format makes this point clear.
 
 6. Here's how the Go compiler sees it internally (src/cmd/compile/internal/types2/array.go)
@@ -35,7 +35,7 @@ import (
 	// An array represents an array type
 	type Array struct {
 		length int64
-		eleme Type
+		elem Type
 	}
 
 	// NewArray returns a new array type for the given element type and length. A negative length indicates an unknown length.
@@ -74,20 +74,23 @@ import (
 	Our data is stored in stmp_1, which is read-only static data with a size of 40 bytes (8 bytes for each element), and the address of this data is harcoded in the binary.
 
 	The compiler generates code to reference this static data. When our application runs, it can directly use this pre-initialized data without needing additional code to set up the array.
+
 3. What about an array with 5 elems but only 3 of the initialized?
 	Good question, this literal [5]int{1,2,3} falls into the first category, where Go puts the value into the array one by one.
 
 	While talking about defining and initializing arrays, we should mention that not every array is allocated on the stack. If it's too big, it gets moved to the heap.
 
-	As of Go 1.23, if the size of the variable, not just array, excedds a constant valye MaxStackVarSize, which is currently 10 MB, it'll be considered too large for stack allocation an will
+	As of Go 1.23, if the size of the variable, not just array, exceeds a constant value MaxStackVarSize, which is currently 10 MB, it'll be considered too large for stack allocation an will
 	escape to the heap.
 
-	ARRAY OPERATIONS
+
+	ARRAY OPS
 1. The length of the array is hardcoded in the type itself. Even though array don't have a cap property, we can still get it.
 
 	The capacity equals the length, no doubt, but the most important thing is that we know this at compile time.
 
 	So len(arr) doesn't make sense to the compiler it's not a runtime property, Go compiler knows the value at compile time. Go takes this key point and turns it into a constant behind the scenes.
+
 
 	SLICING OVER AN ARRAY
 1. Slicing is a way to get a slice from an array, and its full form is denoted by the syntax [start:end:capacity]. Usually, we'll see its variants:
@@ -112,6 +115,7 @@ import (
 	When we write b := a[1:3], here's what's really going on:
 		b.len = 3 - 1
 		b.capacity = 5 - 1
+
 6. Regarding the panic when we specify the end index out of bounds: because the end is exclusive, we can specify it to be equal to the length of the original array.
 
 	We can also specify `start` at the length index like arr[len(arr):]. What we're creating is an empty slice, with no length and no capacity. So, the general rule for bound-checking the slicing
@@ -138,7 +142,7 @@ import (
 	the output should be `1 2 6` because v already evaluated to 2. Unexpectedly, the output is `1 2 3`, just like nothing happened. So, did a change or did our assignment have no effect?
 		- The arr used inside the loop is a copy of the original arr.
 
-	Go indeed makes a copy, but he copy is hidden from us, and only `v` can see that copied array. The array `a` we use in the loop is still our original a, and if we print it out after the loop,
+	Go indeed makes a copy, but the copy is hidden from us, and only `v` can see that copied array. The array `a` we use in the loop is still our original a, and if we print it out after the loop,
 	it'll be `[4, 5, 6]`, we could think of another scenario like the one shown in the picture
 
 	That means it works like a pass-by-value case. If our array is much bigger than just several elements, making a copy like this will be inefficient and the Go team has optimized this for us by

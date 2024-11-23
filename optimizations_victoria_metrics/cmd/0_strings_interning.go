@@ -7,7 +7,7 @@ import "sync"
 1. Strings give a lot of flexibility, as they can represent anything in metadata and introduce new labels and values whenever they like. In practice, however, metadata strings don't change often, creating a lot of repetition during collecttion,
 
 2. Take, for example, the go_info metric. Its metadata had a Go version label-value pair. There are only so many potential Go versions, and it's unlikely that the version of Go being used
-	changes very often. But each time we collect this metric from our apps, we need to parse its metadata and allocate it in the memory until it's garbage-coolected. Taking into acoount this
+	changes very often. But each time we collect this metric from our apps, we need to parse its metadata and allocate it in the memory until it's garbage-coolected. Taking into account this
 	metric could be exposed by not one, but by thousands of apps, the metrics collector will have to parse and allocate in memory the same strings over and over.
 
 3. To avoid storing the same strings lots of times, what if we stored each unique string once and referred to it when we needed to? This is called string interning (https://en.wikipedia.org/
@@ -31,7 +31,7 @@ import "sync"
 	Whenever either of these two cases applies, sync.Map reduses lock-contention and improves the performance of our app compared to if we'd used a regular Go map paired with a Mutex or
 	RWMutex.
 
-7. There are a couple of "gotchas " that we should be aware of when using sync.Map.
+7. There are a couple of "gotchas" that we should be aware of when using sync.Map.
 	1) Unconstrained memory growth is dangerous. To prevent the map from growing infinitely, we need to either occasionaly rotate the map by deleting it and recreating it, or implement some
 		form of time to live logic for our keys.
 

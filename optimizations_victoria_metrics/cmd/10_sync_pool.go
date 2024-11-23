@@ -8,6 +8,7 @@ import "sync"
 
 /*
  1. sync.Pool is great for how we handle temporary objects, especially byte buffers or slices. It's commonly used in the standart library. For instance in the encoding/json package:
+
       package json
 
       var encodeStatePool sync.Pool
@@ -41,8 +42,10 @@ import "sync"
          switch size {
          case 2 << 10:
             return &bufioWriter2kPool
+
          case 4 << 10:
             return &bufioWriter4kPool
+
          }
 
          return nil
@@ -53,8 +56,11 @@ import "sync"
 	WHAT IS sync.Pool?
 
 1. To put it simply sync.Pool in Go is a place where we can keep temporary objects for later reuse.
+
 2. We don't control how many objects stay in the pool, and anything we put there can be removed at any time, without any warning.
+
 3. The pool is built to be thread-safe, so multiple goroutines can tap into it simultaneously.
+
 */
 
 /*
@@ -66,7 +72,7 @@ import "sync"
    This situation creates a cycle where high concurrency leads to high memory usage, which then slows down the GC. sync.Pool is designed to help break this cycle.
 
 2. To create a pool, we can provide a New() function that returns a new object when the pool is empty.
-  - This function is optional, if we don't provide it, the pool just returns nil. If it's empty.
+  - This function is optional, if we don't provide it, the pool just returns `nil`. If it's empty.
 
 3. For instance, if the slice grows to 8192 bytes during use, we can reset its length to zero before putting it back in the pool. The underlying array still has a capacity of 8192, so
 the next time we need it, those 8192 bytes are ready to be reused.
@@ -186,6 +192,7 @@ pool, but it's not mandatory, it's a common practice.
 
 5. So, the process is super fast because there's no chance of two goroutines trying to grab the same object from the same local pool.
 */
+
 
 /*
 	POOL LOCAL & FALSE SHARING SHARING PROBLEM
@@ -452,6 +459,7 @@ pool, but it's not mandatory, it's a common practice.
 
 		   Now, after the attempt with the victim pool, it's atomically marked as empty (though concurrent accesses may still retrieve from it). Subsequent Get() ops will skip checking the victim cache until it's filled up again.
 
+         
 		   VICTIM POOL
 
 	 1. Even though `sync.Pool` is built for better manage resources, it doesn't give us, developers, direct tools to clean up or manage object lifecycles. Instead, `sync.Pool` handles

@@ -8,15 +8,20 @@ import (
 /*
 	UNIQUE PACKAGE
 1. The Go team rolled out this "new" unique package. It's all about dealing with duplicates in a "smart" way.
+
 2. The idea is pretty simple.
 	When we've got several identical values in our code, we only store one copy. Instead of having several copies of the same thing, they all just point to this one version,
 	which is a lot more efficient. It's a process often called "interning" in programming circles.
+
 3. The big win is memory savings. We're not wasting space on multiple copies of the same value floating around.
+
 4. We've got just one true, official version, and everything else points back to it. And the beauty of the "unique" package is that it manages all of this for us behind the
 	scenes. We don't really have to think about it's too much and Go takes care of the heavy lifting.
+
 5. Let's reference back to the String Interning technique.
 	When we pass a string "s" to the intern function, it checks if that string is already hanging out in internStringMap. If it is, we skip storing a duplicate and just return
 	the version that's already there. If it's not in the map, we go ahead and store it, and next time the same string pops up, we just reuse the stored version.
+
 6. Strings in Go behave a lot like slices and when we assign a string to a new variable, say from
 	"a" to "b", Go doesn't copy the actual value, like the string "VictoriaMetrics", but instead
 	just copies what's called the "string header", similar to a slice header.
@@ -71,7 +76,7 @@ import (
 		// Make returns a globally unique handle for a value of type T. Handles are equal if and only if the values used to produce them are equal.
 		func Make[T comparable](value T) Handle[T] {...}
 
-	The make Make function is designed to give us a canonical, globally unique handle for any comparable value we pass in.
+	The Make function is designed to give us a canonical, globally unique handle for any comparable value we pass in.
 
 9. Instead of just returning the value itself, it hands us a Handle[T], which works as a kind of reference to that value. This handle lets us efficiently compare values and
 	manage memory without worrying about having multiple copies of the same thing floating around in memory.
@@ -86,7 +91,7 @@ import (
 	check between h1 and h2 (h1==h2) is based on comparing these pointers, not the actual content of the strings. This makes the comparison sidesteps the need to check each
 	character of the strings themselves.
 
-11. And what nakes unique even more powerful is, it's not limited to just strings, we can intern any comparable type.
+11. And what makes unique even more powerful is, it's not limited to just strings, we can intern any comparable type.
 
 	We can indeed see how this is used in practice by taking a look at the source code of the net/http package, the Go team decided to use the unique package to intern the IPV6
 	zone name within a struct called addrDetail:

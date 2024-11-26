@@ -13,7 +13,7 @@ import (
 
 2. It reduces the workload of the GC, when values are passed directly, the GC has fewer pointer references to track.
 
-3. Data that is passed by values tends to be stored closer together in memory, allowung the CPU to access the data more quickly.
+3. Data that is passed by values tends to be stored closer together in memory, allowing the CPU to access the data more quickly.
 
 4. Sure, pointers can speed things up for large or growing (unbounded) struct, bu we've got to prove it's worth it.
 

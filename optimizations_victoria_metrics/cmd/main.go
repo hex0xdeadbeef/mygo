@@ -1,42 +1,30 @@
 package main
 
 import (
-	"bytes"
-	"sync"
+	"fmt"
+	"runtime"
 )
 
-type Pool struct {
-	pool *sync.Pool
+func main() {
+	printAlloc()
+	var s []byte
 
-	maxBufCap int
+	printAlloc()
+
+	s = []byte{1_000_000: 0}
+	s = s[:0]
+
+	printAlloc()
+
+	runtime.GC()
+
+	runtime.KeepAlive(&s)
+
 }
 
-func NewPool(maxBufCap int) *Pool {
-	const (
-		initialBufSize = 1 << 12
-		indexPad       = 1
-	)
+func printAlloc() {
+	var m runtime.MemStats
 
-	return &Pool{
-		pool: &sync.Pool{
-			New: func() any {
-				s := []byte{initialBufSize - indexPad: 0}
-				return bytes.NewBuffer(s)
-			},
-		},
-	}
-}
-
-func (p *Pool) Get() *bytes.Buffer {
-	b := p.pool.Get().(*bytes.Buffer)
-	return b
-}
-
-func (p *Pool) Put(b *bytes.Buffer) {
-	if b.Cap() >= p.maxBufCap {
-		return
-	}
-
-	b.Reset()
-	p.Put(b)
+	runtime.ReadMemStats(&m)
+	fmt.Printf("%d MB\n", m.Alloc/1<<20)
 }

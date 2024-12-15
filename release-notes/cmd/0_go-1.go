@@ -103,7 +103,7 @@ var holiday4 = []*Date{
 	4. Goroutines during init function.
 	The old language defined that `go` statements executed during initializations created goroutines but that they didn't begin to run until initialization of the entire program was complete. This introduced clumsiness in many places and, in effect, limited the utility of the `init` construct:
 
-		If it was possible for another package to use the library during initialization, the library was forced to avoid goroutines. This design was done for reasons of simplicity and safety, but, as our confidence in the language grew, it seemed unnecessary. Running goroutines during initializations is no more complex or unsafe that running them during normal execution.
+		If it was possible for another package to use the library during initialization, the library was forced to avoid goroutines. This design was done for reasons of simplicity and safety, but, as our confidence in the language grew, it seemed unnecessary. Running goroutines during initializations is no more complex or unsafe than running them during normal execution.
 
 	In Go 1, code that uses goroutines can be called from `init` routines and global initialization exressions without introducing a deadlock.
 
@@ -123,7 +123,7 @@ func initPackageGlobal(c chan int) {
 
 /*
 	5. The `rune` type
-	The language spec allows the int type to be int32 or 64 bits wide, but current implementations set `int` to 32 bits even on 64-bit platforms. It would be preferable to have int be 64 bits on 64-bit platforms. (There are important consequences for indexing large slices.) However, this change would waste space when processing Unicode characters with the old language because the `int` type was also used to hold Unicode code points: each code point would waste an extra 32 bits of storage if `int` grew from 32 bits to 64.
+	The language spec allows the int type to be int32 or 64 bits wide, but current implementations set `int` to 32 bits even on 64-bit platforms. It would be preferable to have `int` be 64 bits on 64-bit platforms. (There are important consequences for indexing large slices.) However, this change would waste space when processing Unicode characters with the old language because the `int` type was also used to hold Unicode code points: each code point would waste an extra 32 bits of storage if `int` grew from 32 bits to 64.
 
 	To make changing to 64-bit `int` feasible, Go 1 introduces a new basic type, `rune`, to represent individual Unicode code points. It's an alias for `int32`, analogous to byte as an alias for `uint8`.
 
@@ -161,7 +161,7 @@ func runeDefaultType() {
 
 		m[k] = value, false
 
-	This syntax was a peculiar special case, the only two-to-one assignment. It required passing a value (usually ignored) that is evaluated but discarded, plus a boolean that was nearly always the constant `false`. It did the job, but was odd and a point of contention
+	This syntax was a peculiar special case, the only two-to-one assignment. It required passing a value (usually ignored) `that is evaluated but discarded`, plus a boolean that was nearly always the constant `false`. It did the job, but was odd and a point of contention
 
 	In Go 1, that syntax has gone; instead there's a new buil-in function `delete`. The call:
 
@@ -169,7 +169,7 @@ func runeDefaultType() {
 
 	will delete the map entry retrieved by the expression m[k]. There's no return value. Deleting a non-existent entry is no-op.
 
-	UPD: Running `go fix` will convert expressions `m[k] = value, false` into delete(m, k) when it's clear that the ignored value can be safely discarded from the program and false refers tp the predefined boolean constant. The fix tool will flag other uses of the syntax for inspection by the programmer.
+	UPD: Running `go fix` will convert expressions `m[k] = value, false` into delete(m, k) when it's clear that the ignored value can be safely discarded from the program and false refers to the predefined boolean constant. The fix tool will flag other uses of the syntax for inspection by the programmer.
 
 */
 
@@ -185,7 +185,10 @@ func runeDefaultType() {
 */
 
 func iteratingOverMaps() {
-	m := map[string]int{"Sunday": 0, "Monday": 1}
+	m := map[string]int{
+		"Sunday": 0,
+		"Monday": 1,
+	}
 
 	// This loop shouldn't assume Sunday will be visited first.
 	for name, value := range m {
@@ -223,7 +226,7 @@ func multipleAssignments() {
 	10. Returns and shadowed variables
 	A common mistake is to use return (without arguments) after an assignment to a variable that has the same name as a result variale but is not the same variable. This situation is called `shadowing`: the result variable has been shadowed by another variable with the same name in an inner scope.
 
-	In funcs with named return vals, the Go 1 compilers disallow return statements without arguments if any of the named return values is shadowed at the point of the return statement. (It's not part of the spec., because this is one area we're still exploring; the situation is analogous to the compilers rejecting funcs that don't end with an explicit return statement.)
+	In funcs with named return vals, the Go 1 compilers disallow return statements `without arguments` if any of the named return values is shadowed at the point of the return statement. (It's not part of the spec., because this is one area we're still exploring; the situation is analogous to the compilers rejecting funcs that don't end with an explicit return statement.)
 
 	This func implicitly returns a shadowed return value and will be rejected by the compiler:
 
@@ -279,7 +282,7 @@ func multipleAssignments() {
 */
 
 /*
-	12. Copying structs with unexported fields.
+	12. Equality
 	Before Go 1, the lang didn't define equality on `struct` and `array` vals. This meant, among other things, that structs and arrays couldn't be used as map keys. On the other hand, Go did define equality on `function` and `map` vals. Function equality was problematic in the presence of closures (when are two closures equal?) while map equality compared pointers, not the maps' content, which was usually not what the user would want.
 
 	Go 1 addressed these issues. First, structs and arrays can be compared for equality and inequality (== and !=), and therefore be used as map keys, provided they're composed from elements for which equality is also defined, using element-wise comparison.
@@ -288,12 +291,15 @@ func multipleAssignments() {
 			long string
 			short string
 		}
+
 		Christmas := Day{"Christmas", "Xmas"}
 		Thanksgiving := Day{"Thanksgiving", "Turkey"}
+
 		holiday := map[Day]bool {
 			Christmas: true,
 			Thanksgiving: true,
 		}
+
 		fmt.Printf("Christmas is a holiday: %t\n", holiday[Christmas])
 
 	Second, Go 1 removes the definition of equality for `func` values, except for comparison with `nil`. Finally map equality is gone too, also except for comparison with `nil`.
@@ -348,7 +354,7 @@ func multipleAssignments() {
 	2. System call errors
 	The old `syscall` package, which predated `os.Error` (and just about everything else), returned as `int` vals. In turn, the `os` package forwarded many of these errors, such as `EINVAL`, but using a different set of errors on each platform. This behavior was unpleasant and unportable.
 
-	In Go 1, `syscall` package instead returns an error for system call errors. On Unix, the implementation is done by a `syscall.Errno` type that satisfies `error` and replaces the old `os.Errno`
+	In Go 1, `syscall` package instead returns an `error` for system call errors. On Unix, the implementation is done by a `syscall.Errno` type that satisfies `error` and replaces the old `os.Errno`
 
 	The changes affecting `os.EINVAL` and relatives are described elsewhere (https://tip.golang.org/doc/go1#os)
 
@@ -400,9 +406,9 @@ func multipleAssignments() {
 /*
 	The cgo command
 	In Go 1, the `cgo` command uses a different `_cgo_export.h` file, which is generated for packages containing `// export` lines. The `_cgo_export.h` file now begins with the `C` preamble comment, so that exported function definitions can use types defined there. This has the effect of compiling the preamble multiple times, so a package using `//export` mustn't put function definitions or variable initializations in the `C` preamble.
- */
+*/
 
- /*
+/*
 	Packaged releases
 	One of the most significant changes associated with Go 1 is the availability of prepackaged, downloadable distributions. They are available for many combinations or architecture and OS (including Windows) and the list will grow. Installation details are described on the `Getting Started` page, while the distributions themselves are listed on the `download page`.
- */
+*/

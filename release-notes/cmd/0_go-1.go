@@ -136,7 +136,7 @@ func initPackageGlobal(c chan int) {
 
 func runeDefaultType() {
 	delta := 'δ' // delta has type `rune`
-	var DELTA rune = unicode.ToUpper(delta)
+	var DELTA = unicode.ToUpper(delta)
 	_ = DELTA
 	epsilon := unicode.ToLower(DELTA + 1)
 	if epsilon != 'δ'+1 {
@@ -161,9 +161,9 @@ func runeDefaultType() {
 
 		m[k] = value, false
 
-	This syntax was a peculiar special case, the only two-to-one assignment. It required passing a value (usually ignored) `that is evaluated but discarded`, plus a boolean that was nearly always the constant `false`. It did the job, but was odd and a point of contention
+	This syntax was a peculiar special case, the only two-to-one assignment. It required passing a value (usually ignored) `that is evaluated but discarded`, plus a boolean that was nearly always the constant `false`. It did the job, but was odd and a point of contention.
 
-	In Go 1, that syntax has gone; instead there's a new buil-in function `delete`. The call:
+	In Go 1, that syntax has gone; instead there's a new built-in function `delete`. The call:
 
 		delete(m, k)
 
@@ -181,7 +181,7 @@ func runeDefaultType() {
 
 	This change means that code that depends on iteration order is very likely to break early and be fixed long before it becomes a problem. Just as important, it allows the map implementation to ensure better map balancing even when programs are using range loops to select an element from a map.
 
-	UPD: This is one change where tools cannot help. Most existing code will be unaffected, but some programs may break or misbehave; we recommend manual checking of all range statements over maps to verify they don't depend on iteration order. There were a few such examples in the std repository; they have been fixed. Note that it was already incorrect to depend on the iteration order, which was unspecified. This change codifies the unpredictability.
+	UPD: This is one change where tools cannot help. Most existing code will be unaffected, but some programs may break or misbehave; we recommend manual checking of all range statements over maps to verify they don't depend on iteration order. There were a few such examples in the `std` repository; they have been fixed. Note that it was already incorrect to depend on the iteration order, which was unspecified. This change codifies the unpredictability.
 */
 
 func iteratingOverMaps() {
@@ -203,7 +203,7 @@ func iteratingOverMaps() {
 	If the left-hand side of the assignment contains expressions that require evaluation, such as function calls or array indexing ops, these will all be done using the usual left-to-right rule before any variables are assigned their value. Once `everything` is evaluated, the actual assignments proceed in left-to-right order.
 
 	UPD: This is one change where tools cannot help, but breakage is unlikely. No code in the std
-	repository was broken by this change, and code that depended on the previous unspecified behavior was already incorrect.
+	repository was broken by this change, and code that dependeds on the previous unspecified behavior was already incorrect.
 */
 
 func multipleAssignments() {
@@ -244,16 +244,18 @@ func multipleAssignments() {
 			return // OK; j isn't shadowed here.
 		}
 
-	UPD: Code that shadows return values in this way will be rejected by the compiler and will need to be fixed by hand. The few cases that arose in the std were mostly bugs.
+	UPD: Code that shadows return values in this way will be rejected by the compiler and will need to be fixed by hand. The few cases that arose in the `std` were mostly bugs.
 */
 
 /*
 	11. Copying structs with unexported fields.
-	The old lang didn't allow a package to make a copy of a struct value containing unexported fields belonging to a different package. There was, however, a required exception for a method receiver; also, the implementations of `copy` and append have never honored this restriction.
+	The old lang didn't allow a package to make a copy of a struct value containing unexported fields belonging to a different package. There was, however, a required exception for a method receiver; also, the implementations of `copy(dst, src)` and `append(dst, elems...)` have never honored this restriction.
 
 	Go 1 will allow packages to copy struct values containing unexported fields from other packages. Besides resolving the inconsistency, this change admits a new kind of API; a package can return an opaque value without resorting to a pointer or interface. The new implementations of time.Time and reflect.Value are examples of types taking advantages of this new property.
 
 	As an example, if package `p` includes the definitions,
+
+		package p
 
 		type Struct struct {
 			Public int
@@ -269,6 +271,8 @@ func multipleAssignments() {
 		}
 
 	a package that imports `p` can assign and copy vals of type p.Struct at will. Behind the scenes the unexported fields will be assigned and copied just as if they were unexported, but the client code will never be aware of them. The code:
+
+		package my
 
 		import "p"
 

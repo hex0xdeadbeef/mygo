@@ -72,7 +72,7 @@ package main
 
 /*
 	2. Command-line flag parsing
-	In the `gc` toolchain, the compilers and linkers now use the same command-line flag parsing rules as the Go flag package, a departure from the traditional Unix flag parsing. This may affect scripts that invoke the tool directly. For example go tool 6c -Fw -Dfoo must now be written `go tool 6c -F -w -D foo`
+	In the `gc` toolchain, the compilers and linkers now use the same command-line flag parsing rules as the Go flag package, a departure from the traditional Unix flag parsing. This may affect scripts that invoke the tool directly. For example `go tool 6c -Fw -Dfoo` must now be written `go tool 6c -F -w -D foo`
 */
 
 /*

@@ -1,20 +1,37 @@
 package main
 
 import (
-	"runtime"
 	"time"
 )
 
-func main() {
+type (
+	RateLimiter struct {
+		tokens          chan Token
+		refreshInterval time.Duration
+	}
 
-	runtime.GOMAXPROCS(1)
+	Token struct{}
+)
 
-	go A()
+func (r *RateLimiter) Take() {
+	<-r.tokens
 
-	time.Sleep(1 * time.Second)
+	// LOOK HERE
+	go func() {
+		time.Sleep(r.refreshInterval)
+		r.tokens <- Token{}
+	}()
 }
 
-func A() {
-	for {
+func New(size int, refreshInterval time.Duration) *RateLimiter {
+	tokens := make(chan Token, size)
+
+	for range size {
+		tokens <- Token{}
+	}
+
+	return &RateLimiter{
+		tokens:          tokens,
+		refreshInterval: refreshInterval,
 	}
 }

@@ -40,7 +40,7 @@ func directStringAppendToByteSlice() {
 
 	To close this gap, at least in part, Go 1 disallows `close` on `receive-only` channels. Attempting to close such a channel is a `compile-time` error.
 
-	UPD: Existing code that attempts to close a receive-only channel was errorneous even before Go 1 and should be fixed. The compiler won't reject such code.
+	UPD: Existing code that attempts to close a receive-only channel was erroneous even before Go 1 and should be fixed. The compiler won't reject such code.
 */
 
 func tryToCloseReceiveOnlyChannel() {
@@ -55,7 +55,6 @@ func tryToCloseReceiveOnlyChannel() {
 	close(c)     // Legal
 	close(cSend) // Legal, but panics because the channel has been closed earlier
 	// close(cRecv) // invalid operation: cannot close receive-only channel cRecv (variable of type <-chan int)compilerInvalidClose
-
 }
 
 /*

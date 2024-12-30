@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<!-- saved from url=(0080)https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g -->
+<html lang="en" class="js-focus-visible" data-js-focus-visible=""><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community</title>
+      <meta name="last-updated" content="2024-12-26 11:32:45 UTC">
+      <meta name="user-signed-in" content="false">
+      <meta name="head-cached-at" content="1735212765">
+      <meta name="environment" content="production">
+      <link rel="stylesheet" href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/minimal-c6135f2dad61919fb9ad5b7407a14cce2369a2effce76540cfc808396cfc3a85.css" media="all" id="main-minimal-stylesheet">
+<link rel="stylesheet" href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/views-4dd5770daa5d9d443ed73a724fb1913af9b093295bf1a72307f0fb322e5df1d9.css" media="all" id="main-views-stylesheet">
+<link rel="stylesheet" href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/crayons-f94476cf86ce9153627fd53a77e651ec54b82b6be20ddb1bf93e3dd40b81aeab.css" media="all" id="main-crayons-stylesheet">
+
+      <script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/base-e0fa4f0ebd0f1ec157e6b07c08f9222f8c0cca3d10cfde4cd8c951b43985b10b.js" defer="defer"></script>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/application-147cebefc5c4cddde055e8f5eb0055e811469b08405170e2411fbd7944b5ac04.js" defer="defer"></script>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/baseInitializers-bc498cfd7bb7d2a2da59d68d0b2055cc2dd26fee3669ab88edbb396d37bc3369.js" defer="defer"></script>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/baseTracking-b6bf73e5ee66633e151e7d5b7c6bbccedfa4c59e3615be97b98c4c0f543ddae7.js" defer="defer"></script>
+
+        <meta name="search-script" content="https://assets.dev.to/assets/Search-cc5e8a352578866203771def747f37c3ec6a0869de0458328e0fcba3d5d2fceb.js">
+      
+    <link rel="canonical" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g">
+    <meta name="description" content="Author: discord: https://discord.gg/xQ8Xxfyfcz zinx:   https://github.com/aceld/zinx github:... Tagged with go.">
+    <meta name="keywords" content="go, software, coding, development, engineering, inclusive, community">
+
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g">
+    <meta property="og:title" content="(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model">
+    <meta property="og:description" content="Author: discord: https://discord.gg/xQ8Xxfyfcz zinx:   https://github.com/aceld/zinx github:...">
+    <meta property="og:site_name" content="DEV Community">
+    <meta name="twitter:site" content="@thepracticaldev">
+    <meta name="twitter:creator" content="@Aceld_">
+    <meta name="twitter:title" content="(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model">
+    <meta name="twitter:description" content="Author: discord: https://discord.gg/xQ8Xxfyfcz zinx:   https://github.com/aceld/zinx github:...">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:widgets:new-embed-design" content="on">
+    <meta name="robots" content="max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+      <meta property="og:image" content="https://media2.dev.to/dynamic/image/width=1000,height=500,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Ftmjmb89751bnurfnh1fv.png">
+      <meta name="twitter:image:src" content="https://media2.dev.to/dynamic/image/width=1000,height=500,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Ftmjmb89751bnurfnh1fv.png">
+
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+      <link rel="icon" type="image/x-icon" href="https://media2.dev.to/dynamic/image/width=32,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link rel="apple-touch-icon" href="https://media2.dev.to/dynamic/image/width=180,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="https://media2.dev.to/dynamic/image/width=152,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="https://media2.dev.to/dynamic/image/width=180,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link rel="apple-touch-icon" sizes="167x167" href="https://media2.dev.to/dynamic/image/width=167,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link href="https://media2.dev.to/dynamic/image/width=192,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png" rel="icon" sizes="192x192">
+      <link href="https://media2.dev.to/dynamic/image/width=128,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png" rel="icon" sizes="128x128">
+      <meta name="apple-mobile-web-app-title" content="dev.to">
+      <meta name="application-name" content="dev.to">
+      <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+      <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+      <link rel="search" href="https://dev.to/open-search.xml" type="application/opensearchdescription+xml" title="DEV Community">
+
+      <meta property="forem:name" content="DEV Community">
+      <meta property="forem:logo" content="https://media2.dev.to/dynamic/image/width=512,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <meta property="forem:domain" content="dev.to">
+    
+  <script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/js" async=""></script><meta name="csrf-param" content="authenticity_token"><meta name="csrf-token" content="kUFjE_e_OCpE4f6dyp7hNK48uusDOR0GS6lRNwAoTveEq36gr8By2WmqTNzRFzJ_VzatZrLFhXlraWNHy4lZ4w"><script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/Search-cc5e8a352578866203771def747f37c3ec6a0869de0458328e0fcba3d5d2fceb.js" defer=""></script></head>
+      <body class="sans-serif-article-body default-header" data-user-status="logged-out" data-community-name="DEV Community" data-subscription-icon="https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png" data-locale="en" data-honeybadger-key="hbp_nqu4Y66HuEKlD6YRGssZuRQnPOjDm50J8Zkr" data-deployed-at="2024-12-23T20:52:46Z" data-latest-commit-id="ffe163a152fde3d83de7dcd56dbf0b53104ef6d6" data-ga-tracking="UA-71991109-1" data-cookie-banner-user-context="logged_out_only" data-cookie-banner-platform-context="off" data-algolia-id="PRSOBFP46H" data-algolia-search-key="9aa7d31610cba78851c9b1f63776a9dd" data-algolia-display="true" data-ga4-tracking-id="G-TYEM8Y3JN3" data-runtime="Browser-macOS" data-loaded="true">
+        <link rel="stylesheet" href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/minimal-c6135f2dad61919fb9ad5b7407a14cce2369a2effce76540cfc808396cfc3a85.css" media="all" id="secondary-minimal-stylesheet">
+<link rel="stylesheet" href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/views-4dd5770daa5d9d443ed73a724fb1913af9b093295bf1a72307f0fb322e5df1d9.css" media="all" id="secondary-views-stylesheet">
+<link rel="stylesheet" href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/crayons-f94476cf86ce9153627fd53a77e651ec54b82b6be20ddb1bf93e3dd40b81aeab.css" media="all" id="secondary-crayons-stylesheet">
+
+        <div id="body-styles">
+          <style>
+            :root {
+              --accent-brand-lighter-rgb: 80, 99, 301;
+              --accent-brand-rgb: 59, 73, 223;
+              --accent-brand-darker-rgb: 47, 58, 178;
+            }
+          </style>
+        </div>
+        <div id="audiocontent" data-podcast="">
+          
+        </div>
+        <div class="navigation-progress" id="navigation-progress"></div>
+<header id="topbar" class="crayons-header topbar print-hidden">
+  <span id="route-change-target" tabindex="-1"></span>
+  <a href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#main-content" class="skip-content-link">Skip to content</a>
+  <div class="crayons-header__container">
+    <span class="inline-block m:hidden ">
+      <button class="c-btn c-btn--icon-alone js-hamburger-trigger mx-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="ai1tmfe8fgoies96zj6ln17mfna3vfkc" class="crayons-icon"><title id="ai1tmfe8fgoies96zj6ln17mfna3vfkc">Navigation menu</title>
+    <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"></path>
+</svg>
+
+      </button>
+    </span>
+    <a href="https://dev.to/" class="site-logo" aria-label="DEV Community Home">
+    <img class="site-logo__img" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/resized_logo_UQww2soKuUsjaOGNB38o.png" style="aspect-ratio: 10 / 8" alt="DEV Community">
+</a>
+
+
+    <div class="crayons-header--search js-search-form" id="header-search"><form method="get" action="https://dev.to/search" role="search" accept-charset="UTF-8"><input name="utf8" type="hidden" value="✓"><div class="crayons-fields crayons-fields--horizontal"><div class="crayons-field flex-1 relative"><input id="search-input" class="crayons-header--search-input crayons-textfield" type="text" name="q" placeholder="Find related posts..." autocomplete="off" aria-label="Search term"><button type="submit" aria-label="Search" class="c-btn c-btn--icon-alone absolute inset-px right-auto mt-0 py-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="crayons-icon c-btn__icon" focusable="false"><path d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0111 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 01-1.969 5.617zm-2.006-.742A6.977 6.977 0 0018 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 004.875-1.975l.15-.15z"></path></svg></button><a class="crayons-header--search-brand-indicator" href="https://www.algolia.com/developers/?utm_source=devto&amp;utm_medium=referral" target="_blank" rel="noopener noreferrer">Powered by <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" width="24" height="24" viewBox="0 0 500 500.34"><defs></defs><path class="cls-1" d="M250,0C113.38,0,2,110.16,.03,246.32c-2,138.29,110.19,252.87,248.49,253.67,42.71,.25,83.85-10.2,120.38-30.05,3.56-1.93,4.11-6.83,1.08-9.52l-23.39-20.74c-4.75-4.22-11.52-5.41-17.37-2.92-25.5,10.85-53.21,16.39-81.76,16.04-111.75-1.37-202.04-94.35-200.26-206.1,1.76-110.33,92.06-199.55,202.8-199.55h202.83V407.68l-115.08-102.25c-3.72-3.31-9.43-2.66-12.43,1.31-18.47,24.46-48.56,39.67-81.98,37.36-46.36-3.2-83.92-40.52-87.4-86.86-4.15-55.28,39.65-101.58,94.07-101.58,49.21,0,89.74,37.88,93.97,86.01,.38,4.28,2.31,8.28,5.53,11.13l29.97,26.57c3.4,3.01,8.8,1.17,9.63-3.3,2.16-11.55,2.92-23.6,2.07-35.95-4.83-70.39-61.84-127.01-132.26-131.35-80.73-4.98-148.23,58.18-150.37,137.35-2.09,77.15,61.12,143.66,138.28,145.36,32.21,.71,62.07-9.42,86.2-26.97l150.36,133.29c6.45,5.71,16.62,1.14,16.62-7.48V9.49C500,4.25,495.75,0,490.51,0H250Z"></path></svg> Algolia</a></div></div></form>
+      
+    </div>
+
+    <div class="flex items-center h-100 ml-auto">
+      <a class="c-link c-link--icon-alone c-link--block m:hidden mx-1" id="search-link" aria-label="Search" href="https://dev.to/search">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="a8pm02qixpgdmkawmrjlcs37ji0n8frp" class="crayons-icon"><title id="a8pm02qixpgdmkawmrjlcs37ji0n8frp">Search</title>
+    <path d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0111 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 01-1.969 5.617zm-2.006-.742A6.977 6.977 0 0018 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 004.875-1.975l.15-.15z"></path>
+</svg>
+
+      </a>
+        <div class="flex" id="authentication-top-nav-actions">
+          <span class="hidden m:block">
+            <a href="https://dev.to/enter" class="c-link c-link--block mr-2 whitespace-nowrap ml-auto" data-no-instant="">
+              Log in
+            </a>
+          </span>
+
+          <a href="https://dev.to/enter?state=new-user" data-tracking-id="ca_top_nav" data-tracking-source="top_navbar" class="c-cta c-cta--branded whitespace-nowrap mr-2" data-no-instant="">
+            Create account
+          </a>
+        </div>
+    </div>
+  </div>
+</header>
+
+<div class="hamburger">
+  <div class="hamburger__content">
+    <header class="hamburger__content__header">
+      <h2 class="fs-l fw-bold flex-1 break-word lh-tight">DEV Community</h2>
+
+      <button class="c-btn c-btn--icon-alone js-hamburger-trigger shrink-0" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="at2pkrt6id5s8xb280zde2gslceep4bh" aria-hidden="true" class="crayons-icon c-btn__icon"><title id="at2pkrt6id5s8xb280zde2gslceep4bh">Close</title><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636l4.95 4.95z"></path></svg>
+
+      </button>
+    </header>
+
+    <div class="p-2 js-navigation-links-container" id="authentication-hamburger-actions">
+    </div>
+  </div>
+  <div class="hamburger__overlay js-hamburger-trigger"></div>
+</div>
+
+
+        <div id="active-broadcast" class="broadcast-wrapper"></div>
+<div id="page-content" class="wrapper stories stories-show articletag-go articleuser-1077816" data-current-page="stories-show">
+  <div id="page-content-inner" data-internal-nav="false" data-follow-clicks-initialized="true">
+    <div id="page-route-change" class="screen-reader-only" aria-live="polite" aria-atomic="true"></div>
+
+    
+<style>
+  .html-variant-wrapper { display: none}
+</style>
+
+
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/webcomponents-loader.js" integrity="sha384-3HK5hxQbkFqOIxMbpROlRmRtYl2LBZ52t+tqcjzsmr9NJuOWQxl8RgQSyFvq2lhy" crossorigin="anonymous" defer=""></script>
+
+  <script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/webShare-0686f0b9ac40589694ef6ae6a6202c44119bc781c254f6cf6d52d8a008461156.js" defer="defer"></script>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/articlePage-e91bed0487621b06608474cfabffa186165e1f43f05b24581203ccc21e7aa45d.js" defer="defer"></script>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/commentDropdowns-7a28d130e5b78d38b30a9495a964003a66bd64fa455fc70b766d69cf06b9ba24.js" defer="defer"></script>
+
+    <script type="application/ld+json">
+      {"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g"},"url":"https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g","image":["https://media2.dev.to/dynamic/image/width=1080,height=1080,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Ftmjmb89751bnurfnh1fv.png","https://media2.dev.to/dynamic/image/width=1280,height=720,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Ftmjmb89751bnurfnh1fv.png","https://media2.dev.to/dynamic/image/width=1600,height=900,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Ftmjmb89751bnurfnh1fv.png"],"publisher":{"@context":"http://schema.org","@type":"Organization","name":"DEV Community","logo":{"@context":"http://schema.org","@type":"ImageObject","url":"https://media2.dev.to/dynamic/image/width=192,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png","width":"192","height":"192"}},"headline":"(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model","author":{"@context":"http://schema.org","@type":"Person","url":"https://dev.to/aceld","name":"Aceld"},"datePublished":"2023-11-13T07:42:42Z","dateModified":"2024-08-06T08:07:10Z"}
+    </script>
+
+  
+<div class="crayons-layout crayons-layout--3-cols crayons-layout--article">
+  <aside class="crayons-layout__sidebar-left" aria-label="Article actions">
+    <div class="crayons-article-actions print-hidden">
+  <div class="crayons-article-actions__inner">
+
+    
+<div class="reaction-drawer__outer hoverdown" style="">
+  <button id="reaction-drawer-trigger" aria-label="reaction-drawer-trigger" aria-pressed="false" class="hoverdown-trigger crayons-reaction pseudo-reaction crayons-tooltip__activator relative">
+      <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction--like crayons-reaction__icon--inactive" style="width: 40px; height: 40px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon">
+    <g clip-path="url(#clip0_988_3276)">
+        <path d="M19 14V17H22V19H18.999L19 22H17L16.999 19H14V17H17V14H19ZM20.243 4.75698C22.505 7.02498 22.583 10.637 20.479 12.992L19.059 11.574C20.39 10.05 20.32 7.65998 18.827 6.16998C17.324 4.67098 14.907 4.60698 13.337 6.01698L12.002 7.21498L10.666 6.01798C9.09103 4.60598 6.67503 4.66798 5.17203 6.17198C3.68203 7.66198 3.60703 10.047 4.98003 11.623L13.412 20.069L12 21.485L3.52003 12.993C1.41603 10.637 1.49503 7.01898 3.75603 4.75698C6.02103 2.49298 9.64403 2.41698 12 4.52898C14.349 2.41998 17.979 2.48998 20.242 4.75698H20.243Z" fill="#525252"></path>
+    </g>
+    <defs>
+        <clippath id="clip0_988_3276">
+        <rect width="24" height="24" fill="white"></rect>
+        </clippath>
+    </defs>
+</svg>
+
+      </span>
+      <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction__icon--active" style="width: 40px; height: 40px">
+        <img aria_hidden="true" height="24" width="24" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/heart-plus-active-9ea3b22f2bc311281db911d416166c5f430636e76b15cd5df6b3b841d830eefa.svg">
+      </span>
+      <span class="crayons-reaction__count" id="reaction_total_count">8</span>
+      <span class="crayons-tooltip__content">
+        Add reaction
+      </span>
+  </button>
+
+  <div class="reaction-drawer" aria-expanded="false">
+    <div class="reaction-drawer__container">
+        <button id="reaction-butt-like" name="Like" aria-label="Like" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2 activated" data-category="like">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-like">8</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Like
+    </span>
+</button>
+
+        <button id="reaction-butt-unicorn" name="Unicorn" aria-label="Unicorn" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2" data-category="unicorn">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-unicorn">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Unicorn
+    </span>
+</button>
+
+        <button id="reaction-butt-exploding_head" name="Exploding Head" aria-label="Exploding Head" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2" data-category="exploding_head">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-exploding_head">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Exploding Head
+    </span>
+</button>
+
+        <button id="reaction-butt-raised_hands" name="Raised Hands" aria-label="Raised Hands" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2" data-category="raised_hands">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-raised_hands">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Raised Hands
+    </span>
+</button>
+
+        <button id="reaction-butt-fire" name="Fire" aria-label="Fire" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2" data-category="fire">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-fire">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Fire
+    </span>
+</button>
+
+    </div>
+  </div>
+</div>
+
+<button id="reaction-butt-comment" aria-label="Jump to Comments" aria-pressed="false" class="crayons-reaction crayons-reaction--comment crayons-tooltip__activator relative" data-category="comment">
+    <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction__icon--inactive">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-hidden="true" class="crayons-icon">
+    <path d="M10 3h4a8 8 0 010 16v3.5c-5-2-12-5-12-11.5a8 8 0 018-8zm2 14h2a6 6 0 000-12h-4a6 6 0 00-6 6c0 3.61 2.462 5.966 8 8.48V17z"></path>
+</svg>
+
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-comment" data-count="0">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Jump to Comments
+    </span>
+</button>
+
+<button id="reaction-butt-readinglist" aria-label="Add to reading list" aria-pressed="false" class="crayons-reaction crayons-reaction--readinglist crayons-tooltip__activator relative activated" data-category="readinglist">
+    <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction__icon--inactive">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-hidden="true" class="crayons-icon">
+    <path d="M5 2h14a1 1 0 011 1v19.143a.5.5 0 01-.766.424L12 18.03l-7.234 4.536A.5.5 0 014 22.143V3a1 1 0 011-1zm13 2H6v15.432l6-3.761 6 3.761V4z"></path>
+</svg>
+
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-readinglist">8</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Save
+    </span>
+</button>
+
+
+<button id="reaction-butt-boost" aria-label="Boost" aria-pressed="false" class="crayons-reaction crayons-reaction--boost crayons-tooltip__activator relative">
+    <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction__icon--inactive">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" role="img" aria-hidden="true" class="crayons-icon" width="24" height="24">
+  <path transform="translate(24,0) scale(-1,1)" d="M6 4H21C21.5523 4 22 4.44772 22 5V12H20V6H6V9L1 5L6 1V4ZM18 20H3C2.44772 20 2 19.5523 2 19V12H4V18H18V15L23 19L18 23V20Z"></path>
+</svg>
+
+    </span>
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Boost
+    </span>
+</button>
+
+
+    <div id="mod-actions-menu-btn-area" class="print-hidden trusted-visible-block align-center">
+    </div>
+    <div class="align-center m:relative">
+      <button id="article-show-more-button" aria-controls="article-show-more-dropdown" aria-expanded="false" aria-haspopup="true" class="dropbtn crayons-btn crayons-btn--ghost-dimmed crayons-btn--icon-rounded" aria-label="Share post options" data-dropdown-initialized="true" data-initialized="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" role="img" aria-labelledby="adacim6vnr4bm34dlqooi4dw985zqhy2" aria-hidden="true" class="crayons-icon dropdown-icon"><title id="adacim6vnr4bm34dlqooi4dw985zqhy2">More...</title><path fill-rule="evenodd" clip-rule="evenodd" d="M7 12a2 2 0 11-4 0 2 2 0 014 0zm7 0a2 2 0 11-4 0 2 2 0 014 0zm5 2a2 2 0 100-4 2 2 0 000 4z"></path></svg>
+
+      </button>
+
+      <div id="article-show-more-dropdown" class="crayons-dropdown side-bar left-2 right-2 m:right-auto m:left-100 s:left-auto mb-1 m:mb-0 top-unset bottom-100 m:top-0 m:bottom-unset">
+        <div>
+          <button id="copy-post-url-button" class="flex justify-between crayons-link crayons-link--block w-100 bg-transparent border-0" data-posturl="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g">
+            <span class="fw-bold">Copy link</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" id="article-copy-icon" role="img" aria-labelledby="ab21r2kjs21lt77brxttg0gq1akvb82x" aria-hidden="true" class="crayons-icon mx-2 shrink-0"><title id="ab21r2kjs21lt77brxttg0gq1akvb82x">Copy link</title>
+    <path d="M7 6V3a1 1 0 011-1h12a1 1 0 011 1v14a1 1 0 01-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1 1 0 013 21l.003-14c0-.552.45-1 1.007-1H7zm2 0h8v10h2V4H9v2zm-2 5v2h6v-2H7zm0 4v2h6v-2H7z"></path>
+</svg>
+
+          </button>
+          <div id="article-copy-link-announcer" aria-live="polite" class="crayons-notice crayons-notice--success my-2 p-1" hidden="">Copied to Clipboard</div>
+        </div>
+
+        <div class="Desktop-only">
+          <a target="_blank" class="crayons-link crayons-link--block" rel="noopener" href="https://twitter.com/intent/tweet?text=%22%28Golang%20Triad%29-I-Understanding%20the%20Golang%20Goroutine%20Scheduler%20GPM%20Model%22%20by%20%40Aceld_%20%23DEVCommunity%20https%3A%2F%2Fdev.to%2Faceld%2Funderstanding-the-golang-goroutine-scheduler-gpm-model-4l1g">
+            Share to X
+          </a>
+          <a target="_blank" class="crayons-link crayons-link--block" rel="noopener" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3A%2F%2Fdev.to%2Faceld%2Funderstanding-the-golang-goroutine-scheduler-gpm-model-4l1g&amp;title=%28Golang%20Triad%29-I-Understanding%20the%20Golang%20Goroutine%20Scheduler%20GPM%20Model&amp;summary=Author%3A%20discord%3A%20https%3A%2F%2Fdiscord.gg%2FxQ8Xxfyfcz%20zinx%3A%20%20%20https%3A%2F%2Fgithub.com%2Faceld%2Fzinx%20github%3A...&amp;source=DEV%20Community">
+            Share to LinkedIn
+          </a>
+          <a target="_blank" class="crayons-link crayons-link--block" rel="noopener" href="https://www.facebook.com/sharer.php?u=https%3A%2F%2Fdev.to%2Faceld%2Funderstanding-the-golang-goroutine-scheduler-gpm-model-4l1g">
+            Share to Facebook
+          </a>
+          <a target="_blank" class="crayons-link crayons-link--block" rel="noopener" href="https://toot.kytta.dev/?text=https%3A%2F%2Fdev.to%2Faceld%2Funderstanding-the-golang-goroutine-scheduler-gpm-model-4l1g">
+            Share to Mastodon
+          </a>
+        </div>
+
+        <web-share-wrapper shareurl="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g" sharetitle="(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model" sharetext="Author: discord: https://discord.gg/xQ8Xxfyfcz zinx:   https://github.com/aceld/zinx github:..." template="web-share-button">
+          <a href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#" class="dropdown-link-row crayons-link crayons-link--block">Share Post via...</a>
+        </web-share-wrapper>
+        <template id="web-share-button"></template>
+
+        <a href="https://dev.to/report-abuse" class="crayons-link crayons-link--block">Report Abuse</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </aside>
+
+  <main id="main-content" class="crayons-layout__content grid gap-4">
+    <div class="article-wrapper">
+
+
+      <article class="crayons-card crayons-article mb-4" id="article-show-container" data-article-id="1627523" data-article-slug="understanding-the-golang-goroutine-scheduler-gpm-model-4l1g" data-author-id="1077816" data-author-name="Aceld" data-author-username="aceld" data-co-author-ids="" data-path="/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g" data-pin-path="/stories/feed/pinned_article" data-pinned-article-id="" data-published="true" data-scheduled="false" lang="en">
+        <header class="crayons-article__header" id="main-title">
+
+          <div class="crayons-article__header__meta">
+            <div class="flex s:items-start flex-col s:flex-row">
+              <div id="action-space" class="crayons-article__actions mb-4 s:mb-0 s:order-last"></div>
+              <div class="flex flex-1 mb-5 items-start">
+                <div class="relative">
+                    <a href="https://dev.to/aceld"><img class="radius-full align-middle" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_1077816_9ab52a99-dfb3-4412-9b5f-18d32a8d85a4.png" width="40" height="40" alt="Aceld"></a>
+                </div>
+                <div class="pl-3 flex-1">
+                  <a href="https://dev.to/aceld" class="crayons-link fw-bold">Aceld</a>
+                  
+                  <p class="fs-xs color-base-60">
+                      Posted on <time datetime="2023-11-13T07:42:42Z" class="date" title="Monday, November 13, 2023 at 11:42:42 AM">Nov 13, 2023</time>
+
+                      • Edited on <time datetime="2024-08-06T08:07:10Z" class="date-no-year" title="Tuesday, August 6, 2024 at 12:07:10 PM">Aug 6</time>
+
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="multiple_reactions_engagement">
+    <span class="reaction_engagement_like">
+      <img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg" width="24" height="24">
+      <span id="reaction_engagement_like_count">8</span>
+    </span>
+    <span class="reaction_engagement_unicorn hidden">
+      <img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg" width="24" height="24">
+      <span id="reaction_engagement_unicorn_count">&nbsp;</span>
+    </span>
+    <span class="reaction_engagement_exploding_head hidden">
+      <img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg" width="24" height="24">
+      <span id="reaction_engagement_exploding_head_count">&nbsp;</span>
+    </span>
+    <span class="reaction_engagement_raised_hands hidden">
+      <img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg" width="24" height="24">
+      <span id="reaction_engagement_raised_hands_count">&nbsp;</span>
+    </span>
+    <span class="reaction_engagement_fire hidden">
+      <img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg" width="24" height="24">
+      <span id="reaction_engagement_fire_count">&nbsp;</span>
+    </span>
+</div>
+
+
+            <h1 class=" fs-3xl m:fs-4xl l:fs-5xl fw-bold s:fw-heavy lh-tight mb-2 long">
+              (Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model
+            </h1>
+            
+                <div class="spec__tags flex flex-wrap">
+                    <a class="crayons-tag   " style="
+        --tag-bg: rgba(41, 190, 176, 0.10);
+        --tag-prefix: #29BEB0;
+        --tag-bg-hover: rgba(41, 190, 176, 0.10);
+        --tag-prefix-hover: #29BEB0;
+      " href="https://dev.to/t/go"><span class="crayons-tag__prefix">#</span>go</a>
+                </div>
+          </div>
+        </header>
+
+        <div class="crayons-article__main ">
+
+          <div class="crayons-article__body text-styles spec__body" data-article-id="1627523" id="article-body">
+              <p>Author:<br>
+discord: <a href="https://discord.gg/xQ8Xxfyfcz" target="_blank" rel="noopener noreferrer">https://discord.gg/xQ8Xxfyfcz</a><br>
+zinx:   <a href="https://github.com/aceld/zinx" target="_blank" rel="noopener noreferrer">https://github.com/aceld/zinx</a><br>
+github: <a href="https://github.com/aceld" target="_blank" rel="noopener noreferrer">https://github.com/aceld</a><br>
+aceld's home: <a href="https://yuque.com/aceld" target="_blank" rel="noopener noreferrer">https://yuque.com/aceld</a><br>
+Twitter: <a href="https://twitter.com/Aceld_" target="_blank" rel="noopener noreferrer">https://twitter.com/Aceld_</a></p>
+
+<hr>
+
+<p><a href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g">(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model</a><br>
+<a href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">(Golang Triad)-II-Comprehensive Analysis of Go's Hybrid Write Barrier Garbage Collection</a></p>
+
+<hr>
+
+<p>Understanding the principles of the Golang Goroutine scheduler is a fundamental knowledge area that Golang developers strive to grasp. Golang's language features are accompanied by a well-designed scheduling mechanism and a high-performance Goroutine scheduling model. For Golang developers, mastering and deeply comprehending this knowledge is essential. This chapter introduces the origins of the scheduler in Golang, as well as how it evolved into the GPM model. It includes detailed insights into the actions taken when a Go Goroutine is launched and how the GPM model is loaded. Additionally, it covers visual programming and debugging analysis of the GPM model and concludes by vividly describing various trigger conditions and operational scenarios of the GPM model.</p>
+<h2>
+  <a name="11-the-origin-of-the-golang-scheduler" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#11-the-origin-of-the-golang-scheduler">
+  </a>
+  1.1 The Origin of the Golang "Scheduler"
+</h2>
+
+<p>As widely recognized, all software operates on top of an operating system, and the true computational engine behind these software applications is the CPU. In the early days of operating systems, each program was treated as a separate process. Only when one program completed its execution could the next process begin, marking the era of single processing. During this time, all programs could only execute sequentially, as illustrated in Figure 1.1.</p>
+
+<blockquote>
+<p>Figure 1.1</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ow4czvmdhqjzm5uimnyn.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ow4czvmdhqjzm5uimnyn.png" alt="Figure 1.1" loading="lazy" width="800" height="514"></a></p>
+<h3>
+  <a name="111-the-era-of-single-processing-did-not-require-a-scheduler" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#111-the-era-of-single-processing-did-not-require-a-scheduler">
+  </a>
+  1.1.1 The Era of Single Processing Did Not Require a Scheduler
+</h3>
+
+<p>In the early days of single-process operating systems, two major issues were encountered:</p>
+
+<p>(1) Singular execution flow: Computers could only handle one task at a time, and virtually all programs operated in a blocking manner. Asynchronous interactions, such as graphical interfaces or mouse input, were practically non-existent.</p>
+
+<p>(2) Wasted CPU time due to process blocking: During the complete lifecycle of a process, various physical components needed to be accessed, including the CPU, cache, main memory, disk, and network, each with significantly different processing speeds. When these diverse processing media were sequentially linked within a single process, it resulted in instances of high-speed media waiting and wastage. For instance, when a program loaded data from a disk, the CPU would remain in a waiting state during the read/write process. In the context of a single-process operating system, this clearly led to a waste of CPU processing capacity. Ideally, the CPU should have been allocated to other processes for higher-level computations at such moments.</p>
+
+<p>So, could there be multiple processes running concurrently to collectively execute multiple tasks at a macroscopic level? Subsequently, operating systems gained their initial concurrency capability: multi-process concurrency. When one process became blocked, the system switched to another waiting process for execution, thereby optimizing CPU utilization and preventing CPU wastage.</p>
+<h3>
+  <a name="112-scheduler-requirements-in-the-era-of-multiprocessmultithread" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#112-scheduler-requirements-in-the-era-of-multiprocessmultithread">
+  </a>
+  1.1.2 Scheduler Requirements in the Era of Multi-Process/Multi-Thread
+</h3>
+
+<p>The advent of multi-process/multi-threaded operating systems addressed the blocking issues. When one process blocked the CPU, it could immediately switch to executing other processes. Moreover, the scheduling algorithms for CPU allocation ensured that all running processes received their fair share of CPU time slices. From a macroscopic perspective, it appeared as though multiple processes were running concurrently, as illustrated in Figure 1.2.</p>
+
+<blockquote>
+<p>Figure 1.2</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ir844qqt8rr5onh2n8nb.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ir844qqt8rr5onh2n8nb.png" alt="Figure 1.2" loading="lazy" width="800" height="685"></a></p>
+
+<p>As depicted in Figure 1.2, it illustrates a scenario where the CPU switches its timeline through a scheduler. To achieve the macroscopic perception that every process/thread is executing concurrently, the CPU must perform switching, allocating each process to a time slice.</p>
+
+<blockquote>
+<p>A time slice, also referred to as a "quantum" or "processor slice," is a microscopically allocated segment of CPU time that a time-sharing operating system assigns to each running process (or, in preemptive kernels, the time from when a process begins running until it gets preempted). Modern operating systems like Windows, Linux, and macOS allow multiple processes to run simultaneously. For example, you can listen to music using a media player while browsing the internet and downloading files. In reality, even though a computer may have multiple CPUs, a single CPU cannot truly run multiple tasks simultaneously. In the context of a single CPU, these processes "appear to" run concurrently, but they actually execute in a interleaved fashion. This interleaving is made possible by the allocation of short time slices (typically ranging from 5ms to 800ms on Linux), which are too short for users to perceive.</p>
+
+<p>The operating system's scheduler allocates time slices to each process. Initially, the kernel assigns an equal time slice to each process. Subsequently, processes take turns executing during their allotted time slices. When all processes have exhausted their time slices, the kernel recalculates and assigns time slices to each process, and this process repeats.</p>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_iqbwhdylga50zelzssoy.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_iqbwhdylga50zelzssoy.png" alt="image" loading="lazy" width="800" height="62"></a></p>
+</blockquote>
+
+<p>However, a new problem emerged: processes consumed significant resources. The creation, switching, and termination of processes took a considerable amount of time. While CPU utilization improved, if there were too many processes, a substantial portion of the CPU's capacity was devoted to process scheduling and context switching, as illustrated in Figure 1.3.</p>
+
+<blockquote>
+<p>Figure 1.3<br>
+<a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rxiox2ak613x19o3khqb.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rxiox2ak613x19o3khqb.png" alt="Figure 1.3" loading="lazy" width="800" height="509"></a></p>
+</blockquote>
+
+<p>For the Linux operating system, the CPU treats processes and threads in the same manner. As depicted in Figure 1.3, when the system has a limited number of CPUs and a relatively large number of processes/threads, the frequency of context switching increases, and the associated switching costs become more significant. This portion of performance consumption essentially doesn't contribute to useful computational power within the program. Consequently, even though multithreading may seem appealing, in reality, multithreaded development and design can become more complex. Developers need to address numerous issues related to synchronization and competition, such as locks, resource contention, and synchronization conflicts.</p>
+<h3>
+  <a name="113-coroutines-improve-cpu-utilization" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#113-coroutines-improve-cpu-utilization">
+  </a>
+  1.1.3 Coroutines Improve CPU Utilization
+</h3>
+
+<p>So, how can CPU utilization be improved? Multi-processes and multi-threads have indeed enhanced system concurrency. However, in today's high-concurrency internet scenarios, creating a separate thread for each task is not practical. Doing so would result in an overwhelming number of threads running simultaneously, leading to not only high context switching overhead but also substantial memory consumption (process virtual memory can consume up to 4GB on 32-bit operating systems, and threads typically require around 4MB each). This proliferation of processes or threads introduced new problems:</p>
+
+<p>(1) High memory consumption.<br>
+(2) Significant CPU overhead in scheduling.</p>
+
+<p>Engineers discovered that a thread could be divided into two states: "kernel mode" and "user mode." User-mode threads essentially mimic kernel-mode threads in user space, with the aim of achieving greater lightweightness (lower memory consumption, reduced isolation, faster scheduling) and higher controllability (ability to manage the scheduler independently). In user mode, everything is visible to kernel mode, but from the kernel's perspective, user-mode threads are merely a set of memory data.</p>
+
+<p>A user-mode thread must be bound to a kernel-mode thread, but the CPU is unaware of the existence of user-mode threads; it only knows that it is running a kernel-mode thread (Linux's PCB - Process Control Block), as illustrated in Figure 1.4.</p>
+
+<blockquote>
+<p>Figure 1.4</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_vql0sdzuq25umw8spipy.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_vql0sdzuq25umw8spipy.png" alt="Figure 1.4" loading="lazy" width="800" height="696"></a></p>
+
+<p>If we further classify threads, kernel threads remain as "threads," while user threads are referred to as "coroutines" (Co-routine). Threads at the operating system level are what we commonly know as kernel-mode threads, while user-mode threads come in various forms. As long as they can execute multiple tasks on the same kernel-mode thread, they are considered user-mode threads. Examples include coroutines, Golang's Goroutines, C#'s Tasks, and more.</p>
+
+<p>Since one coroutine can be bound to one thread, is it possible for multiple coroutines to be bound to one or more threads? There are three mapping relationships between coroutines and threads: N:1, 1:1, and M:N.</p>
+
+<p><strong>1、"N:1" Relationship</strong></p>
+
+<p>N coroutines are bound to 1 thread. The advantage of this approach is that coroutines perform context switches within user-mode threads without transitioning to kernel mode, making these switches extremely lightweight and fast. However, the drawback is evident: all coroutines of one process are bound to a single thread, as illustrated in Figure 1.5.</p>
+
+<blockquote>
+<p>Figure 1.5</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_b8frlwx75hbd7pf09lpo.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_b8frlwx75hbd7pf09lpo.jpeg" alt="Figure 1.5" loading="lazy" width="800" height="662"></a></p>
+
+<p>Challenges Faced in the N:1 Relationship:<br>
+(1) Inability to harness the hardware's multi-core acceleration capabilities for a particular program.<br>
+(2) When one coroutine is blocked, it leads to thread blocking, causing all other coroutines within the same process to become non-executable, thus resulting in a lack of concurrency.</p>
+
+<p>** 2、"1:1" Relationship**</p>
+
+<p>In a 1 coroutine to 1 thread relationship, it's the simplest to implement. Coroutine scheduling is entirely handled by the CPU. While it doesn't suffer from the drawbacks of N:1 relationships, the cost and overhead of creating, deleting, and switching coroutines are all borne by the CPU, making it slightly more expensive. The 1:1 relationship between coroutines and threads is depicted in Figure 1.6.</p>
+
+<blockquote>
+<p>Figure 1.6</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_2tpykzt0dp4ccn0sdiec.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_2tpykzt0dp4ccn0sdiec.jpeg" alt="Figure 1.6" loading="lazy" width="800" height="633"></a></p>
+
+<p><strong>3、"M:N" Relationship</strong></p>
+
+<p>In an M coroutines to 1 thread relationship, it combines aspects of both the N:1 and 1:1 models, overcoming the drawbacks of the two aforementioned approaches. However, it is the most complex to implement, as illustrated in Figure 1.7. Multiple coroutines are hosted on the same scheduler, while the scheduler's downstream resources comprise multiple CPU cores. It's important to note that coroutines and threads differ in their nature. Thread scheduling by the CPU is preemptive, while coroutine scheduling in user mode is cooperative; one coroutine yields the CPU before the next one is executed. Consequently, the design of an intermediate-level scheduler in the M:N model becomes crucial, and improving the binding relationship and execution efficiency between threads and coroutines becomes a diverse set of languages' primary goals when designing schedulers.</p>
+
+<blockquote>
+<p>Figure 1.7</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3x48ymgm0o6f9pa6ht2c.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3x48ymgm0o6f9pa6ht2c.jpeg" alt="Figure 1.7" loading="lazy" width="800" height="652"></a></p>
+<h3>
+  <a name="114-go-languages-goroutines" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#114-go-languages-goroutines">
+  </a>
+  1.1.4 Go Language's Goroutines
+</h3>
+
+<p>In order to provide a more user-friendly approach to concurrency, Go utilizes Goroutines and Channels. Goroutines are derived from the concept of coroutines, allowing a set of reusable functions to run on a set of threads. Even if one Goroutine is blocked, the runtime scheduler can still move other Goroutines of the same thread to other runnable threads. Most importantly, programmers are shielded from these low-level details, which simplifies programming and offers easier concurrency.</p>
+
+<p>In Go, these coroutines are called Goroutines, and they are incredibly lightweight, occupying only a few kilobytes each. This small memory footprint allows Go to support a large number of Goroutines within limited memory space, facilitating greater concurrency. While a Goroutine's stack may only consume a few kilobytes, it is dynamically scalable, with the runtime automatically allocating more memory when needed.</p>
+
+<p>Key characteristics of Goroutines include minimal memory usage (just a few KB) and flexible scheduling (handled by the runtime).</p>
+<h3>
+  <a name="115-deprecated-goroutine-scheduler" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#115-deprecated-goroutine-scheduler">
+  </a>
+  1.1.5 Deprecated Goroutine Scheduler
+</h3>
+
+<p>Now that we understand the relationship between coroutines and threads, the most critical aspect is the implementation of the scheduler responsible for scheduling coroutines. The scheduler currently used in Go was redesigned in 2012 because the previous scheduler had performance issues, leading to its abandonment after just four years of use. So, let's first analyze how the deprecated scheduler worked. Typically, Goroutines are denoted by the symbol G, and threads are denoted by M, as illustrated in Figure 1.8. The following content regarding the scheduler will use the symbols shown in Figure 1.8 for consistency.</p>
+
+<blockquote>
+<p>Figure 1.8 </p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_z06b6oq5f4l909obmn9f.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_z06b6oq5f4l909obmn9f.jpeg" alt="Figure 1.8 " loading="lazy" width="800" height="603"></a></p>
+
+<p>Let's take a closer look at how the deprecated Golang scheduler was implemented. As shown in Figure 1.9, the early scheduler was built on top of the M:N model. Figure 1.9 provides a high-level overview. All coroutines, denoted as G, were placed in a global Goroutine queue. Outside the global queue, where multiple M's shared resources, a lock was added for synchronization and mutual exclusion purposes.</p>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_oc5xtlzgb30420xspey0.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_oc5xtlzgb30420xspey0.png" alt="Figure 1.9" loading="lazy" width="800" height="499"></a></p>
+
+<p>In order for an M to execute or return a G, it must access the global G queue. Since there are multiple M's, which implies multiple threads accessing the same resource, locking is required to ensure mutual exclusion and synchronization. Therefore, the global G queue is protected by a mutex lock.</p>
+
+<p>Several shortcomings of the old scheduler can be identified:<br>
+(1) Creating, destroying, and scheduling G all require each M to acquire the lock, leading to intense lock contention.<br>
+(2) Transferring G between M's results in delays and additional system overhead. For example, when G contains the creation of a new coroutine, and M creates G', in order to continue executing G, G' must be handed over to M2 (if allocated). This also leads to poor locality because G' and G are related, and it is preferable to execute them on the same M rather than a different M2, as depicted in Figure 1.10.</p>
+
+<blockquote>
+<p>Figure 1.10</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_q87s832rpcje8uu5f2xf.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_q87s832rpcje8uu5f2xf.png" alt="Figure 1.10" loading="lazy" width="800" height="501"></a></p>
+
+<p>(3) System calls (CPU switches between M's) resulted in frequent thread blocking and unblocking operations, leading to increased system overhead.</p>
+<h2>
+  <a name="12-design-principles-of-the-goroutine-scheduler-gpm-model" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#12-design-principles-of-the-goroutine-scheduler-gpm-model">
+  </a>
+  1.2 Design Principles of the Goroutine Scheduler GPM Model
+</h2>
+
+<p>In response to the issues with the previous scheduler, Go introduced a new scheduler design. In the new scheduler, in addition to M (threads) and G (coroutines), a new component called P (processor) was introduced, as illustrated in Figure 1.11.</p>
+
+<blockquote>
+<p>Figure 1.11</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3bs5i16z33gl4hdizvlu.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3bs5i16z33gl4hdizvlu.jpeg" alt="Figure 1.11" loading="lazy" width="800" height="563"></a></p>
+<h3>
+  <a name="121-the-gpm-model" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#121-the-gpm-model">
+  </a>
+  1.2.1 The GPM Model
+</h3>
+
+<p>In Go, threads serve as the entities that execute Goroutines, and the scheduler's role is to allocate runnable Goroutines to worker threads.</p>
+
+<blockquote>
+<p>Figure 1.12</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_mb76q94aew9ny4od5jbv.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_mb76q94aew9ny4od5jbv.jpg" alt="Figure 1.12" loading="lazy" width="800" height="707"></a></p>
+
+<p>In the GPM model, there are several important concepts:</p>
+
+<p>(1) Global Queue: It stores waiting-to-run Goroutines (G). The global queue is a shared resource accessible by any P, making it a global resource within the model. Consequently, mutual exclusion mechanisms are used for read and write operations on this queue.</p>
+
+<p>(2) P's Local Queue: Similar to the global queue, it contains waiting-to-run Goroutines, but with a limited capacity, typically not exceeding 256 Goroutines. When a new Goroutine G' is created, it is initially added to the P's local queue. If the local queue becomes full, half of its Goroutines are moved to the global queue.</p>
+
+<p>(3) P List: All P's are created at program startup and are stored in an array, with the maximum number of P's typically set to GOMAXPROCS (a configurable value).</p>
+
+<p>(4) M: Threads (M) request tasks by obtaining a P. They retrieve G's from the P's local queue. When the local queue is empty, an M may attempt to fetch a batch of G's from the global queue and place them in its P's local queue or steal half from another P's local queue. The M then executes a G, and after completion, it fetches the next G from its P, repeating this process.</p>
+
+<p>The Goroutine scheduler works in conjunction with the OS scheduler through the M, where each M represents a kernel thread. The OS scheduler allocates kernel threads to CPU cores for execution.</p>
+
+<p><strong>1、Regarding the Number of P's and M's:</strong></p>
+
+<p>(1) The number of P's is determined by the environment variable $GOMAXPROCS or the runtime method GOMAXPROCS(). This means that at any given moment during program execution, there are only $GOMAXPROCS Goroutines running simultaneously.<br>
+(2) The number of M's is constrained by Go's own limits. When a Go program starts, it sets the maximum number of M's, typically defaulting to 10,000. However, it's challenging for the kernel to support such a high number of threads, so this limit can often be disregarded. The runtime/debug package provides the SetMaxThreads() function to adjust the maximum number of M's. When an M becomes blocked, new M's can be created.<br>
+There is no strict relationship between the number of M's and P's. When an M becomes blocked, a P may either create a new M or switch to another available M. So, even if the default number of P's is 1, it is still possible to create multiple M's when needed.</p>
+
+<p><strong>2、Regarding the Creation Timing of P's and M's:</strong></p>
+
+<p>(1) P's are created when the maximum number of P's, denoted as 'n,' is determined. The runtime system generates 'n' P's accordingly.<br>
+(2) M's are created when there aren't enough M's available to associate with P's and execute the runnable Goroutines within them. For example, if all M's are blocked, and there are still many ready tasks in the P, the system will search for idle M's, and if none are available, it will create new M's.</p>
+<h3>
+  <a name="122-scheduler-design-strategies" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#122-scheduler-design-strategies">
+  </a>
+  1.2.2 Scheduler Design Strategies
+</h3>
+<h4>
+  <a name="strategy-one-thread-reuse" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#strategy-one-thread-reuse">
+  </a>
+  Strategy One: Thread Reuse
+</h4>
+
+<p>The aim is to avoid frequent thread creation and destruction and instead focus on reusing threads.</p>
+
+<p>** 1) Work Stealing Mechanism ** </p>
+
+<p>When the current thread has no runnable Goroutines to execute, it attempts to steal Goroutines from other threads bound to the same P, rather than terminating the thread. This process is illustrated in Figure 1.13.</p>
+
+<blockquote>
+<p>Figure 1.13</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_uo01jw34rjafd9zw35ie.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_uo01jw34rjafd9zw35ie.png" alt="Figure 1.13" loading="lazy" width="800" height="1110"></a></p>
+
+<p>It's important to note that the act of stealing Goroutines is initiated by a P, not an M, because the number of P's is fixed. If an M cannot acquire a P, it means that the M doesn't have a local queue, let alone the capability to steal from other P's queues.</p>
+
+<p>** 1) Hand Off Mechanism **<br>
+When the current thread blocks due to a system call while executing a Goroutine, the thread releases the associated P and transfers it to another available thread for execution. This situation is depicted in Figure 1.14. If, in the GPM combination of M1, G1 is currently being scheduled and becomes blocked, it triggers the design mechanism for handoff. In the GPM model, to maximize the utilization of M and P's performance, a single blocked G1 should not indefinitely delay the work. So, in such situations, the handoff mechanism is designed to immediately release the P.</p>
+
+<blockquote>
+<p>Figure 1.14</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_aspm7ep534fcmxare8vi.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_aspm7ep534fcmxare8vi.png" alt="Figure 1.14" loading="lazy" width="800" height="913"></a></p>
+
+<p>As shown in Figure 1.15, in order to release the P, the P is separated from M1 and G1. Since M1 is currently executing the active G1, the entire program stack space is contained within M1. Therefore, M1 should enter a blocked state along with G1. However, the P that has been released needs to be associated with another M. In this case, it selects M3 (or creates a new one or awakens a sleeping one if there is no M3 available at the time) to establish a new association. The new P then continues its work, either accepting new G's or implementing the stealing mechanism from other queues.</p>
+
+<blockquote>
+<p>Figure 1.15</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_mmuubksx5lqpbwkt9kei.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_mmuubksx5lqpbwkt9kei.png" alt="Figure 1.15" loading="lazy" width="800" height="727"></a></p>
+<h4>
+  <a name="strategy-two-leveraging-parallelism" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#strategy-two-leveraging-parallelism">
+  </a>
+  Strategy Two: Leveraging Parallelism
+</h4>
+
+<p><code>GOMAXPROCS</code> sets the number of P's, with a maximum of <code>GOMAXPROCS</code> threads distributed across multiple CPUs simultaneously. <code>GOMAXPROCS</code> also limits the degree of concurrency; for example, if <code>GOMAXPROCS = number of cores/2</code>, it utilizes at most half of the CPU cores for parallelism.</p>
+<h4>
+  <a name="strategy-three-preemption" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#strategy-three-preemption">
+  </a>
+  Strategy Three: Preemption
+</h4>
+
+<p>In Coroutine, one must wait for a coroutine to voluntarily yield the CPU before the next coroutine can execute. In Go, a <code>Goroutine</code> can occupy the CPU for a maximum of 10ms, preventing other <code>Goroutines</code> from being starved of resources. This is a distinguishing feature of <code>Goroutines</code> compared to regular Coroutines.</p>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_sw1117lp09c3p4w78ppk.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_sw1117lp09c3p4w78ppk.png" alt="Figure 1.16" loading="lazy" width="800" height="389"></a></p>
+<h4>
+  <a name="strategy-four-global-g-queue" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#strategy-four-global-g-queue">
+  </a>
+  Strategy Four: Global G Queue
+</h4>
+
+<p>In the new scheduler, the global G queue still exists but with weakened functionality. When an M attempts to steal <code>Goroutines</code> but cannot find any in the queues of other P's, it can retrieve <code>Goroutines</code> from the global G queue, as illustrated in Figure 1.17.</p>
+
+<blockquote>
+<p>Figure 1.17</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_unx3nfn7cwzgnvbh4y7s.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_unx3nfn7cwzgnvbh4y7s.jpeg" alt="Figure 1.17" loading="lazy" width="800" height="1077"></a></p>
+<h3>
+  <a name="123-go-func-scheduling-process" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#123-go-func-scheduling-process">
+  </a>
+  1.2.3 go func() Scheduling Process
+</h3>
+
+<p>Now, let's deduce what happens in the GPM model when executing the line of code go func().</p>
+
+<p>(1) Creating a Goroutine using go func(), as depicted in Figure 1.18.</p>
+
+<blockquote>
+<p>Figure 1.18</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_wch2uubh194ncuhz670e.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_wch2uubh194ncuhz670e.png" alt="Figure 1.18" loading="lazy" width="800" height="591"></a></p>
+
+<p>(2) There are two queues for storing G: one is the local queue of the scheduler P, and the other is the global G queue. The newly created G is initially stored in the P's local queue. If the local queue of P is already full, it will be stored in the global queue, as illustrated in Figure 1.19.</p>
+
+<blockquote>
+<p>Figure 1.19</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7ohqmjgbbzkd4k3dkmkw.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7ohqmjgbbzkd4k3dkmkw.png" alt="Figure 1.19" loading="lazy" width="800" height="575"></a></p>
+
+<p>(3) G can only run within M, and each M must hold a P, establishing a 1:1 relationship between M and P. M pops an executable G from the local queue of P for execution. If P's local queue is empty, M retrieves a G from the global queue. If the global queue is also empty, M attempts to steal an executable G from other MP combinations, as depicted in Figure 1.20.</p>
+
+<blockquote>
+<p>Figure 1.20</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_07t47vo7clc722ifsj4o.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_07t47vo7clc722ifsj4o.jpeg" alt="Figure 1.20" loading="lazy" width="800" height="671"></a></p>
+
+<p>(4) The process of scheduling G for execution in an M follows a looping mechanism, as shown in Figure 1.21.</p>
+
+<blockquote>
+<p>Figure 1.21</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_dxq0e08n53m2xb8fzutw.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_dxq0e08n53m2xb8fzutw.png" alt="Figure 1.21" loading="lazy" width="800" height="602"></a></p>
+
+<p>(5) When an M is executing a G, if a syscall or other blocking operation occurs, the M becomes blocked. If there are other Gs currently executing, the runtime detaches the thread M from P and creates a new operating system thread (reusing an available idle thread if possible) to serve this P, as illustrated in Figure 1.22.</p>
+
+<blockquote>
+<p>Figure 1.22</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_8bjqzocuspevytu0cmah.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_8bjqzocuspevytu0cmah.png" alt="Figure 1.22" loading="lazy" width="800" height="454"></a></p>
+
+<p>(6) When the M completes the system call, the G will attempt to acquire an idle P for execution and be placed in the local queue of that P. If acquiring a P is not successful, the thread M enters a sleep state and joins the pool of idle threads. Meanwhile, the G is placed in the global queue, as depicted in Figure 1.23.</p>
+
+<blockquote>
+<p>Figure 1.23</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_m1beirmbbhb7tenpzgp1.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_m1beirmbbhb7tenpzgp1.png" alt="Figure 1.23" loading="lazy" width="800" height="456"></a></p>
+<h3>
+  <a name="124-scheduler-lifecycle" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#124-scheduler-lifecycle">
+  </a>
+  1.2.4 Scheduler Lifecycle
+</h3>
+
+<p>In the GPM model of the Golang scheduler, there are two distinct roles: M0 and G0.</p>
+<h4>
+  <a name="m0" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#m0">
+  </a>
+  M0
+</h4>
+
+<ul>
+<li>The main thread with the index 0 started after the program launches.</li>
+<li>Located in the global command runtime.m0, requiring no allocation on the heap.</li>
+<li>Responsible for executing initialization operations and launching the first G.</li>
+<li>After launching the first G, M0 functions like any other M.</li>
+</ul>
+<h4>
+  <a name="g0" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#g0">
+  </a>
+  G0
+</h4>
+
+<ul>
+<li>Each time an M is started, the first Goroutine created is G0.</li>
+<li>G0 is solely dedicated to scheduling tasks.</li>
+<li>G0 does not point to any executable function.</li>
+<li>Every M has its own G0.</li>
+<li>During scheduling or system calls, M switches to G0, and scheduling is performed through G0.</li>
+<li>M0's G0 is placed in the global space.
+The overall lifecycle of a Goroutine, including the roles of * M0 and G0, is illustrated in Figure 1.24.</li>
+</ul>
+
+<blockquote>
+<p>Figure 1.24</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_8wzewz07497rhq3m2m1n.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_8wzewz07497rhq3m2m1n.png" alt="Figure 1.24" loading="lazy" width="800" height="1557"></a></p>
+
+<p>Let's trace the following code and analyze the structures inside the scheduler. The code is as follows:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight go"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="s">"fmt"</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Hello world"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>The overall analysis process is as follows:</p>
+
+<ol>
+<li>The runtime creates the initial thread M0 and Goroutine G0, associating the two.</li>
+<li>Scheduler initialization: Initializes M0, stacks, garbage collection, and creates and initializes the P list consisting of GOMAXPROCS P's, as shown in Figure 1.25.</li>
+</ol>
+
+<blockquote>
+<p>Figure 1.25</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_qcvqe42jneauq9csskpr.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_qcvqe42jneauq9csskpr.png" alt="Figure 1.25" loading="lazy" width="800" height="823"></a></p>
+
+<p>(3) The main() function in the example code is main.main, and there is also a main() function in the runtime, runtime.main. After the code is compiled, runtime.main will call main.main. When the program starts, it will create a Goroutine for runtime.main, known as the Main Goroutine, and then add the Main Goroutine to the local queue of P, as shown in Figure 1.26.</p>
+
+<blockquote>
+<p>Figure 1.26</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_zgu0idcxpg47b5z8413v.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_zgu0idcxpg47b5z8413v.png" alt="Figure 1.26" loading="lazy" width="800" height="845"></a></p>
+
+<p>(4) Start m0, m0 has already bound P, it will get G from P's local queue, and get the Main Goroutine.</p>
+
+<p>(5) G has a stack, M sets the running environment according to the stack information and scheduling information in G.</p>
+
+<p>(6) M runs G.</p>
+
+<p>(7) G exits, and returns to M to get the runnable G, repeating this until main.main exits, runtime.main performs Defer and Panic processing, or calls runtime.exit to exit the program.</p>
+
+<p>The lifecycle of the scheduler almost fills the entire life of a Go program. All the preparations before the Goroutine of runtime.main are for the scheduler. The running of the Goroutine of runtime.main is the real start of the scheduler, which ends when runtime.main ends.</p>
+
+<h3>
+  <a name="125-visualizing-gpm-programming" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#125-visualizing-gpm-programming">
+  </a>
+  1.2.5 Visualizing GPM Programming
+</h3>
+
+<p>After grasping the fundamental model of GPM and the initialization lifecycle, can we visualize the data of a program's GPM model during its execution using some tools? Go provides two ways to inspect a program's GPM data.</p>
+
+<h4>
+  <a name="1-go-tool-trace" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#1-go-tool-trace">
+  </a>
+  1. go tool trace
+</h4>
+
+<p>The trace tool records runtime information and provides a visual web page. Below is a simple example. The main() function creates a trace, which runs in a separate Goroutine. Then main() prints "Hello World" and exits. The code is as follows:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight go"><code><span class="c">// File: go_tool_trace.go</span>
+<span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+    <span class="s">"os"</span>
+    <span class="s">"fmt"</span>
+    <span class="s">"runtime/trace"</span>
+<span class="p">)</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c">// Create a trace file</span>
+    <span class="n">f</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">os</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="s">"trace.out"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+        <span class="nb">panic</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">defer</span> <span class="n">f</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+
+    <span class="c">// Start trace Goroutine</span>
+    <span class="n">err</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">Start</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+        <span class="nb">panic</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">defer</span> <span class="n">trace</span><span class="o">.</span><span class="n">Stop</span><span class="p">()</span>
+
+    <span class="c">// main</span>
+    <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Hello World"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>Run the program, and you will find a trace.out file in the current directory. You can use the go tool to open this file. The results are as follows:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code><span class="nv">$ </span>go run trace.go
+Hello World
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>Here, a trace.out file is generated in the current directory. You can use the go tool to open the file. The result is as follows:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code><span class="nv">$ </span>go tool trace trace.out
+2021/02/23 10:44:11 Parsing trace...
+2021/02/23 10:44:11 Splitting trace...
+2021/02/23 10:44:11 Opening browser. Trace viewer is listening on http://127.0.0.1:33479
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>Open the browser at <a href="http://127.0.0.1:33479/" target="_blank" rel="noopener noreferrer">http://127.0.0.1:33479</a>, click "view trace" to see the visualized scheduling flow, as shown in Figure 1.27.</p>
+
+<blockquote>
+<p>Figure 1.27</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_36ckfbl43cxfeadiyygt.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_36ckfbl43cxfeadiyygt.png" alt="Figure 1.27" loading="lazy" width="800" height="364"></a></p>
+
+<p>What is shown in Figure 1.27 is the complete flow of Go routines associated with the current code execution process, along with their respective timelines. </p>
+
+<p>(1) G Information. Clicking on the row labeled "Goroutines" in the visualized data bar reveals detailed information, as depicted in Figure 1.29.</p>
+
+<blockquote>
+<p>Figure 1.29</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_89m4vzmrvn88wr6t2vxu.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_89m4vzmrvn88wr6t2vxu.png" alt="Figure 1.29" loading="lazy" width="800" height="170"></a></p>
+
+<p>There are a total of two Gs in the program. One is the special G0, an essential initialized G for each M. The other is G1, the Main Goroutine responsible for executing the main() function, which remains in the runnable and running states for a period of time.</p>
+
+<p>(2) M Information: Clicking on the "Threads" row in the visualized data bar reveals detailed information, as shown in Figure 1.30.</p>
+
+<blockquote>
+<p>Figure 1.30</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_xjkq4exz9owqg0cukxih.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_xjkq4exz9owqg0cukxih.png" alt="Figure 1.30" loading="lazy" width="800" height="153"></a></p>
+
+<p>(3) P Information: Now, let's examine the information in the PROCS section on the left. The listed items, such as Proc 0 and Proc 1, represent details about the processors. As shown in Figure 1.31, Proc 0 and Proc 1 are both associated with processor-related information.</p>
+
+<blockquote>
+<p>Figure 1.31</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_l6xp76hcqvm8oupmcjmr.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_l6xp76hcqvm8oupmcjmr.png" alt="Figure 1.31" loading="lazy" width="800" height="54"></a></p>
+
+<p>G1, which invokes main.main, spawns the trace goroutine G18. G1 is running on P1, while G18 is executing on P0. In this scenario, there are two P's, and each P must be associated with an M for scheduling G's. Next is the information about M, as illustrated in Figure 1.32.</p>
+
+<blockquote>
+<p>Figure 1.32</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ysvku99rqmdo1hbta5r6.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ysvku99rqmdo1hbta5r6.png" alt="Figure 1.32" loading="lazy" width="800" height="164"></a></p>
+
+<p>In the figure, you can observe that when G18 is running on P0, there is additional data for M in the "Threads" row. Clicking on it reveals detailed information, as shown in Figure 1.33.</p>
+
+<blockquote>
+<p>Figure 1.33</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3tktvqundsfyr47omxvi.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3tktvqundsfyr47omxvi.png" alt="Figure 1.33" loading="lazy" width="800" height="157"></a></p>
+
+<p>The newly added M2 is dynamically created by P0 to execute G18.</p>
+
+<h4>
+  <a name="2-debug-trace" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#2-debug-trace">
+  </a>
+  2. debug trace
+</h4>
+
+
+
+<div class="highlight js-code-highlight">
+<pre class="highlight go"><code><span class="c">// File: trace2.go</span>
+<span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+    <span class="s">"fmt"</span>
+    <span class="s">"time"</span>
+<span class="p">)</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="m">5</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
+        <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Hello World"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>Compile the above code:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code><span class="nv">$ </span>go build trace2.go
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>Next, run it with debug trace:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code><span class="nv">$ GODEBUG</span><span class="o">=</span><span class="nv">schedtrace</span><span class="o">=</span>1000 ./trace2 
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>The output analysis is as follows:</p>
+
+<p>(1) SCHED: Debug information output flag, indicating that this line is from the Goroutine scheduler.<br>
+(2) 0ms: The time from the program start to the output of this log.<br>
+(3) gomaxprocs: Number of P (Processors), in this example, there are 2 P because the default P property matches the CPU core count. You can set it using GOMAXPROCS.<br>
+(4) idleprocs: Number of P in idle state; the difference between gomaxprocs and idleprocs tells us the number of actively executing P in Go code.<br>
+(5) threads: Number of OS threads/M, including the number of M used by the scheduler, plus runtime's own threads like sysmon.<br>
+(6) spinningthreads: Number of OS threads in a spinning state.<br>
+(7) idlethreads: Number of OS threads in an idle state.<br>
+(8) runqueue=0: Number of G in the Scheduler's global queue.<br>
+(9) [0 0]: Number of G in the local queues of the 2 P.</p>
+
+<p>Viewing GPM data can be done through both go tool trace and Debug trace. Both provide insights into the distribution of GPM during the program's execution. go tool trace additionally offers a local web-based visualization, while Debug trace outputs information to the terminal.</p>
+<h2>
+  <a name="13-go-scheduler-comprehensive-analysis-of-scheduling-scenarios" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#13-go-scheduler-comprehensive-analysis-of-scheduling-scenarios">
+  </a>
+  1.3 Go Scheduler: Comprehensive Analysis of Scheduling Scenarios
+</h2>
+
+<p>This section will delve into a comprehensive analysis of scheduling variations in Golang's GPM model across different scenarios. These scenarios cover almost all situations encountered during the scheduling process of Goroutines. Analyzing these scheduling scenarios helps us better appreciate the charm of the Golang scheduler.</p>
+<h3>
+  <a name="131-scenario-1-g1-creates-g2" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#131-scenario-1-g1-creates-g2">
+  </a>
+  1.3.1 Scenario 1: G1 Creates G2
+</h3>
+
+<p>This scenario primarily demonstrates the locality of GPM scheduling. P owns G1, and M1 starts running G1 after acquiring P, as illustrated in Figure 1.34.</p>
+
+<blockquote>
+<p>Figure 1.34</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_4wgo8058394q0bbimyb2.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_4wgo8058394q0bbimyb2.png" alt="Figure 1.34" loading="lazy" width="800" height="843"></a></p>
+
+<p>When G1 uses go func() to create G2, for the sake of locality, G2 is given priority and is added to the local queue of P1, as depicted in Figure 1.35.</p>
+
+<blockquote>
+<p>Figure 1.35</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_vpgzslv9100m7sgzac6w.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_vpgzslv9100m7sgzac6w.png" alt="Figure 1.35" loading="lazy" width="800" height="798"></a></p>
+
+<p>Scenario 1 mainly illustrates the locality of the GPM scheduler. By default, if a G1 creates a new G2, G2 is prioritized and placed in the local queue of P1. This is because G1 and G2 share similar memory and stack information, making the cost of switching between them relatively small for M1 and P. This is a characteristic that locality aims to preserve.</p>
+<h3>
+  <a name="132-scenario-2-g1-execution-completed" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#132-scenario-2-g1-execution-completed">
+  </a>
+  1.3.2 Scenario 2: G1 Execution Completed
+</h3>
+
+<p>Currently, M1 is bound to G1, and the local queue of P1 contains G2. Meanwhile, M2 is bound to G4, and the local queue of P2 contains G5, as illustrated in Figure 1.36.</p>
+
+<blockquote>
+<p>Figure 1.36</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ouzyihsru2z668nkl7r9.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ouzyihsru2z668nkl7r9.png" alt="Figure 1.36" loading="lazy" width="800" height="629"></a></p>
+
+<p>After the completion of the execution of G1, the Goroutine running on M1 is switched to G0, as shown in Figure 1.37.</p>
+
+<blockquote>
+<p>Figure 1.37</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_h5u7utkhoerevcta4qmt.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_h5u7utkhoerevcta4qmt.png" alt="Figure 1.37" loading="lazy" width="800" height="632"></a></p>
+
+<p>G0 is responsible for coordinating the context switch of Goroutines during scheduling. It retrieves G2 from the local queue of P, switches from G0 to G2, and starts executing G2, achieving the reuse of thread M1, as illustrated in Figure 1.38.</p>
+
+<blockquote>
+<p>Figure 1.38</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_lz28vlbri2euhse9fsdq.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_lz28vlbri2euhse9fsdq.png" alt="Figure 1.38" loading="lazy" width="800" height="659"></a></p>
+
+<p>Scenario 2 primarily demonstrates the reusability of M in the GPM scheduling model. When a Goroutine (G1) has completed its execution, regardless of the availability of other Ps, M will prioritize fetching a pending G from its bound P's local queue. In this case, the pending G is G2.</p>
+<h3>
+  <a name="133-scenario-3-g2-creates-excessive-gs" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#133-scenario-3-g2-creates-excessive-gs">
+  </a>
+  1.3.3 Scenario 3: G2 Creates Excessive Gs
+</h3>
+
+<p>Suppose each P's local queue can only store 4 Gs, and the local queue of P1 is currently empty. If G2 needs to create 6 Gs, then G2 can only create the first 4 Gs (G3, G4, G5, G6) and place them in its current queue, as illustrated in Figure 1.39. The excess Gs (G7, G8) will not be added to the local queue of P1. The detailed explanation of where the excess Gs are placed will be covered in Scenario 4.</p>
+
+<blockquote>
+<p>Figure 1.39</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_qfn6m4acy8lvkezou96w.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_qfn6m4acy8lvkezou96w.png" alt="Figure 1.39" loading="lazy" width="800" height="543"></a></p>
+
+<p>Scenario 3 illustrates that if a G creates an excessive number of Gs, the local queue may become full. The excess Gs need to be arranged according to the logic explained in Scenario 4.</p>
+<h3>
+  <a name="134-scenario-4-g2-locally-full-creating-g7" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#134-scenario-4-g2-locally-full-creating-g7">
+  </a>
+  1.3.4 Scenario 4: G2 Locally Full, Creating G7
+</h3>
+
+<p>When G2 attempts to create G7 and discovers that P1's local queue is full, it triggers a load balancing algorithm. This algorithm moves the first half of the Gs from P1's local queue, along with the newly created G7, to the global queue. As illustrated in Figure 1.40, G3, G4, and the recently created G7 are placed together in the global queue, while G5 and G6 from P1's local queue are moved to the front of the queue.</p>
+
+<blockquote>
+<p>Figure 1.40</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_w7vhqvnlqqlrce6v6sj7.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_w7vhqvnlqqlrce6v6sj7.png" alt="Figure 1.40" loading="lazy" width="800" height="710"></a></p>
+
+<p>When these Gs are moved to the global queue, their order becomes disrupted. Therefore, G3, G4, and G7 are added to the global queue in a non-sequential manner.</p>
+<h3>
+  <a name="135-scenario-5-g2-local-queue-not-full-creating-g8" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#135-scenario-5-g2-local-queue-not-full-creating-g8">
+  </a>
+  1.3.5 Scenario 5: G2 Local Queue Not Full, Creating G8
+</h3>
+
+<p>When G2 creates G8 and the local queue of P1 is not full, G8 will be added to the local queue of P1.</p>
+
+<blockquote>
+<p>Figure 1.41</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_xagaragbv7xtkb2at65u.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_xagaragbv7xtkb2at65u.png" alt="Figure 1.41" loading="lazy" width="800" height="1261"></a></p>
+
+<p>Newly created G8 is given top priority and is placed into the local queue first, adhering to the locality property. Since the local queue already contains other Gs at its head, G8 will sequentially enter from the queue's tail, as depicted in Figure 1.41. When the scheduling of G2 is completed, the subsequent scheduled G should be G5.</p>
+<h3>
+  <a name="136-scenario-6-waking-up-a-sleeping-m" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#136-scenario-6-waking-up-a-sleeping-m">
+  </a>
+  1.3.6 Scenario 6: Waking Up a Sleeping M
+</h3>
+
+<p>In the GPM model, when creating a new G, the running G will attempt to wake up other idle P and M combinations for execution. This implies that there might be surplus M instances from previous operations, and these M instances won't be immediately reclaimed by the operating system. Instead, they are placed in a sleeping thread queue. The condition triggering the awakening of an M from the sleeping queue is attempting to create a new G.</p>
+
+<p>As illustrated in Figure 1.42, currently, only P1 and M1 are bound, and P1 is executing G2. When G2 attempts to create a new G, it triggers an attempt to fetch an M from the sleeping thread queue and attempts to bind it to a new P along with the local queue of P.</p>
+
+<blockquote>
+<p>Figure 1.42</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_03hamar1xlofbkymq8nc.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_03hamar1xlofbkymq8nc.png" alt="Figure 1.42" loading="lazy" width="800" height="756"></a></p>
+
+<p>G2 is waking up M2 from the sleeping queue, as shown in Figure 1.43.</p>
+
+<blockquote>
+<p>Figure 1.43</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_6se2ov233c6rb75c9wuy.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_6se2ov233c6rb75c9wuy.png" alt="Figure 1.43" loading="lazy" width="800" height="824"></a></p>
+
+<p>If M2 discovers available P resources, it will be activated and bound to P2, as illustrated in Figure 1.44.</p>
+
+<blockquote>
+<p>Figure 1.44</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_5mpmqfgpria8mpgaqjve.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_5mpmqfgpria8mpgaqjve.png" alt="Figure 1.44" loading="lazy" width="800" height="775"></a></p>
+
+<p>At this point, if M2 is bound to P2, it needs to find other Gs to execute. Each M has a G0 responsible for scheduling other Gs. Therefore, if there are no normal Gs available for M2 and P2, G0 will be scheduled by P. If P's local queue is empty and P is in G0, the combination of M2, P2, and G0 is referred to as a spinning thread, as shown in Figure 1.45.</p>
+
+<blockquote>
+<p>Figure 1.45</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_kkktfytqrs7hq3ogr5dr.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_kkktfytqrs7hq3ogr5dr.png" alt="Figure 1.45" loading="lazy" width="800" height="788"></a></p>
+
+<p>One characteristic of a spinning thread is the continuous search for Gs. The process of finding Gs will lead to the flow of scenarios 7 and 8 to be introduced next.</p>
+<h3>
+  <a name="137-scenario-7-m2-awoken-fetches-a-batch-of-gs-from-the-global-queue" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#137-scenario-7-m2-awoken-fetches-a-batch-of-gs-from-the-global-queue">
+  </a>
+  1.3.7 Scenario 7: M2 Awoken Fetches a Batch of Gs from the Global Queue
+</h3>
+
+<p>M2 attempts to fetch a batch of Gs from the global queue (referred to as GQ) and places them in P2's local queue (referred to as LQ). The number of Gs that M2 fetches from the global queue follows the formula:</p>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_fyl9lhrs7dk9ssdclhha.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_fyl9lhrs7dk9ssdclhha.png" alt="formula" loading="lazy" width="345" height="69"></a></p>
+
+<p>Referencing the source code as follows:<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight go"><code><span class="c">//usr/local/go/src/runtime/proc.go</span>
+
+<span class="c">//…</span>
+
+<span class="c">// Steal from the global queue, must be called with the scheduler locked</span>
+<span class="k">func</span> <span class="n">globrunqget</span><span class="p">(</span><span class="n">_p_</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="n">max</span> <span class="kt">int32</span><span class="p">)</span> <span class="o">*</span><span class="n">g</span> <span class="p">{</span>
+    <span class="c">// Return nil if the global queue is empty</span>
+    <span class="k">if</span> <span class="n">sched</span><span class="o">.</span><span class="n">runqsize</span> <span class="o">==</span> <span class="m">0</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="no">nil</span>
+    <span class="p">}</span>
+
+    <span class="c">// Per-P portion, take all if there is only one P</span>
+    <span class="n">n</span> <span class="o">:=</span> <span class="n">sched</span><span class="o">.</span><span class="n">runqsize</span><span class="o">/</span><span class="n">gomaxprocs</span> <span class="o">+</span> <span class="m">1</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="n">sched</span><span class="o">.</span><span class="n">runqsize</span> <span class="p">{</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">sched</span><span class="o">.</span><span class="n">runqsize</span>
+    <span class="p">}</span>
+
+    <span class="c">// Cannot exceed the maximum number to take</span>
+    <span class="k">if</span> <span class="n">max</span> <span class="o">&gt;</span> <span class="m">0</span> <span class="o">&amp;&amp;</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="n">max</span> <span class="p">{</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">max</span>
+    <span class="p">}</span>
+
+    <span class="c">// Check if it can fit the remaining space in the local queue</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="kt">int32</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_p_</span><span class="o">.</span><span class="n">runq</span><span class="p">))</span><span class="o">/</span><span class="m">2</span> <span class="p">{</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="kt">int32</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_p_</span><span class="o">.</span><span class="n">runq</span><span class="p">))</span> <span class="o">/</span> <span class="m">2</span>
+    <span class="p">}</span>
+
+    <span class="c">// Update the remaining space in the local queue</span>
+    <span class="n">sched</span><span class="o">.</span><span class="n">runqsize</span> <span class="o">-=</span> <span class="n">n</span>
+    <span class="c">// Get the head G from the global queue</span>
+    <span class="n">gp</span> <span class="o">:=</span> <span class="n">sched</span><span class="o">.</span><span class="n">runq</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="c">// Decrement the count</span>
+    <span class="n">n</span><span class="o">--</span>
+
+    <span class="c">// Continue fetching the remaining n-1 Gs from the global queue and place them into the local queue</span>
+    <span class="k">for</span> <span class="p">;</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="m">0</span><span class="p">;</span> <span class="n">n</span><span class="o">--</span> <span class="p">{</span>
+        <span class="n">gp1</span> <span class="o">:=</span> <span class="n">sched</span><span class="o">.</span><span class="n">runq</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">runqput</span><span class="p">(</span><span class="n">_p_</span><span class="p">,</span> <span class="n">gp1</span><span class="p">,</span> <span class="no">false</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">gp</span>
+<span class="p">}</span>
+<span class="c">//…</span>
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<p>At least 1 G is fetched from the global queue each time, but it avoids moving too many Gs from the global queue to the P local queue at once, leaving some for other Ps. This aims to achieve load balancing from the global queue to the P local queue.</p>
+
+<blockquote>
+<p>Figure 1.46</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7cfkz9t42325vbuxset1.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7cfkz9t42325vbuxset1.png" alt="Figure 1.46" loading="lazy" width="800" height="568"></a></p>
+
+<p>If M2 is in a spinning thread state at this moment, the global queue has a count of 3, and the local queue capacity of P2 is 4, as shown in Figure 1.46. According to the load balancing formula, the number of Gs fetched from the global queue at once is 1. M2 will then fetch G3 from the head of the global queue and add it to P2's local queue, as illustrated in Figure 1.47.</p>
+
+<blockquote>
+<p>Figure 1.47</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_hpsz1sv9zwxuigyzi0io.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_hpsz1sv9zwxuigyzi0io.png" alt="Figure 1.47" loading="lazy" width="800" height="531"></a></p>
+
+<p>Once G3 is added to the local queue, it needs to be scheduled by G0. G0 is then replaced by G3, and at the same time, G7 and G4 from the global queue will move to the head of the queue in sequence, as shown in Figure 1.48.</p>
+
+<blockquote>
+<p>Figure 1.48</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_s0jb8ldh3752stk5m5u1.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_s0jb8ldh3752stk5m5u1.png" alt="Figure 1.48" loading="lazy" width="800" height="525"></a></p>
+
+<p>Once G3 is scheduled, M2 is no longer a spinning thread.</p>
+
+<h3>
+  <a name="138-scenario-8-m2-steals-from-m1" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#138-scenario-8-m2-steals-from-m1">
+  </a>
+  1.3.8 Scenario 8: M2 Steals from M1
+</h3>
+
+<p>Assuming G2 has been running on M1 all along, after two rounds, M2 has successfully acquired G7 and G4 from the global queue and added them to the local queue of P2, completing their execution. Both the global queue and the local queue of P2 will be empty, as shown in Figure 1.49.</p>
+
+<blockquote>
+<p>Figure 1.49</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_0tg13e48h63cwm528xtr.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_0tg13e48h63cwm528xtr.png" alt="Figure 1.49" loading="lazy" width="800" height="1025"></a></p>
+
+<p>M2 will once again be in a state of scheduling G0. In this state, a spinning MP combination continuously looks for Gs that can be scheduled. Otherwise, waiting in idle would mean wasting thread resources. Since the global queue is empty, M2 will perform stealing: it steals half of the Gs from another P that has Gs and adds them to its own P's local queue. P2 takes half of the Gs from the tail of P1's local queue, as shown in Figure 1.50.</p>
+
+<blockquote>
+<p>Figure 1.50</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_zhozfyvhizpvihgkfcom.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_zhozfyvhizpvihgkfcom.jpeg" alt="Figure 1.50" loading="lazy" width="800" height="993"></a></p>
+
+<p>In this case, half means only one G8. Therefore, M2 will attempt to steal G8, placing it in P2's local queue, as illustrated in Figure 1.51.</p>
+
+<blockquote>
+<p>Figure 1.51</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_csa1j37l8lvfufli4ze8.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_csa1j37l8lvfufli4ze8.jpeg" alt="Figure 1.51" loading="lazy" width="800" height="1074"></a></p>
+
+<p>The subsequent process is similar to the previous scenario. G0 will schedule G8, and as a result, M2 will no longer be in a spinning thread state, as shown in Figure 1.52.</p>
+
+<blockquote>
+<p>Figure 1.52</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_hlxxr4bab872qs9a9nuc.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_hlxxr4bab872qs9a9nuc.png" alt="Figure 1.52" loading="lazy" width="800" height="1118"></a></p>
+
+<h3>
+  <a name="139-scene-9-maximum-limit-of-spinning-threads" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#139-scene-9-maximum-limit-of-spinning-threads">
+  </a>
+  1.3.9 Scene 9: Maximum Limit of Spinning Threads
+</h3>
+
+<p>M1's local queue with G5 and G6 has been taken by M2 and executed, and currently, M1 and M2 are running G2 and G8, respectively, as shown in Figure 1.53. In the GPM model, the GOMAXPROCS variable determines the number of P's. The number of P's is fixed in the GPM model and cannot be dynamically added or removed.</p>
+
+<blockquote>
+<p>Figure 1.53</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_aoueyz9r3jnrts13uaks.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_aoueyz9r3jnrts13uaks.jpeg" alt="Figure 1.53" loading="lazy" width="800" height="801"></a></p>
+
+<p>Assuming GOMAXPROCS=4, the number of P's is also 4. At this point, P3 and P4 are bound to M3 and M4, as illustrated in Figure 1.54.</p>
+
+<blockquote>
+<p>Figure 1.54</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_jzmftbxi16nzatagfe50.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_jzmftbxi16nzatagfe50.jpeg" alt="Figure 1.54" loading="lazy" width="800" height="423"></a></p>
+
+<p>M3 and M4 do not have any Goroutines to run, so they are currently bound to their respective G0, and both M3 and M4 are in a spinning state, continually searching for Goroutines.</p>
+
+<p>Why allow M3 and M4 to spin? Spinning is essentially running, and when a thread is running without executing a Goroutine, it becomes a waste of CPU. Why not destroy the context to save CPU resources? Because creating and destroying CPU also incurs a time cost, and the philosophy of the Golang scheduler GPM model is to have an M ready to run a new Goroutine immediately upon its creation. If we were to destroy and recreate, it would introduce delays and reduce efficiency. Of course, the system also considers that having too many spinning threads wastes CPU, so there is a maximum limit of GOMAXPROCS spinning threads in the system (in the current example, GOMAXPROCS=4, so there are a total of 4 P's). Any excess idle threads will be put to sleep. If there is an M5 currently running but no available P to bind with, M5 will be added to the sleeping thread queue, as shown in Figure 1.55.</p>
+
+<blockquote>
+<p>Figure 1.55</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_0gobs1blw4zqt2wxnuoz.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_0gobs1blw4zqt2wxnuoz.jpeg" alt="Figure 1.55" loading="lazy" width="800" height="414"></a></p>
+
+<h3>
+  <a name="1310-scenario-10-blocking-system-call-in-g" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#1310-scenario-10-blocking-system-call-in-g">
+  </a>
+  1.3.10 Scenario 10: Blocking System Call in G
+</h3>
+
+<p>Assuming that, in addition to M3 and M4 being spinning threads, there are also idle threads M5 and M6 (not bound to any P, noting that there can be a maximum of 4 P's, so the number of P's should always be M&gt;=P). G8 creates G9, as illustrated in Figure 1.56.</p>
+
+<blockquote>
+<p>Figure 1.56</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_k6w9p1gjv71j4ot802jm.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_k6w9p1gjv71j4ot802jm.jpeg" alt="Figure 1.56" loading="lazy" width="800" height="477"></a></p>
+
+<p>If G8 makes a blocking system call at this point, M2 and P2 are immediately unbound. P2 performs the following checks: if P2's local queue has a G or the global queue has a G that needs execution, and there is an idle M available, P2 will promptly wake up one M to bind with (if there are no sleeping M's, a new one will be created for binding). Otherwise, P2 will be added to the list of idle P's, waiting for an M to acquire an available P.</p>
+
+<p>In this scenario, P2's local queue has G9, and it can be bound to another idle thread, M5, as shown in Figure 1.57. During the blocking period of G8, M2's resources are temporarily occupied by G8.</p>
+
+<blockquote>
+<p>Figure 1.57</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_n0ynn7l2y2cs7a9gft8n.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_n0ynn7l2y2cs7a9gft8n.jpeg" alt="Figure 1.57" loading="lazy" width="800" height="416"></a></p>
+
+<p>The above is a scenario where a G is blocked due to a system call.</p>
+
+<h3>
+  <a name="1311-scenario-11-g-undergoes-a-nonblocking-system-call" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#1311-scenario-11-g-undergoes-a-nonblocking-system-call">
+  </a>
+  1.3.11 Scenario 11: G undergoes a non-blocking system call
+</h3>
+
+<p>Continuing from Scenario 10, G8 creates G9. Assuming that the previous system call made by G8 has ended, it is currently in a non-blocking state, as shown in Figure 1.58.</p>
+
+<blockquote>
+<p>Figure 1.58</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7slsrv8wf3wnpj4ly00r.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7slsrv8wf3wnpj4ly00r.png" alt="Figure 1.58" loading="lazy" width="800" height="464"></a></p>
+
+<p>In Scenario 10, even though M2 and P2 become unbound, M2 remembers P2. Then, when G8 and M2 exit the system call, M2 attempts to reacquire the previously bound P2. If P2 is available, M2 will rebind with P2. If it cannot be obtained, M2 will handle it in other ways, as shown in Figure 1.59.</p>
+
+<blockquote>
+<p>Figure 1.59</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_qpix81pp485u8bl0cden.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_qpix81pp485u8bl0cden.png" alt="Figure 1.59" loading="lazy" width="800" height="431"></a></p>
+
+<p>In the current example, at this moment, P2 is bound to M5, so M2 naturally cannot acquire P2. M2 will attempt to find an available P from the idle P queue, as shown in Figure 1.60.</p>
+
+<blockquote>
+<p>Figure 1.60</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_4dxsc6d1jvta5792f5wb.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_4dxsc6d1jvta5792f5wb.png" alt="Figure 1.60" loading="lazy" width="800" height="440"></a></p>
+
+<p>If there are still no idle Ps in the queue, M2 effectively cannot find an available P to bind to. G8 will be marked as runnable and added to the global queue. M2, without a bound P, enters a sleeping state (long-term sleep may lead to GC recycling and destruction), as shown in Figure 1.61.</p>
+
+<blockquote>
+<p>Figure 1.61</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_c26f556l82lqvo9kz2wl.png" class="article-body-image-wrapper"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_c26f556l82lqvo9kz2wl.png" alt="Figure 1.61" loading="lazy" width="800" height="412"></a></p>
+
+<h2>
+  <a name="14-summary" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#14-summary">
+  </a>
+  1.4 Summary
+</h2>
+
+<p>The Go scheduler is lightweight and straightforward, capable of efficiently managing the scheduling of Goroutines, providing Go with native and powerful concurrency capabilities. The essence of Go's scheduler lies in distributing a large number of Goroutines across a small number of threads, utilizing parallelism to achieve robust concurrency. The principles behind Go's scheduler go beyond the 11 scenarios described in this article and the knowledge within its scope. The scheduling algorithm in Go is continually evolving and upgrading. If you wish to delve deeper into the Go scheduler, it requires a more substantial investment of time and patience to study the source code of the Go scheduler's GPM model.</p>
+
+
+<hr>
+
+<p><a href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g">(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model</a><br>
+<a href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">(Golang Triad)-II-Comprehensive Analysis of Go's Hybrid Write Barrier Garbage Collection</a></p>
+
+
+<hr>
+
+<p>Author:<br>
+discord: <a href="https://discord.gg/xQ8Xxfyfcz" target="_blank" rel="noopener noreferrer">https://discord.gg/xQ8Xxfyfcz</a><br>
+zinx:   <a href="https://github.com/aceld/zinx" target="_blank" rel="noopener noreferrer">https://github.com/aceld/zinx</a><br>
+github: <a href="https://github.com/aceld" target="_blank" rel="noopener noreferrer">https://github.com/aceld</a><br>
+aceld's home: <a href="https://yuque.com/aceld" target="_blank" rel="noopener noreferrer">https://yuque.com/aceld</a></p>
+
+
+          </div>
+
+            <div class="js-billboard-container body-billboard-container" data-async-url="/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g/billboards/post_body_bottom"><div>    <div class="crayons-card crayons-card--secondary crayons-bb billboard js-billboard body-billboard mb-2 mt-6" style="overflow-y: revert;" data-display-unit="" data-id="169396" data-category-click="click" data-category-impression="impression" data-context-type="article" data-dismissal-sku="" data-special="nothing" data-article-id="1627523" data-type-of="partner">
+    <div class="crayons-story__top flex">
+      <div class="crayons-bb__header relative">
+    <div class="flex">
+        <a href="https://dev.to/withcoherencedevs" target="_blank" rel="noopener" class="flex">
+          <img width="24" height="24" class="radius-default crayons-bb__image" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_organization_profile_image_8530_69c2e130-db31-4972-92a8-847cc557e35a.jpg" alt="profile" loading="lazy">
+          <div class="crayons-bb__title ml-2 fs-s fw-medium">Coherence</div>
+        </a>
+        <span class="crayons-bb__indicator c-indicator c-indicator--subtle c-indicator--round fs-2xs fw-medium ml-2 py-1 px-2">Promoted</span>
+    </div>
+
+  <button id="sponsorship-dropdown-trigger-169396" aria-controls="sponsorship-dropdown-169396" aria-expanded="false" aria-haspopup="true" class="dropBtn crayons-bb__dropdown crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon" aria-label="Toggle dropdown menu" data-dropdown-initialized="true" data-initialized="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="acsz8flju7qv2w11b39wxtw12xjiguey" class="crayons-icon pointer-events-none"><title id="acsz8flju7qv2w11b39wxtw12xjiguey">Dropdown menu</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm5.25 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm3.75 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+</svg>
+
+  </button>
+
+  <div id="sponsorship-dropdown-169396" class="crayons-dropdown sponsorship-dropdown right-0">
+    <ul class="list-none m-0">
+        <li>
+          <a class="crayons-link crayons-link--block" href="https://dev.to/billboards">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"></path>
+</svg>
+
+            What's a billboard?
+          </a>
+        </li>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/settings/customization#sponsors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M3.34 16.9999C2.91727 16.2689 2.58866 15.4874 2.362 14.6739C2.85531 14.423 3.26959 14.0406 3.55903 13.5688C3.84846 13.0971 4.00176 12.5545 4.00197 12.0011C4.00218 11.4476 3.84928 10.9049 3.5602 10.4329C3.27112 9.961 2.85712 9.57821 2.364 9.32694C2.81604 7.69243 3.67673 6.1999 4.865 4.98994C5.32909 5.29167 5.86762 5.45911 6.42098 5.47373C6.97434 5.48834 7.52095 5.34958 8.00033 5.07278C8.47971 4.79598 8.87315 4.39194 9.13713 3.90539C9.4011 3.41883 9.52531 2.86872 9.496 2.31594C11.1381 1.89157 12.8612 1.89226 14.503 2.31795C14.474 2.87071 14.5984 3.42073 14.8626 3.90715C15.1268 4.39357 15.5204 4.79742 15.9998 5.07401C16.4793 5.35059 17.0259 5.48913 17.5793 5.4743C18.1326 5.45946 18.671 5.29183 19.135 4.98994C19.714 5.57994 20.228 6.25095 20.66 6.99995C21.093 7.74895 21.417 8.52995 21.638 9.32595C21.1447 9.57685 20.7304 9.95932 20.441 10.4311C20.1515 10.9028 19.9982 11.4454 19.998 11.9988C19.9978 12.5523 20.1507 13.095 20.4398 13.5669C20.7289 14.0389 21.1429 14.4217 21.636 14.6729C21.184 16.3075 20.3233 17.8 19.135 19.0099C18.6709 18.7082 18.1324 18.5408 17.579 18.5262C17.0257 18.5115 16.479 18.6503 15.9997 18.9271C15.5203 19.2039 15.1268 19.6079 14.8629 20.0945C14.5989 20.5811 14.4747 21.1312 14.504 21.6839C12.8619 22.1083 11.1388 22.1076 9.497 21.6819C9.52605 21.1292 9.4016 20.5792 9.13742 20.0927C8.87324 19.6063 8.47964 19.2025 8.00017 18.9259C7.5207 18.6493 6.97405 18.5108 6.42073 18.5256C5.8674 18.5404 5.32896 18.7081 4.865 19.0099C4.27399 18.4069 3.76159 17.7315 3.34 16.9999ZM9 17.1959C10.0656 17.8106 10.8668 18.797 11.25 19.9659C11.749 20.0129 12.25 20.0139 12.749 19.9669C13.1324 18.7978 13.934 17.8114 15 17.1969C16.0652 16.5806 17.3205 16.3794 18.525 16.6319C18.815 16.2239 19.065 15.7889 19.273 15.3339C18.4524 14.4174 17.9991 13.2302 18 11.9999C18 10.7399 18.47 9.56295 19.273 8.66595C19.0635 8.21109 18.8125 7.77658 18.523 7.36795C17.3193 7.62025 16.0648 7.41942 15 6.80395C13.9344 6.18932 13.1332 5.20293 12.75 4.03394C12.251 3.98694 11.75 3.98594 11.251 4.03294C10.8676 5.20209 10.066 6.1885 9 6.80295C7.93478 7.41926 6.67948 7.62046 5.475 7.36795C5.18556 7.77623 4.93513 8.21081 4.727 8.66595C5.54757 9.5825 6.00088 10.7697 6 11.9999C6 13.2599 5.53 14.4369 4.727 15.3339C4.93647 15.7888 5.18754 16.2233 5.477 16.6319C6.68072 16.3796 7.93521 16.5805 9 17.1959ZM12 14.9999C11.2044 14.9999 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 11.9999C9 11.2043 9.31607 10.4412 9.87868 9.87862C10.4413 9.31602 11.2044 8.99995 12 8.99995C12.7956 8.99995 13.5587 9.31602 14.1213 9.87862C14.6839 10.4412 15 11.2043 15 11.9999C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 14.9999 12 14.9999ZM12 12.9999C12.2652 12.9999 12.5196 12.8946 12.7071 12.7071C12.8946 12.5195 13 12.2652 13 11.9999C13 11.7347 12.8946 11.4804 12.7071 11.2928C12.5196 11.1053 12.2652 10.9999 12 10.9999C11.7348 10.9999 11.4804 11.1053 11.2929 11.2928C11.1054 11.4804 11 11.7347 11 11.9999C11 12.2652 11.1054 12.5195 11.2929 12.7071C11.4804 12.8946 11.7348 12.9999 12 12.9999Z" fill="black"></path>
+</svg>
+
+          Manage preferences
+        </a>
+      </li>
+      <hr>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/report-abuse?billboard=169396">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12.382 3a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5v6H3V3h9.382Zm-.618 2H5v9h8.236l1 2H19V7h-6.236l-1-2Z"></path>
+</svg>
+
+          Report billboard
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+    </div>
+    <div class="p-1 pt-3 text-styles text-styles--billboard">
+      <p><a href="https://www.withcoherence.com/?utm_medium=advertising&amp;utm_source=dev.to&amp;utm_campaign=campaign+3.24.24&amp;bb=169396"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___pro.forem.tools_rails_active_storage_blobs_redirect_eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBbFlDIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--eaba51b3e45896379d3bc52544fc95eea656ade7_Frame%2076.png" alt="Billboard image" width="2400" height="2400" loading="lazy"></a></p>
+<h2>  <a name="the-next-generation-developer-platform" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#the-next-generation-developer-platform">  </a>  <a href="https://www.withcoherence.com/?utm_medium=advertising&amp;utm_source=dev.to&amp;utm_campaign=campaign+3.24.24&amp;bb=169396">The Next Generation Developer Platform</a>
+</h2>
+<p>Coherence is the first Platform-as-a-Service you can control. Unlike "black-box" platforms that are opinionated about the infra you can deploy, Coherence is powered by CNC, the open-source IaC framework, which offers limitless customization.</p>
+<p><a href="https://www.withcoherence.com/?utm_medium=advertising&amp;utm_source=dev.to&amp;utm_campaign=campaign+3.24.24&amp;bb=169396" class="ltag_cta ltag_cta--branded" role="button">Learn more</a></p>
+    </div>
+  </div>
+
+</div></div>
+        </div>
+          <section id="comments" data-follow-button-container="true" data-updated-at="2024-12-26 11:32:45 UTC" class="text-padding mb-4 border-t-1 border-0 border-solid border-base-10">
+      <header class="relative flex justify-between items-center mb-6">
+        <div class="flex items-center">
+          <h2 class="crayons-subtitle-1">
+            Top comments <span class="js-comments-count" data-comments-count="0">(0)</span>
+          </h2>
+        </div>
+
+
+        <div id="comment-subscription" class="print-hidden">
+          <div class="crayons-btn-group">
+            <span class="crayons-btn crayons-btn--outlined">Subscribe</span>
+          </div>
+        </div>
+      </header>
+      <div id="billboard_delay_trigger"></div>
+      <div id="comments-container" data-testid="comments-container" data-commentable-id="1627523" data-commentable-type="Article" data-has-recent-comment-activity="false">
+
+          <div id="response-templates-data" class="hidden"></div>
+
+
+<form class="comment-form print-hidden" id="new_comment" action="https://dev.to/comments" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓" autocomplete="off">
+
+  <input type="hidden" name="authenticity_token" value="NOTHING" id="new_comment_authenticity_token">
+
+    <input value="1627523" autocomplete="off" type="hidden" name="comment[commentable_id]" id="comment_commentable_id">
+    <input value="Article" autocomplete="off" type="hidden" name="comment[commentable_type]" id="comment_commentable_type">
+    
+
+  <span class="crayons-avatar m:crayons-avatar--l mr-2 shrink-0">
+    <img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_8j7kvp660rqzt99zui8e.png" width="32" height="32" alt="pic" class="crayons-avatar__image overflow-hidden" id="comment-primary-user-profile--avatar" loading="lazy">
+  </span>
+  <div class="comment-form__inner">
+    <div class="comment-form__field" data-tracking-name="comment_form_textfield">
+      <textarea placeholder="Add to the discussion" onfocus="handleFocus(event)" onkeyup="handleKeyUp(event)" onkeydown="handleKeyDown(event)" oninput="handleChange(event)" id="text-area" required="required" class="crayons-textfield comment-textarea crayons-textfield--ghost" aria-label="Add a comment to the discussion" name="comment[body_markdown]"></textarea>
+
+    </div>
+
+    <div class="response-templates-container crayons-card crayons-card--secondary p-4 mb-4 comment-form__templates fs-base hidden">
+      <header class="mb-3">
+        <button type="button" class="crayons-btn personal-template-button active" data-target-type="personal" data-form-id="new_comment">Personal</button>
+        <button type="button" class="crayons-btn moderator-template-button hidden" data-target-type="moderator" data-form-id="new_comment">Trusted User</button>
+      </header>
+
+      <div class="personal-responses-container">
+      </div>
+      <div class="moderator-responses-container hidden">
+      </div>
+
+      <a target="_blank" rel="noopener nofollow" href="https://dev.to/settings/response-templates">
+        Create template
+      </a>
+      <p>Templates let you quickly answer FAQs or store snippets for re-use.</p>
+    </div>
+
+    <div class="comment-form__preview text-styles text-styles--secondary" id="preview-div"></div>
+
+    <div class="comment-form__buttons mb-4">
+      <button type="submit" class="crayons-btn mr-2 js-btn-enable" onclick="validateField(event)" data-tracking-name="comment_submit_button" disabled="">Submit</button>
+      <button type="button" class="preview-toggle crayons-btn crayons-btn--secondary comment-action-preview js-btn-enable mr-2" data-tracking-name="comment_preview_button" disabled="">Preview</button>
+      <a href="https://dev.to/404.html" class="dismiss-edit-comment crayons-btn crayons-btn--ghost js-btn-dismiss hidden">Dismiss</a>
+    </div>
+  </div>
+
+  <div class="code-of-conduct" id="toggle-code-of-conduct-checkbox"></div>
+</form>
+
+
+        <div class="comments" id="comment-trees-container">
+        </div>
+      </div>
+
+      <div class="align-center">
+
+
+  <nav class="fs-s align-center block" aria-label="Conduct controls">
+  <a href="https://dev.to/code-of-conduct" class="crayons-link crayons-link--secondary">Code of Conduct</a>
+  <span class="opacity-25 px-2" role="presentation">•</span>
+  <a href="https://dev.to/report-abuse" class="crayons-link crayons-link--secondary">Report abuse</a>
+</nav>
+
+</div>
+
+  </section>
+  <div id="hide-comments-modal" class="hidden">
+  <form id="hide-comments-modal__form" class="hide-comments-modal__form" data-type="json" action="https://dev.to/comments/hide" accept-charset="UTF-8" data-remote="true" method="post"><input name="utf8" type="hidden" value="✓" autocomplete="off"><input type="hidden" name="_method" value="patch" autocomplete="off"><input type="hidden" name="authenticity_token" value="z21RZMjDzJekQ3gT9TTf2C1PE2NsJ4vAg0hF9TP3_5NpR-5xUqi5-CsgSWYdqQGF0NxLGDP50fGmWvH3F2OTFg" autocomplete="off">
+    <div class="hide-comments-modal__content">
+      <p class="pb-2">
+        Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's <a id="hide-comments-modal__comment-permalink" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#">permalink</a>.
+      </p>
+      <label class="crayons-field crayons-field--checkbox my-2">
+        <input name="hide_children" type="hidden" value="0" autocomplete="off"><input class="hide_children crayons-checkbox" type="checkbox" value="1" name="hide_children" id="hide_children">
+        <p class="crayons-field__label">Hide child comments as well</p>
+      </label>
+      <p class="pb-4 pt-2">
+        <button type="submit" class="crayons-btn">
+          Confirm
+        </button>
+      </p>
+    </div>
+</form>  <p class="fs-s color-base-60">For further actions, you may consider blocking this person and/or <a id="hide-comments-modal__report-link" href="https://dev.to/report-abuse">reporting abuse</a></p>
+</div>
+
+
+
+      </article>
+
+      <div class="pb-4 crayons-layout__comments-billboard">
+        <div class="js-billboard-container pb-4 crayons-layout__comments-billboard" data-async-url="/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g/billboards/post_comments"><div>    <div class="crayons-card crayons-card--secondary crayons-bb bb-placement js-billboard" style="" data-display-unit="" data-id="188657" data-category-click="click" data-category-impression="impression" data-context-type="article" data-special="nothing" data-article-id="1627523" data-type-of="partner">
+    <div class="crayons-bb__header relative">
+    <div class="flex">
+        <a href="https://dev.to/checkly" target="_blank" rel="noopener" class="flex">
+          <img width="24" height="24" class="radius-default crayons-bb__image" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_organization_profile_image_737_a63c82ec-a184-4c9f-af43-d819507a927e.png" alt="profile" loading="lazy">
+          <div class="crayons-bb__title ml-2 fs-s fw-medium">Checkly</div>
+        </a>
+        <span class="crayons-bb__indicator c-indicator c-indicator--subtle c-indicator--round fs-2xs fw-medium ml-2 py-1 px-2">Promoted</span>
+    </div>
+
+  <button id="sponsorship-dropdown-trigger-188657" aria-controls="sponsorship-dropdown-188657" aria-expanded="false" aria-haspopup="true" class="dropBtn crayons-bb__dropdown crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon" aria-label="Toggle dropdown menu" data-dropdown-initialized="true" data-initialized="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="akxzyoc70c7mna4cee4t24hkpomecsiz" class="crayons-icon pointer-events-none"><title id="akxzyoc70c7mna4cee4t24hkpomecsiz">Dropdown menu</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm5.25 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm3.75 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+</svg>
+
+  </button>
+
+  <div id="sponsorship-dropdown-188657" class="crayons-dropdown sponsorship-dropdown right-0">
+    <ul class="list-none m-0">
+        <li>
+          <a class="crayons-link crayons-link--block" href="https://dev.to/billboards">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"></path>
+</svg>
+
+            What's a billboard?
+          </a>
+        </li>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/settings/customization#sponsors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M3.34 16.9999C2.91727 16.2689 2.58866 15.4874 2.362 14.6739C2.85531 14.423 3.26959 14.0406 3.55903 13.5688C3.84846 13.0971 4.00176 12.5545 4.00197 12.0011C4.00218 11.4476 3.84928 10.9049 3.5602 10.4329C3.27112 9.961 2.85712 9.57821 2.364 9.32694C2.81604 7.69243 3.67673 6.1999 4.865 4.98994C5.32909 5.29167 5.86762 5.45911 6.42098 5.47373C6.97434 5.48834 7.52095 5.34958 8.00033 5.07278C8.47971 4.79598 8.87315 4.39194 9.13713 3.90539C9.4011 3.41883 9.52531 2.86872 9.496 2.31594C11.1381 1.89157 12.8612 1.89226 14.503 2.31795C14.474 2.87071 14.5984 3.42073 14.8626 3.90715C15.1268 4.39357 15.5204 4.79742 15.9998 5.07401C16.4793 5.35059 17.0259 5.48913 17.5793 5.4743C18.1326 5.45946 18.671 5.29183 19.135 4.98994C19.714 5.57994 20.228 6.25095 20.66 6.99995C21.093 7.74895 21.417 8.52995 21.638 9.32595C21.1447 9.57685 20.7304 9.95932 20.441 10.4311C20.1515 10.9028 19.9982 11.4454 19.998 11.9988C19.9978 12.5523 20.1507 13.095 20.4398 13.5669C20.7289 14.0389 21.1429 14.4217 21.636 14.6729C21.184 16.3075 20.3233 17.8 19.135 19.0099C18.6709 18.7082 18.1324 18.5408 17.579 18.5262C17.0257 18.5115 16.479 18.6503 15.9997 18.9271C15.5203 19.2039 15.1268 19.6079 14.8629 20.0945C14.5989 20.5811 14.4747 21.1312 14.504 21.6839C12.8619 22.1083 11.1388 22.1076 9.497 21.6819C9.52605 21.1292 9.4016 20.5792 9.13742 20.0927C8.87324 19.6063 8.47964 19.2025 8.00017 18.9259C7.5207 18.6493 6.97405 18.5108 6.42073 18.5256C5.8674 18.5404 5.32896 18.7081 4.865 19.0099C4.27399 18.4069 3.76159 17.7315 3.34 16.9999ZM9 17.1959C10.0656 17.8106 10.8668 18.797 11.25 19.9659C11.749 20.0129 12.25 20.0139 12.749 19.9669C13.1324 18.7978 13.934 17.8114 15 17.1969C16.0652 16.5806 17.3205 16.3794 18.525 16.6319C18.815 16.2239 19.065 15.7889 19.273 15.3339C18.4524 14.4174 17.9991 13.2302 18 11.9999C18 10.7399 18.47 9.56295 19.273 8.66595C19.0635 8.21109 18.8125 7.77658 18.523 7.36795C17.3193 7.62025 16.0648 7.41942 15 6.80395C13.9344 6.18932 13.1332 5.20293 12.75 4.03394C12.251 3.98694 11.75 3.98594 11.251 4.03294C10.8676 5.20209 10.066 6.1885 9 6.80295C7.93478 7.41926 6.67948 7.62046 5.475 7.36795C5.18556 7.77623 4.93513 8.21081 4.727 8.66595C5.54757 9.5825 6.00088 10.7697 6 11.9999C6 13.2599 5.53 14.4369 4.727 15.3339C4.93647 15.7888 5.18754 16.2233 5.477 16.6319C6.68072 16.3796 7.93521 16.5805 9 17.1959ZM12 14.9999C11.2044 14.9999 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 11.9999C9 11.2043 9.31607 10.4412 9.87868 9.87862C10.4413 9.31602 11.2044 8.99995 12 8.99995C12.7956 8.99995 13.5587 9.31602 14.1213 9.87862C14.6839 10.4412 15 11.2043 15 11.9999C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 14.9999 12 14.9999ZM12 12.9999C12.2652 12.9999 12.5196 12.8946 12.7071 12.7071C12.8946 12.5195 13 12.2652 13 11.9999C13 11.7347 12.8946 11.4804 12.7071 11.2928C12.5196 11.1053 12.2652 10.9999 12 10.9999C11.7348 10.9999 11.4804 11.1053 11.2929 11.2928C11.1054 11.4804 11 11.7347 11 11.9999C11 12.2652 11.1054 12.5195 11.2929 12.7071C11.4804 12.8946 11.7348 12.9999 12 12.9999Z" fill="black"></path>
+</svg>
+
+          Manage preferences
+        </a>
+      </li>
+      <hr>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/report-abuse?billboard=188657">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12.382 3a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5v6H3V3h9.382Zm-.618 2H5v9h8.236l1 2H19V7h-6.236l-1-2Z"></path>
+</svg>
+
+          Report billboard
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+    <div class="p-1 pt-3 text-styles text-styles--billboard">
+      <h2>  <a name="imagine-monitoring-actually-built-for-developers" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#imagine-monitoring-actually-built-for-developers">  </a>  <a href="https://www.checklyhq.com/?utm_source=devto&amp;utm_medium=banner&amp;utm_campaign=mac-wide&amp;utm_content=3&amp;bb=188657" target="_blank" rel="noopener noreferrer">Imagine monitoring actually built for developers</a>
+</h2>
+<p><a href="https://www.checklyhq.com/?utm_source=devto&amp;utm_medium=banner&amp;utm_campaign=mac-wide&amp;utm_content=3&amp;bb=188657" target="_blank" rel="noopener noreferrer"><img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___pro.forem.tools_rails_active_storage_blobs_redirect_eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBZ1lEIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--7ab4ca4a7700144c3e9ddbcd667677c629478b95_MaC%20Ad.jpg" alt="Billboard image" width="892" height="821" loading="lazy"></a></p>
+<p>Join Vercel, CrowdStrike, and thousands of other teams that trust Checkly to streamline monitor creation and configuration with Monitoring as Code.</p>
+<p><a href="https://www.checklyhq.com/?utm_source=devto&amp;utm_medium=banner&amp;utm_campaign=mac-wide&amp;utm_content=3&amp;bb=188657" class="ltag_cta ltag_cta--branded" role="button" target="_blank" rel="noopener noreferrer">Start Monitoring</a></p>
+    </div>
+  </div>
+
+</div></div>
+      </div>
+
+          <section class="crayons-card crayons-card--secondary text-padding mb-4 print-hidden" id="bottom-content-read-next">
+    <h2 class="crayons-subtitle-1">Read next</h2>
+      <a href="https://dev.to/gbubemi_attah_8220489db16/simplifying-string-validation-in-go-introducing-validatorgo-1fc4" data-preload-image="https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Feyf3tm37xghgi69p237m.png" class="crayons-link mt-6 block">
+        <div class="flex items-center">
+          <span class="crayons-avatar crayons-avatar--xl m:crayons-avatar--2xl mr-4 shrink-0">
+              <img loading="lazy" alt="gbubemi_attah_8220489db16 profile image" class="crayons-avatar__image" width="100" height="100" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_2207238_9dce56a7-9b20-42bc-9fb7-84c5632c94a1.png">
+          </span>
+          <div>
+            <h3 class="fs-xl mb-0 lh-tight">Simplifying String Validation in Go: Introducing validatorgo</h3>
+            <p class="opacity-75 pt-1">
+              Gbubemi Attah - <time datetime="2024-11-14T10:26:59Z">Nov 14</time>
+            </p>
+          </div>
+        </div>
+      </a>
+      <a href="https://dev.to/gbubemi_attah_8220489db16/simplify-input-validation-in-go-with-ginvalidator-5aoc" data-preload-image="https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Flkqbkd31rfinn4mnugow.png" class="crayons-link mt-6 block">
+        <div class="flex items-center">
+          <span class="crayons-avatar crayons-avatar--xl m:crayons-avatar--2xl mr-4 shrink-0">
+              <img loading="lazy" alt="gbubemi_attah_8220489db16 profile image" class="crayons-avatar__image" width="100" height="100" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_2207238_9dce56a7-9b20-42bc-9fb7-84c5632c94a1.png">
+          </span>
+          <div>
+            <h3 class="fs-xl mb-0 lh-tight">Simplify Gin Input Validation in Go with ginvalidator</h3>
+            <p class="opacity-75 pt-1">
+              Gbubemi Attah - <time datetime="2024-11-13T18:38:22Z">Nov 13</time>
+            </p>
+          </div>
+        </div>
+      </a>
+      <a href="https://dev.to/yanev/optimizing-memory-usage-in-go-mastering-data-structure-alignment-4beb" data-preload-image="https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fcqxa5bsgv49rr3gfrztv.png" class="crayons-link mt-6 block">
+        <div class="flex items-center">
+          <span class="crayons-avatar crayons-avatar--xl m:crayons-avatar--2xl mr-4 shrink-0">
+              <img loading="lazy" alt="yanev profile image" class="crayons-avatar__image" width="100" height="100" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_1971354_972c3c91-9972-4b75-b8fd-11a809d11359.jpg">
+          </span>
+          <div>
+            <h3 class="fs-xl mb-0 lh-tight">Optimizing Memory Usage in Go: Mastering Data Structure Alignment</h3>
+            <p class="opacity-75 pt-1">
+              Ivelin Yanev - <time datetime="2024-11-10T16:18:03Z">Nov 10</time>
+            </p>
+          </div>
+        </div>
+      </a>
+      <a href="https://dev.to/sarrubia/introducing-torpedo-a-golang-framework-born-out-of-frustration-with-messy-codebases-4gej" data-preload-image="https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fn0qpe6bfyh1m0t7w542o.png" class="crayons-link mt-6 block">
+        <div class="flex items-center">
+          <span class="crayons-avatar crayons-avatar--xl m:crayons-avatar--2xl mr-4 shrink-0">
+              <img loading="lazy" alt="sarrubia profile image" class="crayons-avatar__image" width="100" height="100" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_1729764_af27b148-8650-4b07-bc85-7599089e1d0b.jpg">
+          </span>
+          <div>
+            <h3 class="fs-xl mb-0 lh-tight">Introducing Torpedo: A Golang Framework Born Out of Frustration with Messy Codebases</h3>
+            <p class="opacity-75 pt-1">
+              Sebastian Arrubia - <time datetime="2024-11-12T17:21:40Z">Nov 12</time>
+            </p>
+          </div>
+        </div>
+      </a>
+  </section>
+
+    </div>
+  </main>
+
+  <aside class="crayons-layout__sidebar-right" aria-label="Author details">
+    <div class="crayons-article-sticky grid gap-4 pb-4 break-word" id="article-show-primary-sticky-nav">
+  <div class="crayons-card crayons-card--secondary branded-7 p-4 pt-0 gap-4 grid" style="border-top-color: #000000;">
+    <div class="-mt-4">
+  <a href="https://dev.to/aceld" class="flex">
+    <span class="crayons-avatar crayons-avatar--xl  mr-2 shrink-0">
+      <img src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws(1).com_uploads_user_profile_image_1077816_9ab52a99-dfb3-4412-9b5f-18d32a8d85a4.png" class="crayons-avatar__image" alt="" loading="lazy">
+    </span>
+    <span class="crayons-link crayons-subtitle-2 mt-5">
+      Aceld
+      
+    </span>
+  </a>
+</div>
+
+<div class="print-hidden">
+  <button name="button" type="button" data-info="{&quot;className&quot;:&quot;User&quot;,&quot;style&quot;:&quot;&quot;,&quot;id&quot;:1077816,&quot;name&quot;:&quot;Aceld&quot;}" class="crayons-btn follow-action-button whitespace-nowrap w-100 follow-user" aria-label="Follow user: Aceld" aria-pressed="false" data-fetched="fetched">Follow</button>
+</div>
+  <div class="color-base-70">
+    Never love in the past, never mix up in the present, never welcome in the future.
+  </div>
+
+  <div class="user-metadata-details">
+    <ul class="user-metadata-details-inner">
+        <li>
+          <div class="key">
+            Location
+          </div>
+          <div class="value">
+            China
+          </div>
+        </li>
+          <li>
+            <div class="key">
+              Pronouns
+            </div>
+            <div class="value">
+              zinx
+            </div>
+          </li>
+      <li>
+        <div class="key">
+          Joined
+        </div>
+        <div class="value">
+          <time datetime="2023-05-06T09:51:48Z" class="date">May 6, 2023</time>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  </div>
+
+      <div class="crayons-card crayons-card--secondary">
+        <header class="crayons-card__header">
+          <h3 class="crayons-subtitle-2">
+            More from <a href="https://dev.to/aceld">Aceld</a>
+          </h3>
+        </header>
+        <div>
+            <a class="crayons-link crayons-link--contentful" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">
+              (Golang Triad)-II-Comprehensive Analysis of Go's Hybrid Write Barrier Garbage Collection
+              <div class="crayons-link__secondary -ml-1">
+                  <span class="mr-1"><span class="opacity-50">#</span>go</span>
+                  <span class="mr-1"><span class="opacity-50">#</span>gc</span>
+              </div>
+            </a>
+            <a class="crayons-link crayons-link--contentful" href="https://dev.to/aceld/case-iv-kisflow-golang-stream-real--4k3e">
+              Case (IV) - KisFlow-Golang Stream Real- KisFlow in Message Queue (MQ) Applications
+              <div class="crayons-link__secondary -ml-1">
+                  <span class="mr-1"><span class="opacity-50">#</span>go</span>
+              </div>
+            </a>
+            <a class="crayons-link crayons-link--contentful" href="https://dev.to/aceld/case-iii-kisflow-golang-stream-real-application-of-kisflow-in-multi-goroutines-4m7g">
+              Case (III) - KisFlow-Golang Stream Real- Application of KisFlow in Multi-Goroutines
+              <div class="crayons-link__secondary -ml-1">
+                  <span class="mr-1"><span class="opacity-50">#</span>go</span>
+              </div>
+            </a>
+        </div>
+      </div>
+</div>
+
+<div class="crayons-article-sticky grid gap-4 break-word js-billboard-container" data-async-url="/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g/billboards/post_sidebar"><div>    <div style="" data-display-unit="" data-id="82008" data-category-click="click" data-category-impression="impression" data-context-type="article" data-special="nothing" data-article-id="1627523" data-type-of="partner">
+      <style>
+.ea-content {
+  background: white !important;
+  border: 5px solid #3b49df !important;
+  border-radius: 20px !important;
+  box-shadow: 0px 5px 63px -30px rgba(0,0,0,0.75) !important;
+  padding: 20px;
+}
+
+.ea-text {
+font-size: 22px !important;
+line-height: 30px !important;
+font-weight: 600;
+}
+
+.ea-headline, .ea-cta {
+ color: #3b49df !important;
+}
+
+.ea-body {
+  color: #0a0a0a !important;
+}
+
+.ea-content img {
+width: 100% !important;
+height: auto !important;
+margin-bottom: 10px !important;
+aspect-ratio: 4 / 3 !important;
+}
+
+.ea-content {
+display: flex !important;
+flex-direction: column !important;
+}
+.ea-preamble-custom {
+  text-align: center !important;
+  font-weight: bold !important;
+  font-size: 20px;
+  padding: 20px 0px;
+}
+
+</style>
+<div class="flat horizontal" data-ea-publisher="devto" data-ea-type="image" data-ea-manual="true" id="sr-custom-full-image-6">
+</div>
+<script id="ea" async="" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/ethicalads.min.js"></script>
+<script>
+  if (document.body.classList.contains('dark-theme')) document.getElementById("sr-002").classList.add('dark');
+  ea.addEventListener('load', function () {
+    if (window.innerWidth >= 1024) ethicalads.load();
+  });
+</script>
+  </div>
+
+</div></div>
+
+  </aside>
+</div>
+
+
+<div class="mod-actions-menu print-hidden"></div>
+<div data-testid="unpublish-post-modal-container" class="unpublish-post-modal-container hidden"></div>
+
+<div class="fullscreen-code js-fullscreen-code"></div>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/followButtons-f2455d1f50a862b83fa006b1953e3a1644598781243cae25d3e75b13c04184fd.js" defer="defer"></script>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/billboard-a7ffd2b38d410444a4ef2d42c6ce905699d84b1520aed314b817a767ddc3b362.js" defer="defer"></script>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/localizeArticleDates-70147c5c6bfe350b42e020ebb2a3dd37419d83978982b5a67b6389119bf162ac.js" defer="defer"></script>
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/articleReactions-79a44d82fb34a91c3987c24cfd3bcf2b0d38a02730b69ae6da297387d185f015.js" defer="defer"></script>
+
+<script>
+  function activateRunkitTags() {
+  if (!areAnyRunkitTagsPresent())
+    return
+
+  var checkRunkit = setInterval(function() {
+    try {
+      dynamicallyLoadRunkitLibrary()
+
+      if (typeof(RunKit) === 'undefined') {
+        return
+      }
+
+      replaceTagContentsWithRunkitWidget()
+      clearInterval(checkRunkit);
+    } catch(e) {
+      console.error(e);
+      clearInterval(checkRunkit);
+    }
+  }, 200);
+}
+
+function isRunkitTagAlreadyActive(runkitTag) {
+  return runkitTag.querySelector("iframe") !== null;
+};
+
+function areAnyRunkitTagsPresent() {
+  var presentRunkitTags = document.getElementsByClassName("runkit-element");
+
+  return presentRunkitTags.length > 0
+}
+
+function replaceTagContentsWithRunkitWidget() {
+  var targets = document.getElementsByClassName("runkit-element");
+  for (var i = 0; i < targets.length; i++) {
+    if (isRunkitTagAlreadyActive(targets[i])) {
+      continue;
+    }
+
+    var wrapperContent = targets[i].textContent;
+    if (/^(<iframe src)/.test(wrapperContent) === false) {
+      if (targets[i].children.length > 0) {
+        var preamble = targets[i].children[0].textContent;
+        var content = targets[i].children[1].textContent;
+        targets[i].innerHTML = "";
+        var notebook = RunKit.createNotebook({
+          element: targets[i],
+          source: content,
+          preamble: preamble
+        });
+      }
+    }
+  }
+};
+
+function dynamicallyLoadRunkitLibrary() {
+  if (typeof(dynamicallyLoadScript) === "undefined")
+    return
+
+  dynamicallyLoadScript("//embed.runkit.com")
+}
+
+activateRunkitTags();
+
+</script>
+<div class="js-billboard-container pb-4 crayons-layout__comments-billboard" data-async-url="/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g/billboards/post_fixed_bottom"><div>    <div class="crayons-card crayons-card--secondary crayons-bb popover-billboard crayons-story__billboard js-billboard fixed bottom-0 left-0 right-0 popover-billboard--menuopenupwards" style="display: none;" data-display-unit="" data-id="126495" data-category-click="click" data-category-impression="impression" data-context-type="article" data-dismissal-sku="" data-special="nothing" data-article-id="1627523" data-type-of="in_house" data-impression-recorded="true">
+    <div class="flex">
+      <div class="crayons-bb__header relative">
+    <div class="crayons-bb__title">👋 Kindness is contagious</div>
+
+  <button id="sponsorship-dropdown-trigger-126495" aria-controls="sponsorship-dropdown-126495" aria-expanded="false" aria-haspopup="true" class="dropBtn crayons-bb__dropdown crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon" aria-label="Toggle dropdown menu" data-dropdown-initialized="true" data-initialized="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="aa5txkhvbol7f9i8d1yfie42e3x7zc6c" class="crayons-icon pointer-events-none"><title id="aa5txkhvbol7f9i8d1yfie42e3x7zc6c">Dropdown menu</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm5.25 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm3.75 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+</svg>
+
+  </button>
+
+  <div id="sponsorship-dropdown-126495" class="crayons-dropdown sponsorship-dropdown right-0">
+    <ul class="list-none m-0">
+        <li>
+          <a class="crayons-link crayons-link--block" href="https://dev.to/billboards">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"></path>
+</svg>
+
+            What's a billboard?
+          </a>
+        </li>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/settings/customization#sponsors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M3.34 16.9999C2.91727 16.2689 2.58866 15.4874 2.362 14.6739C2.85531 14.423 3.26959 14.0406 3.55903 13.5688C3.84846 13.0971 4.00176 12.5545 4.00197 12.0011C4.00218 11.4476 3.84928 10.9049 3.5602 10.4329C3.27112 9.961 2.85712 9.57821 2.364 9.32694C2.81604 7.69243 3.67673 6.1999 4.865 4.98994C5.32909 5.29167 5.86762 5.45911 6.42098 5.47373C6.97434 5.48834 7.52095 5.34958 8.00033 5.07278C8.47971 4.79598 8.87315 4.39194 9.13713 3.90539C9.4011 3.41883 9.52531 2.86872 9.496 2.31594C11.1381 1.89157 12.8612 1.89226 14.503 2.31795C14.474 2.87071 14.5984 3.42073 14.8626 3.90715C15.1268 4.39357 15.5204 4.79742 15.9998 5.07401C16.4793 5.35059 17.0259 5.48913 17.5793 5.4743C18.1326 5.45946 18.671 5.29183 19.135 4.98994C19.714 5.57994 20.228 6.25095 20.66 6.99995C21.093 7.74895 21.417 8.52995 21.638 9.32595C21.1447 9.57685 20.7304 9.95932 20.441 10.4311C20.1515 10.9028 19.9982 11.4454 19.998 11.9988C19.9978 12.5523 20.1507 13.095 20.4398 13.5669C20.7289 14.0389 21.1429 14.4217 21.636 14.6729C21.184 16.3075 20.3233 17.8 19.135 19.0099C18.6709 18.7082 18.1324 18.5408 17.579 18.5262C17.0257 18.5115 16.479 18.6503 15.9997 18.9271C15.5203 19.2039 15.1268 19.6079 14.8629 20.0945C14.5989 20.5811 14.4747 21.1312 14.504 21.6839C12.8619 22.1083 11.1388 22.1076 9.497 21.6819C9.52605 21.1292 9.4016 20.5792 9.13742 20.0927C8.87324 19.6063 8.47964 19.2025 8.00017 18.9259C7.5207 18.6493 6.97405 18.5108 6.42073 18.5256C5.8674 18.5404 5.32896 18.7081 4.865 19.0099C4.27399 18.4069 3.76159 17.7315 3.34 16.9999ZM9 17.1959C10.0656 17.8106 10.8668 18.797 11.25 19.9659C11.749 20.0129 12.25 20.0139 12.749 19.9669C13.1324 18.7978 13.934 17.8114 15 17.1969C16.0652 16.5806 17.3205 16.3794 18.525 16.6319C18.815 16.2239 19.065 15.7889 19.273 15.3339C18.4524 14.4174 17.9991 13.2302 18 11.9999C18 10.7399 18.47 9.56295 19.273 8.66595C19.0635 8.21109 18.8125 7.77658 18.523 7.36795C17.3193 7.62025 16.0648 7.41942 15 6.80395C13.9344 6.18932 13.1332 5.20293 12.75 4.03394C12.251 3.98694 11.75 3.98594 11.251 4.03294C10.8676 5.20209 10.066 6.1885 9 6.80295C7.93478 7.41926 6.67948 7.62046 5.475 7.36795C5.18556 7.77623 4.93513 8.21081 4.727 8.66595C5.54757 9.5825 6.00088 10.7697 6 11.9999C6 13.2599 5.53 14.4369 4.727 15.3339C4.93647 15.7888 5.18754 16.2233 5.477 16.6319C6.68072 16.3796 7.93521 16.5805 9 17.1959ZM12 14.9999C11.2044 14.9999 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 11.9999C9 11.2043 9.31607 10.4412 9.87868 9.87862C10.4413 9.31602 11.2044 8.99995 12 8.99995C12.7956 8.99995 13.5587 9.31602 14.1213 9.87862C14.6839 10.4412 15 11.2043 15 11.9999C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 14.9999 12 14.9999ZM12 12.9999C12.2652 12.9999 12.5196 12.8946 12.7071 12.7071C12.8946 12.5195 13 12.2652 13 11.9999C13 11.7347 12.8946 11.4804 12.7071 11.2928C12.5196 11.1053 12.2652 10.9999 12 10.9999C11.7348 10.9999 11.4804 11.1053 11.2929 11.2928C11.1054 11.4804 11 11.7347 11 11.9999C11 12.2652 11.1054 12.5195 11.2929 12.7071C11.4804 12.8946 11.7348 12.9999 12 12.9999Z" fill="black"></path>
+</svg>
+
+          Manage preferences
+        </a>
+      </li>
+      <hr>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/report-abuse?billboard=126495">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12.382 3a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5v6H3V3h9.382Zm-.618 2H5v9h8.236l1 2H19V7h-6.236l-1-2Z"></path>
+</svg>
+
+          Report billboard
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+      <button id="sponsorship-close-trigger-126495" aria-controls="sponsorship-close-126495" class="crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="a6dnxg8al2dilcakwyurzk7l54kyddp0" class="crayons-icon pointer-events-none"><title id="a6dnxg8al2dilcakwyurzk7l54kyddp0">Close</title><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636l4.95 4.95z"></path></svg>
+
+      </button>
+    </div>
+    <div class="p-1 text-styles text-styles--billboard">
+      <p>Discover a treasure trove of wisdom within this insightful piece, highly respected in the nurturing DEV Community enviroment. Developers, whether novice or expert, are encouraged to participate and add to our shared knowledge basin.</p>
+<p>A simple "thank you" can illuminate someone's day. Express your appreciation in the comments section!</p>
+<p>On DEV, sharing ideas smoothens our journey and strengthens our community ties. Learn something useful? Offering a quick thanks to the author is deeply appreciated.</p>
+<h3>  <a name="-cta-httpsdevtoenterstatenewuser-" href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g#-cta-httpsdevtoenterstatenewuser-">  </a>  <a href="https://dev.to/enter?state=new-user&amp;bb=126495" class="ltag_cta ltag_cta--branded" role="button">Okay</a>
+</h3>
+    </div>
+  </div>
+
+</div></div>
+
+
+    <div id="runtime-banner-container"></div>
+  </div>
+</div>
+    
+
+<footer id="footer" class="crayons-footer print-hidden">
+  <div id="footer-container" class="crayons-footer__container">
+
+
+          <div style="" data-display-unit="" data-id="146443" data-category-click="click" data-category-impression="impression" data-context-type="home" data-special="nothing" data-article-id="88813" data-type-of="in_house">
+      <p style="font-weight: bold;margin-bottom: 10px">
+Thank you to our Diamond Sponsor <a href="https://neon.tech/" target="_blank" rel="noopener noreferrer">Neon</a> for supporting our community.
+</p>
+  </div>
+
+
+    <p class="fs-s crayons-footer__description">
+      <a class="c-link c-link--branded fw-medium" aria-label="DEV Community Home" href="https://dev.to/">DEV Community</a> — A constructive and inclusive social network for software developers. With you every step of your journey.
+    </p>
+
+    <ul class="footer__nav-links flex gap-2 justify-center flex-wrap fs-s p-0" style="">
+        <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/">
+      Home
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/++">
+      DEV++
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/pod">
+      Podcasts
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/videos">
+      Videos
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/tags">
+      Tags
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/help">
+      DEV Help
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://shop.forem.com/" target="_blank" rel="noopener noreferrer">
+      Forem Shop
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/advertise">
+      Advertise on DEV
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/challenges">
+      DEV Challenges
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/showcase">
+      DEV Showcase
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/about">
+      About
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/contact">
+      Contact
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/free-postgres-database-tier">
+      Free Postgres Database
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/guides">
+      Guides
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/software-comparisons">
+      Software comparisons
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+
+    </ul>
+
+    <ul class="footer__nav-links flex gap-2 justify-center flex-wrap fs-s p-0" style="">
+        <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/code-of-conduct">
+      Code of Conduct
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/privacy">
+      Privacy Policy
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/terms">
+      Terms of use
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+
+    </ul>
+
+    <div class="fs-s">
+      <p>Built on <a class="c-link c-link--branded" target="_blank" rel="noopener noreferrer" href="https://www.forem.com/">Forem</a> — the <a target="_blank" rel="noopener" class="c-link c-link--branded" href="https://dev.to/t/opensource">open source</a> software that powers <a target="_blank" rel="noopener" class="c-link c-link--branded" href="https://dev.to/">DEV</a> and other inclusive communities.</p>
+      <p>Made with love and <a target="_blank" rel="noopener" class="c-link c-link--branded" href="https://dev.to/t/rails">Ruby on Rails</a>. DEV Community <span title="copyright">©</span> 2016 - 2024.</p>
+    </div>
+  </div>
+</footer>
+<div id="snack-zone"></div>
+
+    <div id="global-signup-modal" class="authentication-modal hidden">
+  <div class="authentication-modal__container">
+    <figure class="authentication-modal__image-container">
+      <img class="authentication-modal__image" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/https___dev-to-uploads.s3.amazonaws(1).com_uploads_articles_8j7kvp660rqzt99zui8e.png" alt="DEV Community" loading="lazy">
+    </figure>
+    <div class="authentication-modal__content">
+      <p class="authentication-modal__description">
+          We're a place where coders share, stay up-to-date and grow their careers.
+      </p>
+    </div>
+    <div class="authentication-modal__actions">
+      <a href="https://dev.to/enter" class="crayons-btn" aria-label="Log in" data-no-instant="">
+        Log in
+      </a>
+      <a href="https://dev.to/enter?state=new-user" class="crayons-btn crayons-btn--ghost-brand js-global-signup-modal__create-account" aria-label="Create new account" data-no-instant="">
+        Create account
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/signupModalShortcuts-0b25469b985100a01e94cbd7fccaf7f0a4d776e129aac65c766aa32cb28ab29a.js" defer="defer"></script>
+
+    <div id="cookie-consent"></div>
+  <div id="i18n-translations" data-translations="{&quot;en&quot;:{&quot;core&quot;:{&quot;add_comment&quot;:&quot;Add comment&quot;,&quot;beta&quot;:&quot;beta&quot;,&quot;comment&quot;:&quot;Comment&quot;,&quot;copy_link&quot;:&quot;Copy link&quot;,&quot;edit_profile&quot;:&quot;Edit profile&quot;,&quot;follow&quot;:&quot;Follow&quot;,&quot;follow_back&quot;:&quot;Follow back&quot;,&quot;following&quot;:&quot;Following&quot;,&quot;like&quot;:&quot;Like&quot;,&quot;loading&quot;:&quot;loading...&quot;,&quot;reaction&quot;:&quot;Reaction&quot;,&quot;report_abuse&quot;:&quot;Report abuse&quot;,&quot;search&quot;:&quot;Search&quot;,&quot;success_settings&quot;:&quot;Successfully updated settings.&quot;,&quot;counted_organization&quot;:{&quot;one&quot;:&quot;%{count} organization&quot;,&quot;other&quot;:&quot;%{count} organizations&quot;},&quot;counted_user&quot;:{&quot;one&quot;:&quot;%{count} person&quot;,&quot;other&quot;:&quot;%{count} people&quot;},&quot;not_following&quot;:&quot;You&#39;re not following anyone&quot;,&quot;following_everyone&quot;:&quot;You&#39;re following %{details} (everyone)&quot;,&quot;you_are_following&quot;:&quot;You&#39;re following&quot;,&quot;and&quot;:&quot;and&quot;}}}"></div>
+  <div id="reaction-category-resources" class="hidden" aria-hidden="true">
+    <img data-name="Like" data-slug="like" data-position="1" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg" width="18" height="18">
+    <img data-name="Unicorn" data-slug="unicorn" data-position="2" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg" width="18" height="18">
+    <img data-name="Exploding Head" data-slug="exploding_head" data-position="3" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg" width="18" height="18">
+    <img data-name="Raised Hands" data-slug="raised_hands" data-position="4" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg" width="18" height="18">
+    <img data-name="Fire" data-slug="fire" data-position="5" src="./(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model - DEV Community_files/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg" width="18" height="18">
+</div>
+
+  
+  
+  
+</body></html>

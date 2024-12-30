@@ -57,7 +57,7 @@ package main
 	1. Changes to the runtime
 	Prior to Go 1.4, the runtime (GC, concurrency support, interface management, maps, slices, strings, ... ) was mostly written in C, with some assembler support. In 1.4 much of the code has been translated to Go so that the GC can scan the stacks of programs in the runtime and get accurate information about what variables are active. This change was large but should have no semantic effect on programs.
 
-	This rewrite allows the GC in 1.4 to be fully precise, meaning that it's aware of the location of all actibe pointers in the program. This means the heap will be smaller as there will be no false positives keeping non-pointers alive. Other related changes also reduce the heap size, which is smaller by 10%-30% overall relative to the previous release.
+	This rewrite allows the GC in 1.4 to be fully precise, meaning that it's aware of the location of all active pointers in the program. This means the heap will be smaller as there will be no false positives keeping non-pointers alive. Other related changes also reduce the heap size, which is smaller by 10%-30% overall relative to the previous release.
 
 	A consequence is that stacks are no longer segmented, eliminating the `hot split` problem. When a stack limit is reached, a new, larger stack is allocated, all active frames for the goroutine are copied there, and any pointers into the stack are updated. Performance can be noticeably better in some cases and is always more predictable.
 

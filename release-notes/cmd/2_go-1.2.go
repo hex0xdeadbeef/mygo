@@ -24,7 +24,7 @@ package main
 
 	The `nil` pointer `t` could be used to access memory incorrectly: the expression `x.Field` could access memory at address 1<<24. To prevent such unsafe pointer, in Go 1.2 the compilers now guarantee that any indirection through a `nil` pointer, such as illustrated here but also in `nil` pointers to array, `nil` interface values, `nil` slices, and so on, will either panic or return a correct, safe non-nil value. In short, any expression that explicitly or implicitly requires evaluation of a `nil` address is an error. The implementation may inject extra tests into the compiled program to enforce this behavior (https://go.googlesource.com/proposal/+/refs/heads/master/design/4238-go12nil.md)
 
-	UPD: Most code that depends on the old behavior is errorneous and will fail when run. Such programs will need to be updated by hand.
+	UPD: Most code that depends on the old behavior is erroneous and will fail when run. Such programs will need to be updated by hand.
 */
 
 func dereferencingUsage() {
@@ -45,7 +45,7 @@ func dereferencingUsage() {
 	p2 := &x.Field2 // nil dereference in field selectionnilnessnilderef
 
 	var x2 *T2
-	p3 := &x2.Field // nil dereference in field selectionnilnessnilderef
+	p3 := &x2.X // nil dereference in field selectionnilnessnilderef
 
 	_, _, _ = p1, p2, p3
 }

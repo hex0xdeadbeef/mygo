@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<!-- saved from url=(0111)https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh -->
+<html lang="en" class="js-focus-visible" data-js-focus-visible=""><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>(Golang Triad)-II-Comprehensive Analysis of Go's Hybrid Write Barrier Garbage Collection - DEV Community</title>
+      <meta name="last-updated" content="2025-01-01 08:58:18 UTC">
+      <meta name="user-signed-in" content="false">
+      <meta name="head-cached-at" content="1735721898">
+      <meta name="environment" content="production">
+      <link rel="stylesheet" href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/minimal-c6135f2dad61919fb9ad5b7407a14cce2369a2effce76540cfc808396cfc3a85.css" media="all" id="main-minimal-stylesheet">
+<link rel="stylesheet" href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/views-4dd5770daa5d9d443ed73a724fb1913af9b093295bf1a72307f0fb322e5df1d9.css" media="all" id="main-views-stylesheet">
+<link rel="stylesheet" href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/crayons-f94476cf86ce9153627fd53a77e651ec54b82b6be20ddb1bf93e3dd40b81aeab.css" media="all" id="main-crayons-stylesheet">
+
+      <script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/base-e0fa4f0ebd0f1ec157e6b07c08f9222f8c0cca3d10cfde4cd8c951b43985b10b.js" defer="defer"></script>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/application-147cebefc5c4cddde055e8f5eb0055e811469b08405170e2411fbd7944b5ac04.js" defer="defer"></script>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/baseInitializers-bc498cfd7bb7d2a2da59d68d0b2055cc2dd26fee3669ab88edbb396d37bc3369.js" defer="defer"></script>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/baseTracking-b6bf73e5ee66633e151e7d5b7c6bbccedfa4c59e3615be97b98c4c0f543ddae7.js" defer="defer"></script>
+
+        <meta name="search-script" content="https://assets.dev.to/assets/Search-cc5e8a352578866203771def747f37c3ec6a0869de0458328e0fcba3d5d2fceb.js">
+      
+    <link rel="canonical" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">
+    <meta name="description" content="Author: discord: https://discord.gg/xQ8Xxfyfcz zinx:   https://github.com/aceld/zinx github:... Tagged with go, gc.">
+    <meta name="keywords" content="go, gc, software, coding, development, engineering, inclusive, community">
+
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">
+    <meta property="og:title" content="(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection">
+    <meta property="og:description" content="Author: discord: https://discord.gg/xQ8Xxfyfcz zinx:   https://github.com/aceld/zinx github:...">
+    <meta property="og:site_name" content="DEV Community">
+    <meta name="twitter:site" content="@thepracticaldev">
+    <meta name="twitter:creator" content="@Aceld_">
+    <meta name="twitter:title" content="(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection">
+    <meta name="twitter:description" content="Author: discord: https://discord.gg/xQ8Xxfyfcz zinx:   https://github.com/aceld/zinx github:...">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:widgets:new-embed-design" content="on">
+    <meta name="robots" content="max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+      <meta property="og:image" content="https://media2.dev.to/dynamic/image/width=1000,height=500,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fg322qql6sxk28w1o7ml2.png">
+      <meta name="twitter:image:src" content="https://media2.dev.to/dynamic/image/width=1000,height=500,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fg322qql6sxk28w1o7ml2.png">
+
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+      <link rel="icon" type="image/x-icon" href="https://media2.dev.to/dynamic/image/width=32,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link rel="apple-touch-icon" href="https://media2.dev.to/dynamic/image/width=180,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="https://media2.dev.to/dynamic/image/width=152,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="https://media2.dev.to/dynamic/image/width=180,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link rel="apple-touch-icon" sizes="167x167" href="https://media2.dev.to/dynamic/image/width=167,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <link href="https://media2.dev.to/dynamic/image/width=192,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png" rel="icon" sizes="192x192">
+      <link href="https://media2.dev.to/dynamic/image/width=128,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png" rel="icon" sizes="128x128">
+      <meta name="apple-mobile-web-app-title" content="dev.to">
+      <meta name="application-name" content="dev.to">
+      <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+      <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+      <link rel="search" href="https://dev.to/open-search.xml" type="application/opensearchdescription+xml" title="DEV Community">
+
+      <meta property="forem:name" content="DEV Community">
+      <meta property="forem:logo" content="https://media2.dev.to/dynamic/image/width=512,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png">
+      <meta property="forem:domain" content="dev.to">
+    
+  <script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/js" async=""></script><meta name="csrf-param" content="authenticity_token"><meta name="csrf-token" content="omgzYZm7nhDQSRyqaR03cHfXWpl0cAHF-97KgVGHhFF1ywgxYR1Fyy-xpHNmmWwDm55Bpomo-LRJUVpUQwccvw"><script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/Search-cc5e8a352578866203771def747f37c3ec6a0869de0458328e0fcba3d5d2fceb.js" defer=""></script></head>
+      <body class="sans-serif-article-body default-header" data-user-status="logged-out" data-community-name="DEV Community" data-subscription-icon="https://assets.dev.to/assets/subscription-icon-805dfa7ac7dd660f07ed8d654877270825b07a92a03841aa99a1093bd00431b2.png" data-locale="en" data-honeybadger-key="hbp_nqu4Y66HuEKlD6YRGssZuRQnPOjDm50J8Zkr" data-deployed-at="2024-12-31T23:11:25Z" data-latest-commit-id="98f4dfa780c6d9351b68b3fa2404460d272da132" data-ga-tracking="UA-71991109-1" data-cookie-banner-user-context="logged_out_only" data-cookie-banner-platform-context="off" data-algolia-id="PRSOBFP46H" data-algolia-search-key="9aa7d31610cba78851c9b1f63776a9dd" data-algolia-display="true" data-ga4-tracking-id="G-TYEM8Y3JN3" data-runtime="Browser-macOS" data-loaded="true">
+        <link rel="stylesheet" href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/minimal-c6135f2dad61919fb9ad5b7407a14cce2369a2effce76540cfc808396cfc3a85.css" media="all" id="secondary-minimal-stylesheet">
+<link rel="stylesheet" href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/views-4dd5770daa5d9d443ed73a724fb1913af9b093295bf1a72307f0fb322e5df1d9.css" media="all" id="secondary-views-stylesheet">
+<link rel="stylesheet" href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/crayons-f94476cf86ce9153627fd53a77e651ec54b82b6be20ddb1bf93e3dd40b81aeab.css" media="all" id="secondary-crayons-stylesheet">
+
+        <div id="body-styles">
+          <style>
+            :root {
+              --accent-brand-lighter-rgb: 80, 99, 301;
+              --accent-brand-rgb: 59, 73, 223;
+              --accent-brand-darker-rgb: 47, 58, 178;
+            }
+          </style>
+        </div>
+        <div id="audiocontent" data-podcast="">
+          
+        </div>
+        <div class="navigation-progress" id="navigation-progress"></div>
+<header id="topbar" class="crayons-header topbar print-hidden">
+  <span id="route-change-target" tabindex="-1"></span>
+  <a href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#main-content" class="skip-content-link">Skip to content</a>
+  <div class="crayons-header__container">
+    <span class="inline-block m:hidden ">
+      <button class="c-btn c-btn--icon-alone js-hamburger-trigger mx-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="asqqg8t54xmzcdjcwrydbm9rklbwvyj6" class="crayons-icon"><title id="asqqg8t54xmzcdjcwrydbm9rklbwvyj6">Navigation menu</title>
+    <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"></path>
+</svg>
+
+      </button>
+    </span>
+    <a href="https://dev.to/" class="site-logo" aria-label="DEV Community Home">
+    <img class="site-logo__img" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/resized_logo_UQww2soKuUsjaOGNB38o.png" style="aspect-ratio: 10 / 8" alt="DEV Community">
+</a>
+
+
+    <div class="crayons-header--search js-search-form" id="header-search"><form method="get" action="https://dev.to/search" role="search" accept-charset="UTF-8"><input name="utf8" type="hidden" value="✓"><div class="crayons-fields crayons-fields--horizontal"><div class="crayons-field flex-1 relative"><input id="search-input" class="crayons-header--search-input crayons-textfield" type="text" name="q" placeholder="Find related posts..." autocomplete="off" aria-label="Search term"><button type="submit" aria-label="Search" class="c-btn c-btn--icon-alone absolute inset-px right-auto mt-0 py-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" class="crayons-icon c-btn__icon" focusable="false"><path d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0111 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 01-1.969 5.617zm-2.006-.742A6.977 6.977 0 0018 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 004.875-1.975l.15-.15z"></path></svg></button><a class="crayons-header--search-brand-indicator" href="https://www.algolia.com/developers/?utm_source=devto&amp;utm_medium=referral" target="_blank" rel="noopener noreferrer">Powered by <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" width="24" height="24" viewBox="0 0 500 500.34"><defs></defs><path class="cls-1" d="M250,0C113.38,0,2,110.16,.03,246.32c-2,138.29,110.19,252.87,248.49,253.67,42.71,.25,83.85-10.2,120.38-30.05,3.56-1.93,4.11-6.83,1.08-9.52l-23.39-20.74c-4.75-4.22-11.52-5.41-17.37-2.92-25.5,10.85-53.21,16.39-81.76,16.04-111.75-1.37-202.04-94.35-200.26-206.1,1.76-110.33,92.06-199.55,202.8-199.55h202.83V407.68l-115.08-102.25c-3.72-3.31-9.43-2.66-12.43,1.31-18.47,24.46-48.56,39.67-81.98,37.36-46.36-3.2-83.92-40.52-87.4-86.86-4.15-55.28,39.65-101.58,94.07-101.58,49.21,0,89.74,37.88,93.97,86.01,.38,4.28,2.31,8.28,5.53,11.13l29.97,26.57c3.4,3.01,8.8,1.17,9.63-3.3,2.16-11.55,2.92-23.6,2.07-35.95-4.83-70.39-61.84-127.01-132.26-131.35-80.73-4.98-148.23,58.18-150.37,137.35-2.09,77.15,61.12,143.66,138.28,145.36,32.21,.71,62.07-9.42,86.2-26.97l150.36,133.29c6.45,5.71,16.62,1.14,16.62-7.48V9.49C500,4.25,495.75,0,490.51,0H250Z"></path></svg> Algolia</a></div></div></form>
+      
+    </div>
+
+    <div class="flex items-center h-100 ml-auto">
+      <a class="c-link c-link--icon-alone c-link--block m:hidden mx-1" id="search-link" aria-label="Search" href="https://dev.to/search">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="a9pnz9ngwskbbgtdw0e1qz7kw491rinc" class="crayons-icon"><title id="a9pnz9ngwskbbgtdw0e1qz7kw491rinc">Search</title>
+    <path d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0111 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 01-1.969 5.617zm-2.006-.742A6.977 6.977 0 0018 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 004.875-1.975l.15-.15z"></path>
+</svg>
+
+      </a>
+        <div class="flex" id="authentication-top-nav-actions">
+          <span class="hidden m:block">
+            <a href="https://dev.to/enter" class="c-link c-link--block mr-2 whitespace-nowrap ml-auto" data-no-instant="">
+              Log in
+            </a>
+          </span>
+
+          <a href="https://dev.to/enter?state=new-user" data-tracking-id="ca_top_nav" data-tracking-source="top_navbar" class="c-cta c-cta--branded whitespace-nowrap mr-2" data-no-instant="">
+            Create account
+          </a>
+        </div>
+    </div>
+  </div>
+</header>
+
+<div class="hamburger">
+  <div class="hamburger__content">
+    <header class="hamburger__content__header">
+      <h2 class="fs-l fw-bold flex-1 break-word lh-tight">DEV Community</h2>
+
+      <button class="c-btn c-btn--icon-alone js-hamburger-trigger shrink-0" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="agm53ijf6gjd5agdfpy9xvhsmzbcn0ex" aria-hidden="true" class="crayons-icon c-btn__icon"><title id="agm53ijf6gjd5agdfpy9xvhsmzbcn0ex">Close</title><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636l4.95 4.95z"></path></svg>
+
+      </button>
+    </header>
+
+    <div class="p-2 js-navigation-links-container" id="authentication-hamburger-actions">
+    </div>
+  </div>
+  <div class="hamburger__overlay js-hamburger-trigger"></div>
+</div>
+
+
+        <div id="active-broadcast" class="broadcast-wrapper"></div>
+<div id="page-content" class="wrapper stories stories-show articletag-go articletag-gc articleuser-1077816" data-current-page="stories-show">
+  <div id="page-content-inner" data-internal-nav="false" data-follow-clicks-initialized="true">
+    <div id="page-route-change" class="screen-reader-only" aria-live="polite" aria-atomic="true"></div>
+
+    
+<style>
+  .html-variant-wrapper { display: none}
+</style>
+
+
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/webcomponents-loader.js" integrity="sha384-3HK5hxQbkFqOIxMbpROlRmRtYl2LBZ52t+tqcjzsmr9NJuOWQxl8RgQSyFvq2lhy" crossorigin="anonymous" defer=""></script>
+
+  <script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/webShare-0686f0b9ac40589694ef6ae6a6202c44119bc781c254f6cf6d52d8a008461156.js" defer="defer"></script>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/articlePage-e91bed0487621b06608474cfabffa186165e1f43f05b24581203ccc21e7aa45d.js" defer="defer"></script>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/commentDropdowns-7a28d130e5b78d38b30a9495a964003a66bd64fa455fc70b766d69cf06b9ba24.js" defer="defer"></script>
+
+    <script type="application/ld+json">
+      {"@context":"http://schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh"},"url":"https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh","image":["https://media2.dev.to/dynamic/image/width=1080,height=1080,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fg322qql6sxk28w1o7ml2.png","https://media2.dev.to/dynamic/image/width=1280,height=720,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fg322qql6sxk28w1o7ml2.png","https://media2.dev.to/dynamic/image/width=1600,height=900,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fg322qql6sxk28w1o7ml2.png"],"publisher":{"@context":"http://schema.org","@type":"Organization","name":"DEV Community","logo":{"@context":"http://schema.org","@type":"ImageObject","url":"https://media2.dev.to/dynamic/image/width=192,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png","width":"192","height":"192"}},"headline":"(Golang Triad)-II-Comprehensive Analysis of Go's Hybrid Write Barrier Garbage Collection","author":{"@context":"http://schema.org","@type":"Person","url":"https://dev.to/aceld","name":"Aceld"},"datePublished":"2024-08-06T08:05:22Z","dateModified":"2024-08-06T08:06:16Z"}
+    </script>
+
+  
+<div class="crayons-layout crayons-layout--3-cols crayons-layout--article">
+  <aside class="crayons-layout__sidebar-left" aria-label="Article actions">
+    <div class="crayons-article-actions print-hidden">
+  <div class="crayons-article-actions__inner">
+
+    
+<div class="reaction-drawer__outer hoverdown" style="">
+  <button id="reaction-drawer-trigger" aria-label="reaction-drawer-trigger" aria-pressed="false" class="hoverdown-trigger crayons-reaction pseudo-reaction crayons-tooltip__activator relative">
+      <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction--like crayons-reaction__icon--inactive" style="width: 40px; height: 40px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon">
+    <g clip-path="url(#clip0_988_3276)">
+        <path d="M19 14V17H22V19H18.999L19 22H17L16.999 19H14V17H17V14H19ZM20.243 4.75698C22.505 7.02498 22.583 10.637 20.479 12.992L19.059 11.574C20.39 10.05 20.32 7.65998 18.827 6.16998C17.324 4.67098 14.907 4.60698 13.337 6.01698L12.002 7.21498L10.666 6.01798C9.09103 4.60598 6.67503 4.66798 5.17203 6.17198C3.68203 7.66198 3.60703 10.047 4.98003 11.623L13.412 20.069L12 21.485L3.52003 12.993C1.41603 10.637 1.49503 7.01898 3.75603 4.75698C6.02103 2.49298 9.64403 2.41698 12 4.52898C14.349 2.41998 17.979 2.48998 20.242 4.75698H20.243Z" fill="#525252"></path>
+    </g>
+    <defs>
+        <clippath id="clip0_988_3276">
+        <rect width="24" height="24" fill="white"></rect>
+        </clippath>
+    </defs>
+</svg>
+
+      </span>
+      <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction__icon--active" style="width: 40px; height: 40px">
+        <img aria_hidden="true" height="24" width="24" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/heart-plus-active-9ea3b22f2bc311281db911d416166c5f430636e76b15cd5df6b3b841d830eefa.svg">
+      </span>
+      <span class="crayons-reaction__count" id="reaction_total_count">2</span>
+      <span class="crayons-tooltip__content">
+        Add reaction
+      </span>
+  </button>
+
+  <div class="reaction-drawer" aria-expanded="false">
+    <div class="reaction-drawer__container">
+        <button id="reaction-butt-like" name="Like" aria-label="Like" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2 activated" data-category="like">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-like">2</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Like
+    </span>
+</button>
+
+        <button id="reaction-butt-unicorn" name="Unicorn" aria-label="Unicorn" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2" data-category="unicorn">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-unicorn">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Unicorn
+    </span>
+</button>
+
+        <button id="reaction-butt-exploding_head" name="Exploding Head" aria-label="Exploding Head" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2" data-category="exploding_head">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-exploding_head">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Exploding Head
+    </span>
+</button>
+
+        <button id="reaction-butt-raised_hands" name="Raised Hands" aria-label="Raised Hands" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2" data-category="raised_hands">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-raised_hands">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Raised Hands
+    </span>
+</button>
+
+        <button id="reaction-butt-fire" name="Fire" aria-label="Fire" aria-pressed="false" class="crayons-reaction crayons-tooltip__activator relative pt-2 pr-2 pb-1 pl-2" data-category="fire">
+    <span class="crayons-reaction__icon crayons-reaction__icon--inactive p-0">
+      <img aria_hidden="true" height="32" width="32" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg">
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-fire">0</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Fire
+    </span>
+</button>
+
+    </div>
+  </div>
+</div>
+
+<button id="reaction-butt-comment" aria-label="Jump to Comments" aria-pressed="false" class="crayons-reaction crayons-reaction--comment crayons-tooltip__activator relative" data-category="comment">
+    <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction__icon--inactive">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-hidden="true" class="crayons-icon">
+    <path d="M10 3h4a8 8 0 010 16v3.5c-5-2-12-5-12-11.5a8 8 0 018-8zm2 14h2a6 6 0 000-12h-4a6 6 0 00-6 6c0 3.61 2.462 5.966 8 8.48V17z"></path>
+</svg>
+
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-comment" data-count="1">1</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Jump to Comments
+    </span>
+</button>
+
+<button id="reaction-butt-readinglist" aria-label="Add to reading list" aria-pressed="false" class="crayons-reaction crayons-reaction--readinglist crayons-tooltip__activator relative activated" data-category="readinglist">
+    <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction__icon--inactive">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-hidden="true" class="crayons-icon">
+    <path d="M5 2h14a1 1 0 011 1v19.143a.5.5 0 01-.766.424L12 18.03l-7.234 4.536A.5.5 0 014 22.143V3a1 1 0 011-1zm13 2H6v15.432l6-3.761 6 3.761V4z"></path>
+</svg>
+
+    </span>
+    <span class="crayons-reaction__count" id="reaction-number-readinglist">2</span>
+
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Save
+    </span>
+</button>
+
+
+<button id="reaction-butt-boost" aria-label="Boost" aria-pressed="false" class="crayons-reaction crayons-reaction--boost crayons-tooltip__activator relative">
+    <span class="crayons-reaction__icon crayons-reaction__icon--borderless crayons-reaction__icon--inactive">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" role="img" aria-hidden="true" class="crayons-icon" width="24" height="24">
+  <path transform="translate(24,0) scale(-1,1)" d="M6 4H21C21.5523 4 22 4.44772 22 5V12H20V6H6V9L1 5L6 1V4ZM18 20H3C2.44772 20 2 19.5523 2 19V12H4V18H18V15L23 19L18 23V20Z"></path>
+</svg>
+
+    </span>
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Boost
+    </span>
+</button>
+
+
+    <div id="mod-actions-menu-btn-area" class="print-hidden trusted-visible-block align-center">
+    </div>
+    <div class="align-center m:relative">
+      <button id="article-show-more-button" aria-controls="article-show-more-dropdown" aria-expanded="false" aria-haspopup="true" class="dropbtn crayons-btn crayons-btn--ghost-dimmed crayons-btn--icon-rounded" aria-label="Share post options" data-dropdown-initialized="true" data-initialized="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" role="img" aria-labelledby="a1ouc7nr7knpmbmzftxa302fombeze0l" aria-hidden="true" class="crayons-icon dropdown-icon"><title id="a1ouc7nr7knpmbmzftxa302fombeze0l">More...</title><path fill-rule="evenodd" clip-rule="evenodd" d="M7 12a2 2 0 11-4 0 2 2 0 014 0zm7 0a2 2 0 11-4 0 2 2 0 014 0zm5 2a2 2 0 100-4 2 2 0 000 4z"></path></svg>
+
+      </button>
+
+      <div id="article-show-more-dropdown" class="crayons-dropdown side-bar left-2 right-2 m:right-auto m:left-100 s:left-auto mb-1 m:mb-0 top-unset bottom-100 m:top-0 m:bottom-unset">
+        <div>
+          <button id="copy-post-url-button" class="flex justify-between crayons-link crayons-link--block w-100 bg-transparent border-0" data-posturl="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">
+            <span class="fw-bold">Copy link</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" id="article-copy-icon" role="img" aria-labelledby="a842f9e92rreqi3ivyo6cynvy5u5s5qa" aria-hidden="true" class="crayons-icon mx-2 shrink-0"><title id="a842f9e92rreqi3ivyo6cynvy5u5s5qa">Copy link</title>
+    <path d="M7 6V3a1 1 0 011-1h12a1 1 0 011 1v14a1 1 0 01-1 1h-3v3c0 .552-.45 1-1.007 1H4.007A1 1 0 013 21l.003-14c0-.552.45-1 1.007-1H7zm2 0h8v10h2V4H9v2zm-2 5v2h6v-2H7zm0 4v2h6v-2H7z"></path>
+</svg>
+
+          </button>
+          <div id="article-copy-link-announcer" aria-live="polite" class="crayons-notice crayons-notice--success my-2 p-1" hidden="">Copied to Clipboard</div>
+        </div>
+
+        <div class="Desktop-only">
+          <a target="_blank" class="crayons-link crayons-link--block" rel="noopener" href="https://twitter.com/intent/tweet?text=%22%28Golang%20Triad%29-II-Comprehensive%20Analysis%20of%20Go%27s%20Hybrid%20Write%20Barrier%20Garbage%20Collection%22%20by%20%40Aceld_%20%23DEVCommunity%20https%3A%2F%2Fdev.to%2Faceld%2Fgolang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">
+            Share to X
+          </a>
+          <a target="_blank" class="crayons-link crayons-link--block" rel="noopener" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3A%2F%2Fdev.to%2Faceld%2Fgolang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh&amp;title=%28Golang%20Triad%29-II-Comprehensive%20Analysis%20of%20Go%27s%20Hybrid%20Write%20Barrier%20Garbage%20Collection&amp;summary=Author%3A%20discord%3A%20https%3A%2F%2Fdiscord.gg%2FxQ8Xxfyfcz%20zinx%3A%20%20%20https%3A%2F%2Fgithub.com%2Faceld%2Fzinx%20github%3A...&amp;source=DEV%20Community">
+            Share to LinkedIn
+          </a>
+          <a target="_blank" class="crayons-link crayons-link--block" rel="noopener" href="https://www.facebook.com/sharer.php?u=https%3A%2F%2Fdev.to%2Faceld%2Fgolang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">
+            Share to Facebook
+          </a>
+          <a target="_blank" class="crayons-link crayons-link--block" rel="noopener" href="https://toot.kytta.dev/?text=https%3A%2F%2Fdev.to%2Faceld%2Fgolang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">
+            Share to Mastodon
+          </a>
+        </div>
+
+        <web-share-wrapper shareurl="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh" sharetitle="(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection" sharetext="Author: discord: https://discord.gg/xQ8Xxfyfcz zinx:   https://github.com/aceld/zinx github:..." template="web-share-button">
+          <a href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#" class="dropdown-link-row crayons-link crayons-link--block">Share Post via...</a>
+        </web-share-wrapper>
+        <template id="web-share-button"></template>
+
+        <a href="https://dev.to/report-abuse" class="crayons-link crayons-link--block">Report Abuse</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </aside>
+
+  <main id="main-content" class="crayons-layout__content grid gap-4">
+    <div class="article-wrapper">
+
+
+      <article class="crayons-card crayons-article mb-4" id="article-show-container" data-article-id="1792221" data-article-slug="golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh" data-author-id="1077816" data-author-name="Aceld" data-author-username="aceld" data-co-author-ids="" data-path="/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh" data-pin-path="/stories/feed/pinned_article" data-pinned-article-id="" data-published="true" data-scheduled="false" lang="en">
+        <header class="crayons-article__header" id="main-title">
+
+          <div class="crayons-article__header__meta">
+            <div class="flex s:items-start flex-col s:flex-row">
+              <div id="action-space" class="crayons-article__actions mb-4 s:mb-0 s:order-last"></div>
+              <div class="flex flex-1 mb-5 items-start">
+                <div class="relative">
+                    <a href="https://dev.to/aceld"><img class="radius-full align-middle" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_1077816_9ab52a99-dfb3-4412-9b5f-18d32a8d85a4.png" width="40" height="40" alt="Aceld"></a>
+                </div>
+                <div class="pl-3 flex-1">
+                  <a href="https://dev.to/aceld" class="crayons-link fw-bold">Aceld</a>
+                  
+                  <p class="fs-xs color-base-60">
+                      Posted on <time datetime="2024-08-06T08:05:22Z" class="date" title="Tuesday, August 6, 2024 at 12:05:22 PM">Aug 6, 2024</time>
+
+
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="multiple_reactions_engagement">
+    <span class="reaction_engagement_like">
+      <img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg" width="24" height="24">
+      <span id="reaction_engagement_like_count">2</span>
+    </span>
+    <span class="reaction_engagement_unicorn hidden">
+      <img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg" width="24" height="24">
+      <span id="reaction_engagement_unicorn_count">&nbsp;</span>
+    </span>
+    <span class="reaction_engagement_exploding_head hidden">
+      <img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg" width="24" height="24">
+      <span id="reaction_engagement_exploding_head_count">&nbsp;</span>
+    </span>
+    <span class="reaction_engagement_raised_hands hidden">
+      <img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg" width="24" height="24">
+      <span id="reaction_engagement_raised_hands_count">&nbsp;</span>
+    </span>
+    <span class="reaction_engagement_fire hidden">
+      <img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg" width="24" height="24">
+      <span id="reaction_engagement_fire_count">&nbsp;</span>
+    </span>
+</div>
+
+
+            <h1 class=" fs-3xl m:fs-4xl l:fs-5xl fw-bold s:fw-heavy lh-tight mb-2 longer">
+              (Golang Triad)-II-Comprehensive Analysis of Go's Hybrid Write Barrier Garbage Collection
+            </h1>
+            
+                <div class="spec__tags flex flex-wrap">
+                    <a class="crayons-tag   " style="
+        --tag-bg: rgba(41, 190, 176, 0.10);
+        --tag-prefix: #29BEB0;
+        --tag-bg-hover: rgba(41, 190, 176, 0.10);
+        --tag-prefix-hover: #29BEB0;
+      " href="https://dev.to/t/go"><span class="crayons-tag__prefix">#</span>go</a>
+                    <a class="crayons-tag   " style="
+        --tag-bg: rgba(59, 73, 223, 0.10);
+        --tag-prefix: #3b49df;
+        --tag-bg-hover: rgba(59, 73, 223, 0.10);
+        --tag-prefix-hover: #3b49df;
+      " href="https://dev.to/t/gc"><span class="crayons-tag__prefix">#</span>gc</a>
+                </div>
+          </div>
+        </header>
+
+        <div class="crayons-article__main ">
+
+          <div class="crayons-article__body text-styles spec__body" data-article-id="1792221" id="article-body">
+              <p>Author:<br>
+discord: <a href="https://discord.gg/xQ8Xxfyfcz" target="_blank" rel="noopener noreferrer">https://discord.gg/xQ8Xxfyfcz</a><br>
+zinx:   <a href="https://github.com/aceld/zinx" target="_blank" rel="noopener noreferrer">https://github.com/aceld/zinx</a><br>
+github: <a href="https://github.com/aceld" target="_blank" rel="noopener noreferrer">https://github.com/aceld</a><br>
+aceld's home: <a href="https://yuque.com/aceld" target="_blank" rel="noopener noreferrer">https://yuque.com/aceld</a><br>
+Twitter: <a href="https://twitter.com/Aceld_" target="_blank" rel="noopener noreferrer">https://twitter.com/Aceld_</a></p>
+
+
+<hr>
+
+<p><a href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g">(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model</a><br>
+<a href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">(Golang Triad)-II-Comprehensive Analysis of Go's Hybrid Write Barrier Garbage Collection</a></p>
+
+<p>Garbage Collection (GC) is an automatic memory management mechanism provided in programming languages, capable of automatically releasing unnecessary memory objects and relinquishing storage resources without the need for manual intervention by programmers. The support for GC mechanisms is widespread in modern programming languages, and the performance of GC is often considered one of the comparative metrics between different languages.</p>
+
+<p>Throughout its evolution in GC, Golang has undergone several significant changes. Up to Go V1.8, the modifications to Golang's GC have been substantial. The specific major changes are as follows:</p>
+
+<ol>
+<li>Mark and Sweep method before Go V1.3.</li>
+<li>Three-color concurrent marking method in Go V1.5.</li>
+<li>"Strong-Weak" three-color invariant, insertion barrier, and deletion barrier in Go V1.5.</li>
+<li>Hybrid write barrier mechanism in Go V1.8.</li>
+</ol>
+
+<p>This chapter will introduce the algorithmic models of each GC method, their respective advantages and disadvantages, and how Golang's GC has evolved step by step from logical requirements to the hybrid write barrier mode.</p>
+
+<h2>
+  <a name="1-marksweep-algorithm-in-go-v13" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#1-marksweep-algorithm-in-go-v13">
+  </a>
+  1 Mark-Sweep Algorithm in Go V1.3
+</h2>
+
+<p>Next, let's take a look at the conventional mark-sweep algorithm primarily used in Golang before version 1.3. This algorithm consists of two main steps:<br>
+(1) Mark Phase.<br>
+(2) Sweep Phase.<br>
+The process is quite straightforward: identify memory data to be cleared and then sweep them all at once. Below is a detailed explanation of the process.</p>
+
+<h3>
+  <a name="11-detailed-process-of-mark-and-sweep-algorithm" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#11-detailed-process-of-mark-and-sweep-algorithm">
+  </a>
+  1.1 Detailed Process of Mark and Sweep Algorithm
+</h3>
+
+<p>(1) In the first step, pause the program's business logic, categorize objects into reachable and unreachable, and then mark them accordingly, as shown in Figure 1.1.</p>
+
+<blockquote>
+<p>Figure 1.1<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_38gf144hz2eftkpz04ky.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_38gf144hz2eftkpz04ky.jpg" alt="Figure 1.1" loading="lazy"></a></p>
+</blockquote>
+
+<p>The diagram represents the reachability relationship between the program and objects. Currently, the objects reachable by the program are objects 1, 2, 3, and objects 4 and 7, totaling five objects.</p>
+
+<p>(2) In the second step, marking begins. The program identifies all the objects it can reach and marks them, as shown in Figure 1.2.</p>
+
+<blockquote>
+<p>Figure 1.2</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rw5td6dcqot2eg56f6jw.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rw5td6dcqot2eg56f6jw.jpg" alt="Figure 1.2" loading="lazy"></a></p>
+
+<p>Therefore, objects 1, 2, 3, and objects 4 and 7, a total of five objects, are marked.</p>
+
+<p>(3) In the third step, after marking is completed, the unmarked objects are then cleared, as shown in Figure 1.3.</p>
+
+<blockquote>
+<p>Figure 1.3</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_tognniq3etxgp2o7sb6v.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_tognniq3etxgp2o7sb6v.jpg" alt="&gt; Figure 1.3" loading="lazy"></a></p>
+
+<p>The operation is quite simple, but there is one important point to note. The Mark and Sweep algorithm requires the program to pause during execution, known as STW (Stop The World). During STW, the CPU does not execute user code and is entirely dedicated to garbage collection. This process has a significant impact, making STW one of the biggest challenges and focal points for optimization in some garbage collection mechanisms. Therefore, during the third step, the program will temporarily halt any work and wait for the garbage collection to complete.</p>
+
+<p>(4) In the fourth step, the pause stops, allowing the program to resume running. This process is then repeated in a loop until the program's lifecycle ends. This describes the Mark and Sweep algorithm.</p>
+
+<h3>
+  <a name="12-disadvantages-of-the-mark-and-sweep-algorithm" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#12-disadvantages-of-the-mark-and-sweep-algorithm">
+  </a>
+  1.2 Disadvantages of the Mark and Sweep Algorithm
+</h3>
+
+<p>The Mark and Sweep algorithm is straightforward and clear in its process, but it has some significant issues. The first is STW (Stop The World), which causes the program to pause and may lead to noticeable stuttering, an important concern. The second issue is that marking requires scanning the entire heap. The third issue is that clearing data can create heap fragmentation.</p>
+
+<p>Prior to version 1.3, Go implemented garbage collection using this approach. The basic GC process involved first initiating an STW pause, then performing marking, followed by data collection, and finally stopping the STW, as shown in Figure 1.4.</p>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_603l7ko24lud1mrp7m0u.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_603l7ko24lud1mrp7m0u.jpg" alt="Figure 1.4" loading="lazy"></a></p>
+
+<p>From the above figure, it can be seen that the entire GC time is encapsulated within the STW period, which seems to cause the program pause to be too long, affecting the program's runtime performance. Therefore, in Go version 1.3, a simple optimization was made to advance the STW step, reducing the duration of the STW pause. As shown in Figure 1.5.</p>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_co15owttjk6m6airzqyt.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_co15owttjk6m6airzqyt.jpg" alt="Figure 1.5" loading="lazy"></a></p>
+
+<p>The figure mainly illustrates that the STW step was advanced because during the Sweep phase, an STW pause is not necessary. These objects are already unreachable, so there won't be any conflicts or issues during garbage collection. However, regardless of the optimization, Go version 1.3 still faces a significant issue: the Mark and Sweep algorithm pauses the entire program.</p>
+
+<p>How does Go address this problem? In the next version, Go 1.5, the tricolor concurrent marking algorithm was introduced to optimize this issue.</p>
+
+<h2>
+  <a name="2-tricolor-marking-in-go-v15" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#2-tricolor-marking-in-go-v15">
+  </a>
+  2 Tricolor Marking in Go V1.5
+</h2>
+
+<p>In Golang, garbage collection mainly employs the tricolor marking algorithm. The GC process can run concurrently with other user goroutines, but a certain amount of STW time is still required. The tricolor marking algorithm determines which objects need to be cleared through three marking phases. This section will introduce the specific process.</p>
+
+<h3>
+  <a name="21-the-process-of-tricolor-marking" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#21-the-process-of-tricolor-marking">
+  </a>
+  2.1 The Process of Tricolor Marking
+</h3>
+
+<p>First, every newly created object is initially marked as "white," as shown in Figure 1.6.</p>
+
+<blockquote>
+<p>Figure 1.6</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_izlp8d53dzigfzgejkzp.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_izlp8d53dzigfzgejkzp.jpeg" alt="Figure 1.6" loading="lazy"></a></p>
+
+<p>As shown in the figure, the memory object relationships reachable by the program are illustrated on the left. The marking table on the right is used to record the current marking color classification of each object. It is important to note that the term "program" refers to a collection of objects that are root nodes. Therefore, if you expand the "program," you will get a representation similar to what is shown in Figure 1.7.</p>
+
+<blockquote>
+<p>Figure 1.7</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_2zrzumbv7ef0hauqd21c.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_2zrzumbv7ef0hauqd21c.jpg" alt="Figure 1.7" loading="lazy"></a></p>
+
+<p>In the second step, at the start of each GC collection, the process begins by traversing all objects from the root nodes. Objects encountered during this traversal are moved from the white set to the "gray" set, as shown in Figure 1.8.</p>
+
+<blockquote>
+<p>Figure 1.8</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_8vufabh4g8ecprf95km0.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_8vufabh4g8ecprf95km0.jpg" alt="Figure 1.8" loading="lazy"></a></p>
+
+<p>It is important to note that this traversal is a single-level, non-recursive process. It traverses one level of objects reachable from the program. As shown in the figure, if the currently reachable objects are object 1 and object 4, then by the end of this round of traversal, objects 1 and 4 will be marked as gray, and the gray marking table will include these two objects.</p>
+
+<p>In the third step, the gray set is traversed. Objects referenced by gray objects are moved from the white set to the gray set. Afterward, the original gray objects are moved to the black set, as shown in Figure 1.9.</p>
+
+<blockquote>
+<p>Figure 1.9<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_nqkytqykrkwaqcjcxz6m.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_nqkytqykrkwaqcjcxz6m.jpg" alt="Figure 1.9" loading="lazy"></a></p>
+</blockquote>
+
+<p>This traversal only scans gray objects. The first layer of objects reachable from the gray objects is moved from the white set to the gray set, such as objects 2 and 7. Meanwhile, the previously gray objects 1 and 4 are marked as black and moved from the gray marking table to the black marking table.</p>
+
+<p>In the fourth step, repeat the third step until there are no objects left in the gray set, as shown in Figures 1.10.1 and 1.10.2.</p>
+
+<blockquote>
+<p>Figure 1.10.1</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3k6jj8suljosqnh299c8.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3k6jj8suljosqnh299c8.jpg" alt="Figure 1.10.1" loading="lazy"></a></p>
+
+<blockquote>
+<p>Figure 1.10.2</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_6suekczfyot8dyhdx79g.jpeg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_6suekczfyot8dyhdx79g.jpeg" alt="Figure 1.11" loading="lazy"></a></p>
+
+<p>Once all reachable objects have been traversed, the gray marking table will no longer contain any gray objects. At this point, all memory data will only have two colors: black and white. Black objects are the ones that are logically reachable (needed) by the program. These are the valid and useful data that support the normal operation of the program and cannot be deleted. White objects, on the other hand, are unreachable by the current program logic and are considered garbage data in memory, which needs to be cleared.</p>
+
+<p>In the fifth step, all objects in the white marking table are reclaimed, which means collecting the garbage, as shown in Figure 1.11.</p>
+
+<blockquote>
+<p>Figure 1.11</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_565s148td88y8hv4t86k.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_565s148td88y8hv4t86k.jpg" alt="Figure 1.11" loading="lazy"></a></p>
+
+<p>All white objects are deleted and reclaimed, leaving only the black objects, which are all the necessary dependencies.</p>
+
+<p>This is the tricolor concurrent marking algorithm. It clearly demonstrates the characteristics of the tricolor marking. However, many concurrent processes might be scanned, and the memory of these concurrent processes might be interdependent. To ensure data safety during the GC process, an STW is added before starting the tricolor marking. After scanning and determining the black and white objects, the STW is lifted. However, it is evident that the performance of such a GC scan is quite low.</p>
+
+<p>So, how does Go address the stuttering issue in the Mark and Sweep algorithm?</p>
+
+<h3>
+  <a name="22-tricolor-marking-without-stw" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#22-tricolor-marking-without-stw">
+  </a>
+  2.2 Tricolor Marking Without STW
+</h3>
+
+<p>To start with an example, if there is no STW, performance issues would be eliminated. But what would happen if the tricolor marking algorithm did not include STW? Let's explore this process in detail.</p>
+
+<p>Based on the aforementioned tricolor concurrent marking algorithm, it is indeed dependent on STW. Without pausing the program, any changes in object reference relationships during the marking phase could affect the correctness of the marking results. Consider a scenario where the tricolor marking process does not use STW and what might occur.</p>
+
+<p>Assume the initial state has already undergone the first round of scanning. Currently, objects 1 and 4 are black, objects 2 and 7 are gray, and the rest are white. Object 2 is pointing to object 3 through a pointer p, as shown in Figure 1.12.</p>
+
+<blockquote>
+<p>Figure 1.12</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_74e596z2y9kdgbztq85m.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_74e596z2y9kdgbztq85m.jpg" alt="Figure 1.12" loading="lazy"></a></p>
+
+<p>Now, if the tricolor marking process does not initiate STW, any object may undergo read or write operations during the GC scan. As shown in Figure 1.13, before object 2 has been scanned, the already black-marked object 4 creates a pointer q and points to the white object 3.</p>
+
+<blockquote>
+<p>Figure 1.13</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_cty6ulfg2puup24e23em.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_cty6ulfg2puup24e23em.jpg" alt="Figure 1.13" loading="lazy"></a></p>
+
+<p>Meanwhile, the gray object 2 removes the pointer p. As a result, the white object 3 is now effectively attached to the already scanned black object 4, as shown in Figure 1.14.</p>
+
+<blockquote>
+<p>Figure 1.14</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_owbcwkwjxxol9gwpsfhc.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_owbcwkwjxxol9gwpsfhc.jpg" alt="Figure 1.14" loading="lazy"></a></p>
+
+<p>Then, following the normal logic of the tricolor marking algorithm, all gray objects are marked as black. Consequently, objects 2 and 7 are marked as black, as shown in Figure 1.15.</p>
+
+<blockquote>
+<p>Figure 1.15</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ylvnp1l5wwy088w2dxl8.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ylvnp1l5wwy088w2dxl8.jpg" alt="Figure 1.15" loading="lazy"></a></p>
+
+<p>Next, the final step of the tricolor marking process is executed, where all white objects are treated as garbage and collected, as shown in Figure 1.16.</p>
+
+<blockquote>
+<p>Figure 1.16</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_1kudtf6izcj5degxndep.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_1kudtf6izcj5degxndep.jpg" alt="Figure 1.16" loading="lazy"></a></p>
+
+<p>However, the final result is that object 3, which was legitimately referenced by object 4, is mistakenly collected by the GC. This is not the desired outcome for Golang's garbage collection or for developers.</p>
+
+<h3>
+  <a name="23-necessary-conditions-for-triggering-unsafe-tricolor-marking" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#23-necessary-conditions-for-triggering-unsafe-tricolor-marking">
+  </a>
+  2.3 Necessary Conditions for Triggering Unsafe Tricolor Marking
+</h3>
+
+<p>It can be seen that there are two situations in the tricolor marking algorithm that are undesirable:</p>
+
+<p><code>Condition 1</code>: A white object is referenced by a black object (the white object is attached under the black object).<br>
+<code>Condition 2</code>: The reachable relationship between a gray object and a white object it references is broken (the gray object loses the reference to the white object).<br>
+If both of the above conditions are met simultaneously, it results in object loss. Furthermore, in the scenario shown above, if the white object 3 has many downstream objects, they will all be cleared as well.</p>
+
+<p>To prevent this phenomenon, the simplest method is STW, which directly prohibits other user programs from interfering with object reference relationships. However, the STW process leads to significant resource waste and greatly impacts all user programs. Is it possible to maximize GC efficiency and minimize STW time while ensuring no objects are lost? The answer is yes. By using a mechanism that attempts to break the above two necessary conditions, this can be achieved.</p>
+
+<h2>
+  <a name="3-barrier-mechanism-in-go-v15" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#3-barrier-mechanism-in-go-v15">
+  </a>
+  3 Barrier Mechanism in Go V1.5
+</h2>
+
+<p>The GC collector ensures that objects are not lost when one of the following two conditions is met: the "strong tricolor invariant" and the "weak tricolor invariant."</p>
+
+<h3>
+  <a name="31-strongweak-tricolor-invariants" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#31-strongweak-tricolor-invariants">
+  </a>
+  3.1 "Strong-Weak" Tricolor Invariants
+</h3>
+
+<h4>
+  <a name="1strong-tricolor-invariant" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#1strong-tricolor-invariant">
+  </a>
+  （1）Strong Tricolor Invariant
+</h4>
+
+<p>No black object should reference a white object, as shown in Figure 1.17.</p>
+
+<blockquote>
+<p>Figure 1.17</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_0v94lccsu8ti6yk8diuh.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_0v94lccsu8ti6yk8diuh.jpg" alt="Figure 1.17" loading="lazy"></a></p>
+
+<p>The Strong Tricolor Invariant essentially enforces that black objects are not allowed to reference white objects, preventing the accidental deletion of white objects.</p>
+
+<h4>
+  <a name="2weak-tricolor-invariant" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#2weak-tricolor-invariant">
+  </a>
+  （2）Weak Tricolor Invariant
+</h4>
+
+<p>All white objects referenced by black objects are in a gray protected state, as shown in Figure 1.18.</p>
+
+<blockquote>
+<p>Figure 1.18</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ckzh3fwwt1034xtltf3x.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ckzh3fwwt1034xtltf3x.jpg" alt="Figure 1.18" loading="lazy"></a></p>
+
+<p>The <code>Weak Tricolor Invariant</code> emphasizes that while black objects can reference white objects, those white objects must have references from other gray objects or have a chain of gray objects upstream in their reachable path. This means that although a white object referenced by a black object is in a potentially dangerous state of being deleted, the references from upstream gray objects protect it and ensure its safety.</p>
+
+<p>To adhere to these two invariants, the GC algorithm has evolved to include two types of barriers: insertion barriers and deletion barriers.</p>
+
+<h2>
+  <a name="32-insertion-barrier" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#32-insertion-barrier">
+  </a>
+  3.2 Insertion Barrier
+</h2>
+
+<p>The specific operation of an insertion barrier is as follows: when object A references object B, object B is marked as gray (object B must be marked as gray when it is attached downstream of object A).</p>
+
+<p>The insertion barrier effectively satisfies the strong tricolor invariant (preventing the situation where a black object references a white object, because the white object will be forcibly marked as gray). The pseudocode for the insertion barrier is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>
+
+Add downstream object <span class="o">(</span>current downstream slot, new downstream object ptr<span class="o">)</span> <span class="o">{</span>
+  // Step 1
+  Mark gray <span class="o">(</span>new downstream object ptr<span class="o">)</span>
+
+  // Step 2
+  current downstream slot <span class="o">=</span> new downstream object ptr
+<span class="o">}</span>
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<p>The pseudocode for inserting a write barrier in different scenarios is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>
+
+// A previously had no downstream, now add a downstream object B, and B is marked gray
+A.Add downstream object<span class="o">(</span>nil, B<span class="o">)</span>
+
+// A replaces the downstream object C with B, and B is marked gray
+A.Add downstream object<span class="o">(</span>C, B<span class="o">)</span>
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<p>This pseudocode logic represents the write barrier. Memory slots for black objects can be located in two places: the stack and the heap. The stack is characterized by its small capacity but requires fast access due to frequent function calls. Therefore, the "insertion barrier" mechanism is not used for objects in stack space but is applied to objects in heap space. Next, a series of process diagrams will be used to simulate a detailed process to provide a clearer view of the overall flow for readers.</p>
+
+<p>Currently, let's assume a program is newly created. In the stack space, there are objects 1, 2, 3, and 5. Object 1 references object 2, object 2 references object 3, object 3 has no downstream objects, and object 5 references object 2. In the heap space, object 4 references object 7, object 7 has no downstream objects, and object 6 references no objects and is not referenced by any objects. All these memory objects are marked as white, so the white marking table includes all these objects, as shown in Figure 1.19.</p>
+
+<blockquote>
+<p>Figure 1.19</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ac7oiwa9gcw7axqnnyzw.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ac7oiwa9gcw7axqnnyzw.jpg" alt="Figure 1.19" loading="lazy"></a></p>
+
+<p>Following the tricolor marking process, traverse the Root Set (root node set) in a non-recursive manner, scanning only once. This traversal identifies the first layer of gray nodes, which are object 1 and object 4. These gray nodes are also added to the gray marking table, as shown in Figure 1.20.</p>
+
+<blockquote>
+<p>Figure 1.20</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rn6qskt2z2khms95k6ry.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rn6qskt2z2khms95k6ry.jpg" alt="Figure 1.20" loading="lazy"></a></p>
+
+<p>Following the tricolor marking method, the next step is to traverse the objects in the gray marking table, which are objects 1 and 4. The reachable objects are marked from white to gray. Meanwhile, the traversed gray objects are marked as black, as shown in Figure 2.21.</p>
+
+<blockquote>
+<p>Figure 2.21</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_pmj8cza13olxyiey2szi.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_pmj8cza13olxyiey2szi.jpg" alt="Figure 2.21" loading="lazy"></a></p>
+
+<p>Due to the nature of concurrency, at this moment, the external environment adds the white object 8 to the already black-marked object 4, and the white object 9 to the already black-marked object 1, as shown in Figure 1.22. Object 1 is in stack space, and according to the characteristics of the insertion barrier, to ensure performance, the creation of objects in stack space does not trigger the insertion barrier. However, object 4 is in heap space, so it will trigger the insertion barrier mechanism.</p>
+
+<blockquote>
+<p>Figure 1.22</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_gbdxfkkbxbfd6y4csbl1.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_gbdxfkkbxbfd6y4csbl1.jpg" alt="Figure 1.22" loading="lazy"></a></p>
+
+<p>Due to the insertion write barrier mechanism (when a black object adds a white object, the white object is changed to gray), when object 4 in the heap adds object 8, object 8 is marked as gray, while object 9 remains white, as shown in Figure 1.23.</p>
+
+<blockquote>
+<p>Figure 1.23</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ijc0onsvdsjwu7tuis2y.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_ijc0onsvdsjwu7tuis2y.jpg" alt="Figure 1.23" loading="lazy"></a></p>
+
+<p>Next, the normal tricolor marking process continues, cycling through the steps until there are no gray nodes left. The resulting object states are shown in Figure 1.24: objects 1, 2, and 3 in the stack space are marked black, and objects 4, 7, and 8 in the heap space are marked black. The other objects, 9, 5, and 6, remain white.</p>
+
+<blockquote>
+<p>Figure 1.24</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rq7nzlqlhtt7gtjeisgj.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rq7nzlqlhtt7gtjeisgj.jpg" alt="Figure 1.24" loading="lazy"></a></p>
+
+<p>At this point, the insertion barrier will not immediately trigger garbage collection but will instead perform an additional process. However, if the stack is not scanned, there may still be white objects referenced in the stack after the tricolor marking is complete (such as object 9 in the previous figure). Therefore, the stack needs to be re-scanned with the tricolor marking to ensure no objects are lost. This re-scan requires initiating an STW (Stop-The-World) pause until the tricolor marking of the stack space is finished.</p>
+
+<p>All memory objects in the stack space are re-marked as white (objects 1, 2, 3, 9, and 5). During this process, STW is activated to protect these white objects, preventing any read or write operations on these protected objects by intercepting and blocking them, thus avoiding external interference (e.g., new white objects being added by black objects).</p>
+
+<p>Meanwhile, other heap space objects will not trigger STW, ensuring the performance of GC collection in the heap space, as shown in Figure 1.25.</p>
+
+<blockquote>
+<p>Figure 1.25</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_jey5h1q08rvzdbepvefy.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_jey5h1q08rvzdbepvefy.jpg" alt="Figure 1.25" loading="lazy"></a></p>
+
+<p>Next, within the STW-protected area, the tricolor marking process continues until all reachable white objects are scanned and no gray nodes remain. The final state is achieved where objects 1, 2, 3, and 9 are marked black. Since object 5 is still not scanned, it remains white, as shown in Figure 1.26.</p>
+
+<blockquote>
+<p>Figure 1.26</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_jrv4x63b4qg7z57ihzri.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_jrv4x63b4qg7z57ihzri.jpg" alt="Figure 1.26" loading="lazy"></a></p>
+
+<p>This time, when all memory objects are either white or black, the STW will be stopped, and the protection layer will be released, as shown in Figure 1.27.</p>
+
+<blockquote>
+<p>Figure 1.27</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7abac889sn9su63v6tcg.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7abac889sn9su63v6tcg.jpg" alt="Figure 1.28" loading="lazy"></a></p>
+
+<p>Finally, all remaining white nodes in the stack and heap space (objects 5 and 6) are scanned and collected. Typically, the STW duration for this stack space operation is around 10 to 100 milliseconds. After the final scan, all objects in memory will be black, as shown in Figure 1.28. This concludes the explanation of the tricolor marking and collection mechanism based on the insertion barrier.</p>
+
+<blockquote>
+<p>Figure 1.28</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_z29qulak9cx8udm27h7c.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_z29qulak9cx8udm27h7c.jpg" alt="Figure 1.28" loading="lazy"></a></p>
+
+<p>The purpose of the insertion barrier is to ensure that when a black object is inserted, there is a gray object to protect it, or the inserted object is turned gray. The insertion barrier essentially satisfies the strong tricolor invariant, preventing mistakenly deleted white objects.</p>
+
+<h3>
+  <a name="33-deletion-barrier" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#33-deletion-barrier">
+  </a>
+  3.3 Deletion Barrier
+</h3>
+
+<p>The specific operation of a deletion barrier is as follows: if a deleted object is gray or white, it is marked as gray.</p>
+
+<p>The deletion barrier essentially satisfies the weak tricolor invariant, aiming to ensure that the path from gray objects to white objects remains intact. The pseudocode for the deletion barrier is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>
+
+Add downstream object <span class="o">(</span>current downstream slot, new downstream object ptr<span class="o">)</span> <span class="o">{</span>
+  // Step 1
+  <span class="k">if</span> <span class="o">(</span>current downstream slot is gray <span class="o">||</span> current downstream slot is white<span class="o">)</span> <span class="o">{</span>
+    // The slot being removed, mark it as gray
+    Mark gray <span class="o">(</span>current downstream slot<span class="o">)</span>
+  <span class="o">}</span>
+
+  // Step 2
+  current downstream slot <span class="o">=</span> new downstream object ptr
+<span class="o">}</span>
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<p>The pseudocode for the deletion barrier in different scenarios is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>
+
+// Object A removes the reference to object B. B is removed by A and marked gray <span class="o">(</span><span class="k">if </span>B was previously white<span class="o">)</span>
+Add downstream object<span class="o">(</span>B, nil<span class="o">)</span>
+
+// Object A replaces downstream B with C. B is removed by A and marked gray <span class="o">(</span><span class="k">if </span>B was previously white<span class="o">)</span>
+Add downstream object<span class="o">(</span>B, C<span class="o">)</span>
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<p>The deletion barrier ensures that when an object's reference is removed or replaced by an upstream object, the removed object is marked as gray. The purpose of marking it as gray is to prevent a white object from being mistakenly collected if it is later referenced by another black object. This mechanism ensures that the deleted object, which was not intended to be collected, is properly protected. The following diagrams will simulate a detailed process to provide a clearer view of the overall workflow.</p>
+
+<p>As shown in Figure 1.29, before executing the deletion barrier tricolor marking, the current memory situation is as follows: In the stack space, object 1 references object 5, object 5 references object 2, object 2 references object 3, and object 3 has no downstream objects. In the heap space, object 4 references object 7, and object 7 has no downstream objects. Object 6 is not referenced by anyone and has no downstream objects. All these objects are marked as white and added to the white marking table.</p>
+
+<blockquote>
+<p>Figure 1.29</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_zje0a6qltvvazbl8ifr8.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_zje0a6qltvvazbl8ifr8.jpg" alt="Figure 1.29" loading="lazy"></a></p>
+
+<p>Following the tricolor marking process, the Root Set is traversed in a non-recursive manner, marking the first layer of gray nodes: objects 1 and 4. These gray nodes are also added to the gray marking table, as shown in Figure 1.30.</p>
+
+<blockquote>
+<p>Figure 1.30</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3uc92f0abpqt1kocuhv7.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_3uc92f0abpqt1kocuhv7.jpg" alt="Figure 1.30" loading="lazy"></a></p>
+
+<p>If gray object 1 deletes the white object 5 without triggering the deletion barrier mechanism, white object 5, along with its downstream objects 2 and 3, will be disconnected from the main chain and eventually be collected, as shown in Figure 1.31.</p>
+
+<blockquote>
+<p>Figure 1.31</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_1c3r2o0cficj7enqd0oc.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_1c3r2o0cficj7enqd0oc.jpg" alt="Figure 1.31" loading="lazy"></a></p>
+
+<p>However, with the current tricolor marking algorithm using the deletion barrier mechanism, deleted objects are marked as gray. This is to protect object 5 and its downstream objects (consider why protection is necessary—what unexpected issues could arise if object 5 were not marked as gray? For example, as shown in Figure 2.31, if object 1 deletes object 5 but object 5 remains white, and if the process does not include STW protection, there is a high chance that, during the deletion process, an already black-marked object might reference object 5. Object 5 is still a valid memory object needed by the program, but it could be mistakenly collected by the GC as a white object. This happens because the downstream objects of black objects are not protected). Therefore, object 5 is marked as gray, as shown in Figure 1.32.</p>
+
+<blockquote>
+<p>Figure 1.32<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_qczewi6w7ffan2i1r9iw.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_qczewi6w7ffan2i1r9iw.jpg" alt="Figure 1.32" loading="lazy"></a></p>
+</blockquote>
+
+<p>Following the tricolor marking process, the next step is to traverse the gray marking table, which includes objects 1, 4, and 5. During this traversal, their reachable objects are marked gray from white. Additionally, the gray objects being traversed are marked as black. As shown in Figure 1.33, after this round of processing, objects 1, 4, and 5 are marked as black, objects 2 and 7 are marked as gray, and objects 3 and 6 remain white.</p>
+
+<blockquote>
+<p>Figure 1.33</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_50g6ynovgnombm3kacne.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_50g6ynovgnombm3kacne.jpg" alt="Figure 1.33" loading="lazy"></a></p>
+
+<p>Continue the tricolor marking process until there are no more gray nodes. The final state, as shown in Figure 1.34, indicates that all nodes except object 6 are marked as black.</p>
+
+<blockquote>
+<p>Figure 1.34</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_uxws6c90ol7mwck9puza.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_uxws6c90ol7mwck9puza.jpg" alt="Figure 1.34" loading="lazy"></a></p>
+
+<p>Finally, execute the collection and cleanup process, removing all white objects through GC, as shown in Figure 1.35.</p>
+
+<blockquote>
+<p>Figure 1.35<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_gvepdb2a7509ycruklej.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_gvepdb2a7509ycruklej.jpg" alt="Figure 1.35" loading="lazy"></a></p>
+</blockquote>
+
+<p>The above describes the tricolor marking process using the deletion barrier. The deletion barrier still allows for garbage collection in a parallel state, but this method has lower precision. Even if an object is deleted, the last pointer pointing to it can still "survive" this round of garbage collection and will only be cleared in the next GC cycle.</p>
+
+<h2>
+  <a name="4-hybrid-write-barrier-in-go-v18" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#4-hybrid-write-barrier-in-go-v18">
+  </a>
+  4 Hybrid Write Barrier in Go V1.8
+</h2>
+
+<p>While both insertion and deletion write barriers can address the issue of non-parallel processing caused by STW to some extent, each has its own limitations:</p>
+
+<p>Insertion Write Barrier: Requires STW at the end to re-scan the stack and mark the live white objects referenced on the stack.<br>
+Deletion Write Barrier: Has lower accuracy in garbage collection. At the start of GC, STW scans the heap to record an initial snapshot, which protects all live objects at that moment.</p>
+
+<p>Go V1.8 introduces the Hybrid Write Barrier mechanism, which avoids the need for stack re-scanning, significantly reducing STW time. This mechanism combines the advantages of both insertion and deletion write barriers. This section will discuss the rules of the hybrid write barrier and analyze some scenarios that trigger this barrier.</p>
+
+<h3>
+  <a name="41-hybrid-write-barrier-rules" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#41-hybrid-write-barrier-rules">
+  </a>
+  4.1 Hybrid Write Barrier Rules
+</h3>
+
+<p>The specific operations of the hybrid write barrier generally need to follow the following conditions:</p>
+
+<ul>
+<li>At the start of GC, all objects on the stack are scanned and marked as black (there is no need for a second scan or STW).</li>
+<li>Any new objects created on the stack during GC are marked as black.</li>
+<li>Deleted objects are marked as gray.</li>
+<li>Added objects are marked as gray.</li>
+</ul>
+
+<p>The hybrid write barrier effectively satisfies a variant of the weak tricolor invariant. The pseudocode is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>
+
+Add downstream object<span class="o">(</span>current downstream slot, new downstream ptr<span class="o">)</span> <span class="o">{</span>
+    // 1
+    Mark gray<span class="o">(</span>current downstream slot<span class="o">)</span>    // Mark the current downstream object as gray when it is removed
+
+    // 2
+    Mark gray<span class="o">(</span>new downstream ptr<span class="o">)</span>
+
+    // 3
+    current downstream slot <span class="o">=</span> new downstream ptr
+<span class="o">}</span>
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<blockquote>
+<p>Note: The barrier technique is not applied to stack objects to ensure stack operation efficiency. The hybrid write barrier is a GC barrier mechanism and is triggered only during GC execution.</p>
+</blockquote>
+
+<p>Next, let's simulate the detailed process of the hybrid write barrier to provide a clearer understanding of the overall flow.</p>
+
+<p>Assume the following scenario at the start of GC. The initial memory object structure is as follows: In the stack space, the Root Set references object 1, object 2 references object 3, and object 3 has no downstream references. Object 5 has no upstream objects but references object 8, which has no downstream references. In the heap space, the Root Set references object 4, which references object 7, and object 7 has no downstream references. Object 6 has no upstream objects and no downstream references. All these memory objects are marked as white and placed in the white marking table, as shown in Figure 1.36.</p>
+
+<blockquote>
+<p>Figure 1.36</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_lbx1acsw3rl7g47v5ybm.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_lbx1acsw3rl7g47v5ybm.jpg" alt="Figure 1.36" loading="lazy"></a></p>
+
+<p>As GC begins, following the steps of the hybrid write barrier, the first step is to scan the stack area and mark all reachable objects as black. Therefore, when the stack scan is complete, objects 1, 2, and 3, which are reachable, are marked as black and added to the black marking table, as shown in Figure 1.37.</p>
+
+<blockquote>
+<p>Figure 1.37</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_by9z3bgyv7dp628npo9q.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_by9z3bgyv7dp628npo9q.jpg" alt="Figure 1.37" loading="lazy"></a></p>
+
+<p>Next, we will analyze several scenarios involving the hybrid write barrier. This section will outline four scenarios, all starting from the point shown in Figure 2.37, where the stack space has been scanned and reachable objects are marked as black. The four scenarios are:</p>
+
+<ul>
+<li>Heap Deletion of Reference, Becoming a Stack Downstream</li>
+<li>Stack Deletion of Reference, Becoming a Stack Downstream</li>
+<li>Heap Deletion of Reference, Becoming a Heap Downstream</li>
+<li>Stack Deletion of Reference, Becoming a Heap Downstream</li>
+</ul>
+
+<h3>
+  <a name="42-scenario-1-heap-deletion-of-reference-becoming-a-stack-downstream" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#42-scenario-1-heap-deletion-of-reference-becoming-a-stack-downstream">
+  </a>
+  4.2 Scenario 1: Heap Deletion of Reference, Becoming a Stack Downstream
+</h3>
+
+<p>Scenario 1 mainly describes the case where an object is deleted from a heap object's references and becomes a downstream object of a stack object. The pseudocode is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight shell"><code>
+
+// Pseudocode explanation:
+// For example: HeapObject4 -&gt; Object7 <span class="o">=</span> Object7, meaning: Object7 is referenced by HeapObject4
+
+StackObject1 -&gt; Object7 <span class="o">=</span> HeapObject7<span class="p">;</span>  // Attach heap object 7 to stack object 1 as a downstream
+HeapObject4 -&gt; Object7 <span class="o">=</span> null<span class="p">;</span>          // HeapObject4 deletes reference to Object7
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<p>Now execute the first line of code from the above scenario: <code>StackObject1 -&gt; Object7 = HeapObject7</code>, which adds the white object 7 to the downstream of the black stack object 1. It is important to note that because the stack does not trigger the write barrier mechanism, the white object 7 is directly attached under the black object 1, and object 7 remains white. Now, scan object 4, marking object 4 as gray, as shown in Figure 1.38.</p>
+
+<blockquote>
+<p>Figure 1.38</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_oo0nlswlb89csz857jrb.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_oo0nlswlb89csz857jrb.jpg" alt="Figure 1.38" loading="lazy"></a></p>
+
+<p>Then execute the second line of code from the above scenario: <code>HeapObject4 -&gt; Object7 = null</code>. The gray object 4 deletes the white object 7 (deletion means reassigning to null). Since object 4 is in the heap space, the write barrier is triggered, and the deleted object 7 is marked as gray, as shown in Figure 1.39.</p>
+
+<blockquote>
+<p>Figure 1.39<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_5n6z1mfd4uk4xc4talzw.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_5n6z1mfd4uk4xc4talzw.jpg" alt="Figure 1.39" loading="lazy"></a></p>
+</blockquote>
+
+<p>Thus, from the scenario of Scene One, object 7 ends up being attached to the downstream of object 1. Since object 7 is gray, it won't be collected as garbage, thus it is protected. In the hybrid write barrier of Scene One, STW (Stop The World) will not be triggered again to re-scan the stack space objects. The subsequent process continues to follow the hybrid write barrier's tricolor marking logic. Eventually, objects 4 and 7 will be marked as black, and the GC will ultimately reclaim objects 5, 8, and 6.</p>
+
+<h3>
+  <a name="43-scenario-two-stack-deletes-reference-becomes-stack-downstream" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#43-scenario-two-stack-deletes-reference-becomes-stack-downstream">
+  </a>
+  4.3 Scenario Two: Stack Deletes Reference, Becomes Stack Downstream
+</h3>
+
+<p>Scenario Two primarily describes a situation where an object is deleted by one stack object and becomes the downstream of another stack object. The pseudocode is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight csharp"><code>
+
+<span class="c1">// Pseudocode explanation:</span>
+<span class="c1">// For example: stack object 2-&gt;object 3 = null, meaning: object 3 is unreferenced by object 2</span>
+
+<span class="k">new</span> <span class="n">stack</span> <span class="kt">object</span> <span class="m">9</span><span class="p">;</span>               <span class="c1">// Create a new object 9 in the stack space</span>
+<span class="kt">object</span> <span class="m">9</span><span class="p">-&gt;</span><span class="kt">object</span> <span class="m">3</span> <span class="p">=</span> <span class="kt">object</span> <span class="m">3</span><span class="p">;</span>    <span class="c1">// Attach stack object 3 to the downstream of stack object 9</span>
+<span class="kt">object</span> <span class="m">2</span><span class="p">-&gt;</span><span class="kt">object</span> <span class="m">3</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>        <span class="c1">// Object 2 deletes the reference to object 3</span>
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<p>Now, execute the first line of code in the above scenario: "new stack object 9". According to the hybrid write barrier's rules, any new memory object created in the stack space will be marked as black. Here, we inherit the memory layout scenario described in Figure 1.37, so object 9 is currently a black object referenced by the program's root set, as shown in Figure 1.40.</p>
+
+<blockquote>
+<p>Figure 1.40</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_np8kifjf5jadb5492fbg.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_np8kifjf5jadb5492fbg.jpg" alt="Figure 1.40" loading="lazy"></a></p>
+
+<p>Next, execute the second line of code in the above scenario: <code>object 9-&gt;object 3 = object 3</code>. Object 9 adds downstream object 3. Since object 9 is in the stack space, this addition does not trigger the write barrier. Object 3 is directly attached to the downstream of object 9, as shown in Figure 1.41.</p>
+
+<blockquote>
+<p>Figure 1.41</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_dj5dr368f5pfu03jc1uu.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_dj5dr368f5pfu03jc1uu.jpg" alt="Figure 1.41" loading="lazy"></a></p>
+
+<p>Finally, execute the third line of code in the above scenario: "object 2-&gt;object 3 = null". Object 2 will remove downstream object 3. Since object 2 is within the stack space, the write barrier mechanism is not triggered. Object 2 directly detaches object 3 from its downstream, as shown in Figure 1.42.</p>
+
+<blockquote>
+<p>Figure 1.42<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_c780540m86b3ab0wj1rr.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_c780540m86b3ab0wj1rr.jpg" alt="Figure 1.42" loading="lazy"></a></p>
+</blockquote>
+
+<p>From the above process, we can see that in the hybrid write barrier mechanism, an object transferring from the downstream of one stack object to another stack object's downstream ensures the object's safety without the need to trigger the write barrier or the STW mechanism, since stack objects are all black. This highlights the ingenious design of the hybrid write barrier.</p>
+
+<h3>
+  <a name="43-scenario-three-heap-reference-deletion-becoming-a-heap-downstream" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#43-scenario-three-heap-reference-deletion-becoming-a-heap-downstream">
+  </a>
+  4.3 Scenario Three: Heap Reference Deletion, Becoming a Heap Downstream
+</h3>
+
+<p>Scenario three mainly describes a situation where an object is removed from the reference of one heap object and becomes the downstream of another heap object. The pseudocode is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight csharp"><code>
+
+<span class="c1">// Pseudocode explanation:</span>
+<span class="c1">// For example: heapObject4-&gt;object7 = object7, meaning object7 is referenced by heapObject4</span>
+
+<span class="n">heapObject10</span><span class="p">-&gt;</span><span class="n">object7</span> <span class="p">=</span> <span class="n">heapObject7</span><span class="p">;</span>   <span class="c1">// Attach heap object 7 to the downstream of heap object 10</span>
+<span class="n">heapObject4</span><span class="p">-&gt;</span><span class="n">object7</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>           <span class="c1">// heap object 4 removes the reference to object 7</span>
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<p>Now, let's restore the memory layout for scenario three. In the heap space, there is a black object 10 (whether it is black or not doesn't matter, because object 10 is a reachable heap object, and it will eventually be marked as black). Here, we do not consider the possibility of object 10 being any other color. Since black is a special case, if object 10 is white, its downstream will eventually be scanned and thus safe. Similarly, if object 10 is gray, its downstream is also safe. Only when object 10 is black, there is a risk of its downstream memory being unsafe. So, the current memory layout is as shown in Figure 1.43.</p>
+
+<blockquote>
+<p>Figure 1.43<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7pel12p8w4l14yom3n8l.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_7pel12p8w4l14yom3n8l.jpg" alt="Figure 1.43" loading="lazy"></a></p>
+</blockquote>
+
+<p>Now, executing the first line of code in the above scenario: <code>heapObject10-&gt;object7 = heapObject7</code>, heapObject10 adds a downstream reference to the white heap object 7. Since object 10 is within the heap space, this write operation will trigger the barrier mechanism. According to the conditions of the hybrid write barrier, the added object will be marked as gray. Thus, the white object 7 will be marked as gray, indirectly protecting the white object 6, as shown in Figure 1.44.</p>
+
+<blockquote>
+<p>Figure 1.44<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rbf6gig1i4no59zr4yah.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_rbf6gig1i4no59zr4yah.jpg" alt="Figure 1.44" loading="lazy"></a></p>
+</blockquote>
+
+<p>Next, executing the second line of code in the above scenario: <code>heapObject4-&gt;object7 = null</code>, the gray heap object 4 removes the downstream reference to heap object 7. Since object 4 is within the heap space, this operation triggers the barrier mechanism. According to the conditions of the hybrid write barrier, the removed object will be marked as gray. Therefore, object 7 will be marked as gray (even though it is already gray), as shown in Figure 1.45.</p>
+
+<blockquote>
+<p>Figure 1.45<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_84cmx7akbnyems6oj5bu.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_84cmx7akbnyems6oj5bu.jpg" alt="Figure 1.45" loading="lazy"></a></p>
+</blockquote>
+
+<p>Through the processes described, the originally white object 7 has successfully been transferred from beneath heap object 4 to beneath black heap object 10. Both object 7 and its downstream object (object 6) are protected, and throughout this process, no STW was used, avoiding any delay in the program's performance.</p>
+
+<h3>
+  <a name="44-scenario-four-stack-deletes-reference-becomes-heap-downstream" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#44-scenario-four-stack-deletes-reference-becomes-heap-downstream">
+  </a>
+  4.4 Scenario Four: Stack Deletes Reference, Becomes Heap Downstream
+</h3>
+
+<p>Scenario Four primarily describes the case where an object is deleted from a stack object and becomes a downstream object of another heap object. The pseudocode is as follows:</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight csharp"><code>
+
+<span class="c1">// Pseudocode explanation:</span>
+<span class="c1">// For example: HeapObject4 -&gt; Object7 = Object7 means Object7 is referenced by HeapObject4</span>
+
+<span class="n">StackObject1</span> <span class="p">-&gt;</span> <span class="n">Object2</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>        <span class="c1">// Remove StackObject1's downstream reference to Object2</span>
+<span class="n">HeapObject4</span> <span class="p">-&gt;</span> <span class="n">Object7</span> <span class="p">=</span> <span class="n">StackObject2</span><span class="p">;</span> <span class="c1">// HeapObject4 removes reference to Object7 and references new downstream Object2</span>
+
+
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+<p>Continuing from the memory layout scenario in Figure 1.37, executing the first line of code, <code>StackObject1 -&gt; Object2 = null</code>, removes StackObject1's reference to StackObject2. Since StackObject1 is in the stack space, this operation does not trigger the write barrier mechanism. Consequently, StackObject1 directly deletes Object2 and all downstream objects associated with Object2, as shown in Figure 1.46.</p>
+
+<blockquote>
+<p>Figure 1.46<br>
+<a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_gcwo7cg77b0xrs36rjmh.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_gcwo7cg77b0xrs36rjmh.jpg" alt="Figure 1.46" loading="lazy"></a></p>
+</blockquote>
+
+<p>Next, executing the second line of code in the scenario: <code>HeapObject4 -&gt; Object7 = StackObject2</code>, actually performs two actions:</p>
+
+<p>It removes the previous downstream white object, Object7, from HeapObject4.</p>
+
+<p>It adds StackObject2 as the new downstream object for HeapObject4, as shown in Figure 1.47.</p>
+
+<blockquote>
+<p>Figure 1.47</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_mtk8zr9681wm1mghgi1y.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_mtk8zr9681wm1mghgi1y.jpg" alt="Figure 1.47" loading="lazy"></a></p>
+
+<p>When HeapObject4 performs the two actions described, it triggers the write barrier mechanism since HeapObject4 is in the heap space. According to the rules of the hybrid write barrier, deleted objects are marked as gray, and newly added objects are also marked as gray. Consequently, Object7 is marked as gray, thereby protecting its downstream object, Object6. Object2, being newly added, will also go through the gray marking process. Since Object2 is already black (and thus safe), it will remain black, as shown in Figure 1.48.</p>
+
+<blockquote>
+<p>Figure 1.48</p>
+</blockquote>
+
+<p><a href="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_mvci8yxsb7uq8uge7759.jpg" class="article-body-image-wrapper"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_mvci8yxsb7uq8uge7759.jpg" alt="Figure 1.48" loading="lazy"></a></p>
+
+<p>Ultimately, Object2, which was originally referenced by a stack object, has been successfully moved to be a downstream object of HeapObject4. The memory dependencies and safety states are maintained. After several iterations, Object1, Object4, Object2, and Object3 will all be marked as black, while Object7 and Object6 will also be marked as black in this round of GC. The white memory objects reclaimed in this round of GC will be Object5 and Object8.</p>
+
+<p>However, a question arises: Why were Object7 and Object6, which are already disconnected from the program's Root Set, not reclaimed? This is due to the delay issue with the hybrid write barrier. To avoid triggering STW, some memory may be delayed in being reclaimed for one cycle. In the next round of GC, if Object7 and Object6 are not referenced by external objects, they will eventually be reclaimed as white garbage memory.</p>
+
+<h2>
+  <a name="5-summary" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#5-summary">
+  </a>
+  5 Summary
+</h2>
+
+<p>This chapter has discussed the evolution of the garbage collection (GC) mechanism in Golang, highlighting the continuous optimization efforts aimed at improving GC performance. The garbage collection in Golang has seen significant advancements, and while this chapter covers up to Go 1.8, subsequent versions of Go have also introduced further performance improvements. However, the major changes discussed in this chapter are pivotal.</p>
+
+<p>Currently, garbage collection employs a combination of the tri-color marking and barrier mechanisms, with the primary performance impact stemming from the Stop The World (STW) mechanism. STW is necessary for memory safety, but the hybrid write barrier mechanism significantly reduces the need for STW, allowing for concurrent garbage collection without pausing the program.</p>
+
+<p>Readers should note the key milestones in the evolution of Golang's GC:</p>
+
+<ul>
+<li><p>Go 1.3: The traditional mark-and-sweep approach required STW, resulting in low efficiency.</p></li>
+<li><p>Go 1.5: Introduced tri-color marking combined with insertion and deletion write barriers, where write barriers were applied to heap space but not stack space. This method required an additional stack scan after the initial scan, leading to moderate efficiency.</p></li>
+<li><p>Go 1.8: Implemented tri-color marking with a hybrid write barrier mechanism, where the stack space did not require barriers while the heap space did. This approach minimized the need for STW and achieved higher efficiency.</p></li>
+</ul>
+
+<p>Each of these approaches had its limitations, but through comparison, it is evident that the hybrid write barrier mechanism in Go 1.8 offers a substantial improvement in efficiency by minimizing the use of STW.</p>
+
+
+<hr>
+
+<p><a href="https://dev.to/aceld/understanding-the-golang-goroutine-scheduler-gpm-model-4l1g">(Golang Triad)-I-Understanding the Golang Goroutine Scheduler GPM Model</a></p>
+
+<h2>
+  <a name="golang-triadiicomprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#golang-triadiicomprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection">
+  </a>
+  <a href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh">(Golang Triad)-II-Comprehensive Analysis of Go's Hybrid Write Barrier Garbage Collection</a>
+</h2>
+
+<p>Author:<br>
+discord: <a href="https://discord.gg/xQ8Xxfyfcz" target="_blank" rel="noopener noreferrer">https://discord.gg/xQ8Xxfyfcz</a><br>
+zinx:   <a href="https://github.com/aceld/zinx" target="_blank" rel="noopener noreferrer">https://github.com/aceld/zinx</a><br>
+github: <a href="https://github.com/aceld" target="_blank" rel="noopener noreferrer">https://github.com/aceld</a><br>
+aceld's home: <a href="https://yuque.com/aceld" target="_blank" rel="noopener noreferrer">https://yuque.com/aceld</a></p>
+
+
+          </div>
+
+            <div class="js-billboard-container body-billboard-container" data-async-url="/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh/billboards/post_body_bottom"><div>    <div class="crayons-card crayons-card--secondary crayons-bb billboard js-billboard body-billboard mb-2 mt-6" style="overflow-y: revert;" data-display-unit="" data-id="197837" data-category-click="click" data-category-impression="impression" data-context-type="article" data-dismissal-sku="" data-special="nothing" data-article-id="1792221" data-type-of="partner">
+    <div class="crayons-story__top flex">
+      <div class="crayons-bb__header relative">
+    <div class="flex">
+        <a href="https://dev.to/sentry" target="_blank" rel="noopener" class="flex">
+          <img width="24" height="24" class="radius-default crayons-bb__image" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_organization_profile_image_3774_02d4162c-978f-4471-9d39-b2928cfb9e24.png" alt="profile" loading="lazy">
+          <div class="crayons-bb__title ml-2 fs-s fw-medium">Sentry</div>
+        </a>
+        <span class="crayons-bb__indicator c-indicator c-indicator--subtle c-indicator--round fs-2xs fw-medium ml-2 py-1 px-2">Promoted</span>
+    </div>
+
+  <button id="sponsorship-dropdown-trigger-197837" aria-controls="sponsorship-dropdown-197837" aria-expanded="false" aria-haspopup="true" class="dropBtn crayons-bb__dropdown crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon" aria-label="Toggle dropdown menu" data-dropdown-initialized="true" data-initialized="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="a7cnh04ks9kupi56c4qpkot4t9eahdzp" class="crayons-icon pointer-events-none"><title id="a7cnh04ks9kupi56c4qpkot4t9eahdzp">Dropdown menu</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm5.25 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm3.75 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+</svg>
+
+  </button>
+
+  <div id="sponsorship-dropdown-197837" class="crayons-dropdown sponsorship-dropdown right-0">
+    <ul class="list-none m-0">
+        <li>
+          <a class="crayons-link crayons-link--block" href="https://dev.to/billboards">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"></path>
+</svg>
+
+            What's a billboard?
+          </a>
+        </li>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/settings/customization#sponsors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M3.34 16.9999C2.91727 16.2689 2.58866 15.4874 2.362 14.6739C2.85531 14.423 3.26959 14.0406 3.55903 13.5688C3.84846 13.0971 4.00176 12.5545 4.00197 12.0011C4.00218 11.4476 3.84928 10.9049 3.5602 10.4329C3.27112 9.961 2.85712 9.57821 2.364 9.32694C2.81604 7.69243 3.67673 6.1999 4.865 4.98994C5.32909 5.29167 5.86762 5.45911 6.42098 5.47373C6.97434 5.48834 7.52095 5.34958 8.00033 5.07278C8.47971 4.79598 8.87315 4.39194 9.13713 3.90539C9.4011 3.41883 9.52531 2.86872 9.496 2.31594C11.1381 1.89157 12.8612 1.89226 14.503 2.31795C14.474 2.87071 14.5984 3.42073 14.8626 3.90715C15.1268 4.39357 15.5204 4.79742 15.9998 5.07401C16.4793 5.35059 17.0259 5.48913 17.5793 5.4743C18.1326 5.45946 18.671 5.29183 19.135 4.98994C19.714 5.57994 20.228 6.25095 20.66 6.99995C21.093 7.74895 21.417 8.52995 21.638 9.32595C21.1447 9.57685 20.7304 9.95932 20.441 10.4311C20.1515 10.9028 19.9982 11.4454 19.998 11.9988C19.9978 12.5523 20.1507 13.095 20.4398 13.5669C20.7289 14.0389 21.1429 14.4217 21.636 14.6729C21.184 16.3075 20.3233 17.8 19.135 19.0099C18.6709 18.7082 18.1324 18.5408 17.579 18.5262C17.0257 18.5115 16.479 18.6503 15.9997 18.9271C15.5203 19.2039 15.1268 19.6079 14.8629 20.0945C14.5989 20.5811 14.4747 21.1312 14.504 21.6839C12.8619 22.1083 11.1388 22.1076 9.497 21.6819C9.52605 21.1292 9.4016 20.5792 9.13742 20.0927C8.87324 19.6063 8.47964 19.2025 8.00017 18.9259C7.5207 18.6493 6.97405 18.5108 6.42073 18.5256C5.8674 18.5404 5.32896 18.7081 4.865 19.0099C4.27399 18.4069 3.76159 17.7315 3.34 16.9999ZM9 17.1959C10.0656 17.8106 10.8668 18.797 11.25 19.9659C11.749 20.0129 12.25 20.0139 12.749 19.9669C13.1324 18.7978 13.934 17.8114 15 17.1969C16.0652 16.5806 17.3205 16.3794 18.525 16.6319C18.815 16.2239 19.065 15.7889 19.273 15.3339C18.4524 14.4174 17.9991 13.2302 18 11.9999C18 10.7399 18.47 9.56295 19.273 8.66595C19.0635 8.21109 18.8125 7.77658 18.523 7.36795C17.3193 7.62025 16.0648 7.41942 15 6.80395C13.9344 6.18932 13.1332 5.20293 12.75 4.03394C12.251 3.98694 11.75 3.98594 11.251 4.03294C10.8676 5.20209 10.066 6.1885 9 6.80295C7.93478 7.41926 6.67948 7.62046 5.475 7.36795C5.18556 7.77623 4.93513 8.21081 4.727 8.66595C5.54757 9.5825 6.00088 10.7697 6 11.9999C6 13.2599 5.53 14.4369 4.727 15.3339C4.93647 15.7888 5.18754 16.2233 5.477 16.6319C6.68072 16.3796 7.93521 16.5805 9 17.1959ZM12 14.9999C11.2044 14.9999 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 11.9999C9 11.2043 9.31607 10.4412 9.87868 9.87862C10.4413 9.31602 11.2044 8.99995 12 8.99995C12.7956 8.99995 13.5587 9.31602 14.1213 9.87862C14.6839 10.4412 15 11.2043 15 11.9999C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 14.9999 12 14.9999ZM12 12.9999C12.2652 12.9999 12.5196 12.8946 12.7071 12.7071C12.8946 12.5195 13 12.2652 13 11.9999C13 11.7347 12.8946 11.4804 12.7071 11.2928C12.5196 11.1053 12.2652 10.9999 12 10.9999C11.7348 10.9999 11.4804 11.1053 11.2929 11.2928C11.1054 11.4804 11 11.7347 11 11.9999C11 12.2652 11.1054 12.5195 11.2929 12.7071C11.4804 12.8946 11.7348 12.9999 12 12.9999Z" fill="black"></path>
+</svg>
+
+          Manage preferences
+        </a>
+      </li>
+      <hr>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/report-abuse?billboard=197837">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12.382 3a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5v6H3V3h9.382Zm-.618 2H5v9h8.236l1 2H19V7h-6.236l-1-2Z"></path>
+</svg>
+
+          Report billboard
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+    </div>
+    <div class="p-1 pt-3 text-styles text-styles--billboard">
+      <p><a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197837" target="_blank" rel="noopener noreferrer"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___i.imgur.com_qxfUTBw.jpeg" alt="Sentry workshop image" width="2400" height="2400" loading="lazy"></a></p>
+<h2>  <a name="flaky-tests-got-you-down" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#flaky-tests-got-you-down">  </a>  <a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197837" target="_blank" rel="noopener noreferrer">Flaky tests got you down?</a>
+</h2>
+<p>Learn how to merge your code without having to hit “rerun” every 5 minutes 😮‍💨</p>
+<p><a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197837" class="ltag_cta ltag_cta--branded" role="button" target="_blank" rel="noopener noreferrer">Save your spot now.</a></p>
+    </div>
+  </div>
+
+</div></div>
+        </div>
+          <section id="comments" data-follow-button-container="true" data-updated-at="2025-01-01 08:58:17 UTC" class="text-padding mb-4 border-t-1 border-0 border-solid border-base-10">
+      <header class="relative flex justify-between items-center mb-6">
+        <div class="flex items-center">
+          <h2 class="crayons-subtitle-1">
+            Top comments <span class="js-comments-count" data-comments-count="1">(1)</span>
+          </h2>
+        </div>
+
+
+        <div id="comment-subscription" class="print-hidden">
+          <div class="crayons-btn-group">
+            <span class="crayons-btn crayons-btn--outlined">Subscribe</span>
+          </div>
+        </div>
+      </header>
+      <div id="billboard_delay_trigger"></div>
+      <div id="comments-container" data-testid="comments-container" data-commentable-id="1792221" data-commentable-type="Article" data-has-recent-comment-activity="false">
+
+          <div id="response-templates-data" class="hidden"></div>
+
+
+<form class="comment-form print-hidden" id="new_comment" action="https://dev.to/comments" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓" autocomplete="off">
+
+  <input type="hidden" name="authenticity_token" value="NOTHING" id="new_comment_authenticity_token">
+
+    <input value="1792221" autocomplete="off" type="hidden" name="comment[commentable_id]" id="comment_commentable_id">
+    <input value="Article" autocomplete="off" type="hidden" name="comment[commentable_type]" id="comment_commentable_type">
+    
+
+  <span class="crayons-avatar m:crayons-avatar--l mr-2 shrink-0">
+    <img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_articles_8j7kvp660rqzt99zui8e.png" width="32" height="32" alt="pic" class="crayons-avatar__image overflow-hidden" id="comment-primary-user-profile--avatar" loading="lazy">
+  </span>
+  <div class="comment-form__inner">
+    <div class="comment-form__field" data-tracking-name="comment_form_textfield">
+      <textarea placeholder="Add to the discussion" onfocus="handleFocus(event)" onkeyup="handleKeyUp(event)" onkeydown="handleKeyDown(event)" oninput="handleChange(event)" id="text-area" required="required" class="crayons-textfield comment-textarea crayons-textfield--ghost" aria-label="Add a comment to the discussion" name="comment[body_markdown]"></textarea>
+
+    </div>
+
+    <div class="response-templates-container crayons-card crayons-card--secondary p-4 mb-4 comment-form__templates fs-base hidden">
+      <header class="mb-3">
+        <button type="button" class="crayons-btn personal-template-button active" data-target-type="personal" data-form-id="new_comment">Personal</button>
+        <button type="button" class="crayons-btn moderator-template-button hidden" data-target-type="moderator" data-form-id="new_comment">Trusted User</button>
+      </header>
+
+      <div class="personal-responses-container">
+      </div>
+      <div class="moderator-responses-container hidden">
+      </div>
+
+      <a target="_blank" rel="noopener nofollow" href="https://dev.to/settings/response-templates">
+        Create template
+      </a>
+      <p>Templates let you quickly answer FAQs or store snippets for re-use.</p>
+    </div>
+
+    <div class="comment-form__preview text-styles text-styles--secondary" id="preview-div"></div>
+
+    <div class="comment-form__buttons mb-4">
+      <button type="submit" class="crayons-btn mr-2 js-btn-enable" onclick="validateField(event)" data-tracking-name="comment_submit_button" disabled="">Submit</button>
+      <button type="button" class="preview-toggle crayons-btn crayons-btn--secondary comment-action-preview js-btn-enable mr-2" data-tracking-name="comment_preview_button" disabled="">Preview</button>
+      <a href="https://dev.to/404.html" class="dismiss-edit-comment crayons-btn crayons-btn--ghost js-btn-dismiss hidden">Dismiss</a>
+    </div>
+  </div>
+
+  <div class="code-of-conduct" id="toggle-code-of-conduct-checkbox"></div>
+</form>
+
+
+        <div class="comments" id="comment-trees-container">
+                <details class="comment-wrapper js-comment-wrapper comment-wrapper--deep-0
+                    root
+                    " open="">
+      <summary aria-label="Toggle this comment (and replies)" data-tracking-name="expand_comment_toggle">
+        <span class="m:mx-1 inline-block align-middle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="aijadk8iws0hc3jq5jk9iqxkbsir4va8" class="crayons-icon expanded"><title id="aijadk8iws0hc3jq5jk9iqxkbsir4va8">Collapse</title>
+    <path d="M12 10.677L8 6.935 9 6l3 2.807L15 6l1 .935-4 3.742zm0 4.517L9 18l-1-.935 4-3.742 4 3.742-1 .934-3-2.805z"></path>
+</svg>
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="a71it21oo3939i03slysvecrdq99tc89" class="crayons-icon collapsed"><title id="a71it21oo3939i03slysvecrdq99tc89">Expand</title>
+    <path d="M12 18l-4-3.771 1-.943 3 2.829 3-2.829 1 .943L12 18zm0-10.115l-3 2.829-1-.943L12 6l4 3.771-1 .942-3-2.828z"></path>
+</svg>
+
+        </span>
+        <span class="js-collapse-comment-content inline-block align-middle"></span>
+      </summary>
+  <div id="comment-node-1228027" class="
+      comment single-comment-node
+      
+      root
+      comment--deep-0
+      
+    " data-comment-id="1228027" data-path="/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh/comments/2hmfl" data-comment-author-id="2017187" data-content-user-id="2017187">
+    <a name="comment-2hmfl" style="position: absolute; top: -8px;">&nbsp;</a>
+    
+<div class="comment__inner">
+    <a href="https://dev.to/snibisz" class="shrink-0 crayons-avatar m:crayons-avatar--l mt-4 m:mt-3">
+    <img class="crayons-avatar__image" width="32" height="32" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_2017187_9268ebf3-42df-4f19-b6e1-c204b71be23f.jpg" alt="snibisz profile image" loading="lazy">
+  </a>
+
+
+  <div class="inner-comment comment__details">
+    <div class="comment__content crayons-card">
+        
+
+
+        <div class="comment__header">
+  <a href="https://dev.to/snibisz" class="crayons-link crayons-link--secondary flex items-center fw-medium m:hidden">
+    <span class="js-comment-username">Sebastian Nibisz</span>
+  </a>
+  <div class="profile-preview-card relative mb-4 s:mb-0 fw-medium hidden m:block">
+    <button id="comment-profile-preview-trigger-1228027" aria-controls="comment-profile-preview-content-1228027" class="profile-preview-card__trigger p-1 -my-1 -ml-1 crayons-btn crayons-btn--ghost" aria-label="Sebastian Nibisz profile details" aria-expanded="false" aria-haspopup="true" data-dropdown-initialized="true" data-initialized="true">
+      Sebastian Nibisz
+      
+    </button>
+    <div id="comment-profile-preview-content-1228027" class="profile-preview-card__content p-4 pt-0 branded-7 crayons-dropdown reverse" style="--card-color: #000000; border-top-color: var(--card-color);" data-testid="profile-preview-card" data-repositioning-dropdown="true">
+    <div class="gap-4 grid">
+        <div class="-mt-4">
+  <a href="https://dev.to/snibisz" class="flex">
+    <span class="crayons-avatar crayons-avatar--xl  mr-2 shrink-0">
+      <img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws(1).com_uploads_user_profile_image_2017187_9268ebf3-42df-4f19-b6e1-c204b71be23f.jpg" class="crayons-avatar__image" alt="" loading="lazy">
+    </span>
+    <span class="crayons-link crayons-subtitle-2 mt-5">
+      Sebastian Nibisz
+      
+    </span>
+  </a>
+</div>
+
+<div class="print-hidden">
+  <button name="button" type="button" data-info="{&quot;className&quot;:&quot;User&quot;,&quot;style&quot;:&quot;&quot;,&quot;id&quot;:2017187,&quot;name&quot;:&quot;Sebastian Nibisz&quot;}" class="crayons-btn follow-action-button whitespace-nowrap w-100 follow-user" aria-label="Follow user: Sebastian Nibisz" aria-pressed="false" data-fetched="fetched">Follow</button>
+</div>
+
+  <div class="user-metadata-details">
+    <ul class="user-metadata-details-inner">
+      <li>
+        <div class="key">
+          Joined
+        </div>
+        <div class="value">
+          <time datetime="2024-09-02T18:09:57Z" class="date" title="Monday, September 2, 2024 at 10:09:57 PM">Sep 2, 2024</time>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+    </div>
+</div>
+
+  </div>
+
+  <span class="color-base-30 px-2 m:pl-0" role="presentation">•</span>
+
+<a href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#comment-2hmfl" class="comment-date crayons-link crayons-link--secondary fs-s">
+  <time datetime="2024-09-02T18:25:38Z" class="date-short-year" title="Monday, September 2, 2024 at 10:25:38 PM">Sep 2 '24</time>
+
+</a>
+
+
+  <div class="comment__dropdown" data-tracking-name="comment_dropdown">
+    <button id="comment-dropdown-trigger-1228027" aria-controls="comment-dropdown-1228027" aria-expanded="false" class="dropbtn comment__dropdown-trigger crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon " aria-label="Toggle dropdown menu" aria-haspopup="true" data-dropdown-initialized="true" data-initialized="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="aq5ugblczd67jj642of9awd9dcczkwry" class="crayons-icon pointer-events-none"><title id="aq5ugblczd67jj642of9awd9dcczkwry">Dropdown menu</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm5.25 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm3.75 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+</svg>
+
+    </button>
+    <div id="comment-dropdown-1228027" class="crayons-dropdown right-1 s:right-0 s:left-auto fs-base dropdown">
+      <ul class="m-0">
+        <li><a href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#comment-2hmfl" class="crayons-link crayons-link--block permalink-copybtn" aria-label="Copy link to Sebastian Nibisz&#39;s comment" data-no-instant="">Copy link</a></li>
+        <li class="comment-actions hidden" data-user-id="2017187" data-action="settings-button" data-path="https://dev.to/snibisz/comment/2hmfl/settings" aria-label="Go to Sebastian Nibisz&#39;s comment settings"></li>
+          <li class="comment-actions hidden" data-action="hide-button" data-commentable-user-id="1077816" data-user-id="2017187">
+              <button class="flex justify-between crayons-link crayons-link--block w-100 bg-transparent border-0 hide-comment" data-hide-type="hide" data-comment-id="1228027" data-comment-url="https://dev.to/snibisz/comment/2hmfl" aria-label="Hide Sebastian Nibisz&#39;s comment">
+                Hide
+              </button>
+          </li>
+        <li class="mod-actions hidden mod-actions-comment-button" data-path="https://dev.to/snibisz/comment/2hmfl/mod" aria-label="Moderate Sebastian Nibisz&#39;s comment"></li>
+        <li class="report-abuse-link-wrapper" data-path="/report-abuse?url=https://dev.to/snibisz/comment/2hmfl" aria-label="Report Sebastian Nibisz&#39;s comment as abusive or violating our code of conduct and/or terms and conditions"><a href="https://dev.to/report-abuse?url=https://dev.to/snibisz/comment/2hmfl" class="crayons-link crayons-link--block">Report abuse</a></li>
+        <li class="current-user-actions"></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+        <div class="
+            comment__body
+            text-styles
+            text-styles--secondary
+            body
+            
+            
+          ">
+          <p>The STW step would not be needed if it was decided to store pointers on the mirrored stack. Look at the <a href="https://github.com/pebal/sgcl" rel="nofollow noopener noreferrer" target="_blank">SGCL</a> for C++.</p>
+
+
+        </div>
+
+    </div>
+
+    <script>
+    </script>
+
+    <footer class="comment__footer print-hidden">
+  <button class="crayons-tooltip__activator crayons-btn crayons-btn--ghost crayons-btn--icon-left crayons-btn--s mr-1 reaction-like inline-flex reaction-button" id="button-for-comment-1228027" data-comment-id="1228027" aria-label="like" data-tracking-name="comment_heart_button">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" role="img" aria-labelledby="apupc8f6emhv7ziveh6riraez2m8txqo" class="crayons-icon reaction-icon not-reacted"><title id="apupc8f6emhv7ziveh6riraez2m8txqo">Like comment: </title><path d="M18.884 12.595l.01.011L12 19.5l-6.894-6.894.01-.01A4.875 4.875 0 0112 5.73a4.875 4.875 0 016.884 6.865zM6.431 7.037a3.375 3.375 0 000 4.773L12 17.38l5.569-5.569a3.375 3.375 0 10-4.773-4.773L9.613 10.22l-1.06-1.062 2.371-2.372a3.375 3.375 0 00-4.492.25v.001z"></path></svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="ape9morgvsj2x49e34vq15jh3xlcwty7" class="crayons-icon crayons-icon reaction-icon--like reaction-icon reacted"><title id="ape9morgvsj2x49e34vq15jh3xlcwty7">Like comment: </title>
+    <path d="M5.116 12.595a4.875 4.875 0 015.56-7.68h-.002L7.493 8.098l1.06 1.061 3.181-3.182a4.875 4.875 0 016.895 6.894L12 19.5l-6.894-6.894.01-.01z"></path>
+</svg>
+
+    <span class="reactions-count">1</span><span class="reactions-label hidden m:inline-block">&nbsp;like</span>
+    <span data-testid="tooltip" class="crayons-tooltip__content">
+      Like
+    </span>
+  </button>
+
+      <a class="actions crayons-btn crayons-btn--ghost crayons-btn--s crayons-btn--icon-left toggle-reply-form mr-1 inline-flex" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh/comments/new/2hmfl" data-comment-id="1228027" data-path="/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh/comments/2hmfl" data-tracking-name="comment_reply_button" data-testid="reply-button-1228027" rel="nofollow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" role="img" aria-labelledby="aa9ira0r5f7qnmbsail3vduy3yqypory" class="crayons-icon reaction-icon not-reacted"><title id="aa9ira0r5f7qnmbsail3vduy3yqypory">Comment button</title><path d="M10.5 5h3a6 6 0 110 12v2.625c-3.75-1.5-9-3.75-9-8.625a6 6 0 016-6zM12 15.5h1.5a4.501 4.501 0 001.722-8.657A4.5 4.5 0 0013.5 6.5h-3A4.5 4.5 0 006 11c0 2.707 1.846 4.475 6 6.36V15.5z"></path></svg>
+
+        <span class="hidden m:inline-block">Reply</span>
+      </a>
+
+</footer>
+
+  </div>
+</div>
+
+
+  </div>
+    </details>
+
+
+        </div>
+      </div>
+
+      <div class="align-center">
+
+
+  <nav class="fs-s align-center block" aria-label="Conduct controls">
+  <a href="https://dev.to/code-of-conduct" class="crayons-link crayons-link--secondary">Code of Conduct</a>
+  <span class="opacity-25 px-2" role="presentation">•</span>
+  <a href="https://dev.to/report-abuse" class="crayons-link crayons-link--secondary">Report abuse</a>
+</nav>
+
+</div>
+
+  </section>
+  <div id="hide-comments-modal" class="hidden">
+  <form id="hide-comments-modal__form" class="hide-comments-modal__form" data-type="json" action="https://dev.to/comments/hide" accept-charset="UTF-8" data-remote="true" method="post"><input name="utf8" type="hidden" value="✓" autocomplete="off"><input type="hidden" name="_method" value="patch" autocomplete="off"><input type="hidden" name="authenticity_token" value="6qIHV2dn2UGxUzZ45GVp-AzQLXkZdhYKiaYzGPhLLIVgdomJRIf53EzJKyaEnmt2GZ1lhNySa5vIPbFN5zWg6A" autocomplete="off">
+    <div class="hide-comments-modal__content">
+      <p class="pb-2">
+        Are you sure you want to hide this comment? It will become hidden in your post, but will still be visible via the comment's <a id="hide-comments-modal__comment-permalink" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#">permalink</a>.
+      </p>
+      <label class="crayons-field crayons-field--checkbox my-2">
+        <input name="hide_children" type="hidden" value="0" autocomplete="off"><input class="hide_children crayons-checkbox" type="checkbox" value="1" name="hide_children" id="hide_children">
+        <p class="crayons-field__label">Hide child comments as well</p>
+      </label>
+      <p class="pb-4 pt-2">
+        <button type="submit" class="crayons-btn">
+          Confirm
+        </button>
+      </p>
+    </div>
+</form>  <p class="fs-s color-base-60">For further actions, you may consider blocking this person and/or <a id="hide-comments-modal__report-link" href="https://dev.to/report-abuse">reporting abuse</a></p>
+</div>
+
+
+
+      </article>
+
+      <div class="pb-4 crayons-layout__comments-billboard">
+        <div class="js-billboard-container pb-4 crayons-layout__comments-billboard" data-async-url="/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh/billboards/post_comments"><div>    <div class="crayons-card crayons-card--secondary crayons-bb bb-placement js-billboard" style="" data-display-unit="" data-id="197836" data-category-click="click" data-category-impression="impression" data-context-type="article" data-special="nothing" data-article-id="1792221" data-type-of="partner">
+    <div class="crayons-bb__header relative">
+    <div class="flex">
+        <a href="https://dev.to/sentry" target="_blank" rel="noopener" class="flex">
+          <img width="24" height="24" class="radius-default crayons-bb__image" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_organization_profile_image_3774_02d4162c-978f-4471-9d39-b2928cfb9e24.png" alt="profile" loading="lazy">
+          <div class="crayons-bb__title ml-2 fs-s fw-medium">Sentry</div>
+        </a>
+        <span class="crayons-bb__indicator c-indicator c-indicator--subtle c-indicator--round fs-2xs fw-medium ml-2 py-1 px-2">Promoted</span>
+    </div>
+
+  <button id="sponsorship-dropdown-trigger-197836" aria-controls="sponsorship-dropdown-197836" aria-expanded="false" aria-haspopup="true" class="dropBtn crayons-bb__dropdown crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon" aria-label="Toggle dropdown menu" data-dropdown-initialized="true" data-initialized="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="ag06x3icfjwcjuy7fiod62llq741roar" class="crayons-icon pointer-events-none"><title id="ag06x3icfjwcjuy7fiod62llq741roar">Dropdown menu</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm5.25 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm3.75 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+</svg>
+
+  </button>
+
+  <div id="sponsorship-dropdown-197836" class="crayons-dropdown sponsorship-dropdown right-0">
+    <ul class="list-none m-0">
+        <li>
+          <a class="crayons-link crayons-link--block" href="https://dev.to/billboards">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"></path>
+</svg>
+
+            What's a billboard?
+          </a>
+        </li>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/settings/customization#sponsors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M3.34 16.9999C2.91727 16.2689 2.58866 15.4874 2.362 14.6739C2.85531 14.423 3.26959 14.0406 3.55903 13.5688C3.84846 13.0971 4.00176 12.5545 4.00197 12.0011C4.00218 11.4476 3.84928 10.9049 3.5602 10.4329C3.27112 9.961 2.85712 9.57821 2.364 9.32694C2.81604 7.69243 3.67673 6.1999 4.865 4.98994C5.32909 5.29167 5.86762 5.45911 6.42098 5.47373C6.97434 5.48834 7.52095 5.34958 8.00033 5.07278C8.47971 4.79598 8.87315 4.39194 9.13713 3.90539C9.4011 3.41883 9.52531 2.86872 9.496 2.31594C11.1381 1.89157 12.8612 1.89226 14.503 2.31795C14.474 2.87071 14.5984 3.42073 14.8626 3.90715C15.1268 4.39357 15.5204 4.79742 15.9998 5.07401C16.4793 5.35059 17.0259 5.48913 17.5793 5.4743C18.1326 5.45946 18.671 5.29183 19.135 4.98994C19.714 5.57994 20.228 6.25095 20.66 6.99995C21.093 7.74895 21.417 8.52995 21.638 9.32595C21.1447 9.57685 20.7304 9.95932 20.441 10.4311C20.1515 10.9028 19.9982 11.4454 19.998 11.9988C19.9978 12.5523 20.1507 13.095 20.4398 13.5669C20.7289 14.0389 21.1429 14.4217 21.636 14.6729C21.184 16.3075 20.3233 17.8 19.135 19.0099C18.6709 18.7082 18.1324 18.5408 17.579 18.5262C17.0257 18.5115 16.479 18.6503 15.9997 18.9271C15.5203 19.2039 15.1268 19.6079 14.8629 20.0945C14.5989 20.5811 14.4747 21.1312 14.504 21.6839C12.8619 22.1083 11.1388 22.1076 9.497 21.6819C9.52605 21.1292 9.4016 20.5792 9.13742 20.0927C8.87324 19.6063 8.47964 19.2025 8.00017 18.9259C7.5207 18.6493 6.97405 18.5108 6.42073 18.5256C5.8674 18.5404 5.32896 18.7081 4.865 19.0099C4.27399 18.4069 3.76159 17.7315 3.34 16.9999ZM9 17.1959C10.0656 17.8106 10.8668 18.797 11.25 19.9659C11.749 20.0129 12.25 20.0139 12.749 19.9669C13.1324 18.7978 13.934 17.8114 15 17.1969C16.0652 16.5806 17.3205 16.3794 18.525 16.6319C18.815 16.2239 19.065 15.7889 19.273 15.3339C18.4524 14.4174 17.9991 13.2302 18 11.9999C18 10.7399 18.47 9.56295 19.273 8.66595C19.0635 8.21109 18.8125 7.77658 18.523 7.36795C17.3193 7.62025 16.0648 7.41942 15 6.80395C13.9344 6.18932 13.1332 5.20293 12.75 4.03394C12.251 3.98694 11.75 3.98594 11.251 4.03294C10.8676 5.20209 10.066 6.1885 9 6.80295C7.93478 7.41926 6.67948 7.62046 5.475 7.36795C5.18556 7.77623 4.93513 8.21081 4.727 8.66595C5.54757 9.5825 6.00088 10.7697 6 11.9999C6 13.2599 5.53 14.4369 4.727 15.3339C4.93647 15.7888 5.18754 16.2233 5.477 16.6319C6.68072 16.3796 7.93521 16.5805 9 17.1959ZM12 14.9999C11.2044 14.9999 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 11.9999C9 11.2043 9.31607 10.4412 9.87868 9.87862C10.4413 9.31602 11.2044 8.99995 12 8.99995C12.7956 8.99995 13.5587 9.31602 14.1213 9.87862C14.6839 10.4412 15 11.2043 15 11.9999C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 14.9999 12 14.9999ZM12 12.9999C12.2652 12.9999 12.5196 12.8946 12.7071 12.7071C12.8946 12.5195 13 12.2652 13 11.9999C13 11.7347 12.8946 11.4804 12.7071 11.2928C12.5196 11.1053 12.2652 10.9999 12 10.9999C11.7348 10.9999 11.4804 11.1053 11.2929 11.2928C11.1054 11.4804 11 11.7347 11 11.9999C11 12.2652 11.1054 12.5195 11.2929 12.7071C11.4804 12.8946 11.7348 12.9999 12 12.9999Z" fill="black"></path>
+</svg>
+
+          Manage preferences
+        </a>
+      </li>
+      <hr>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/report-abuse?billboard=197836">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12.382 3a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5v6H3V3h9.382Zm-.618 2H5v9h8.236l1 2H19V7h-6.236l-1-2Z"></path>
+</svg>
+
+          Report billboard
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+    <div class="p-1 pt-3 text-styles text-styles--billboard">
+      <p><a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197836" target="_blank" rel="noopener noreferrer"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___i.imgur.com_qxfUTBw.jpeg" alt="Sentry workshop image" width="2400" height="2400" loading="lazy"></a></p>
+<h2>  <a name="flaky-tests-got-you-down" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#flaky-tests-got-you-down">  </a>  <a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197836" target="_blank" rel="noopener noreferrer">Flaky tests got you down?</a>
+</h2>
+<p>Learn how to merge your code without having to hit “rerun” every 5 minutes 😮‍💨</p>
+<p><a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197836" class="ltag_cta ltag_cta--branded" role="button" target="_blank" rel="noopener noreferrer">Save your spot now.</a></p>
+    </div>
+  </div>
+
+</div></div>
+      </div>
+
+          <section class="crayons-card crayons-card--secondary text-padding mb-4 print-hidden" id="bottom-content-read-next">
+    <h2 class="crayons-subtitle-1">Read next</h2>
+      <a href="https://dev.to/stroiman/go-dom-1st-major-milestone-1005" data-preload-image="" class="crayons-link mt-6 block">
+        <div class="flex items-center">
+          <span class="crayons-avatar crayons-avatar--xl m:crayons-avatar--2xl mr-4 shrink-0">
+              <img loading="lazy" alt="stroiman profile image" class="crayons-avatar__image" width="100" height="100" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_1510381_22f48b63-eaaf-41e1-8ac1-d265c7568b7f.jpeg">
+          </span>
+          <div>
+            <h3 class="fs-xl mb-0 lh-tight">Go-DOM - 1st major milestone</h3>
+            <p class="opacity-75 pt-1">
+              Peter Strøiman - <time datetime="2024-11-18T07:38:32Z">Nov 18 '24</time>
+            </p>
+          </div>
+        </div>
+      </a>
+      <a href="https://dev.to/dhruvikdonga/simplysocket-a-lightweight-websocket-wrapper-for-go-4pnl" data-preload-image="" class="crayons-link mt-6 block">
+        <div class="flex items-center">
+          <span class="crayons-avatar crayons-avatar--xl m:crayons-avatar--2xl mr-4 shrink-0">
+              <img loading="lazy" alt="dhruvikdonga profile image" class="crayons-avatar__image" width="100" height="100" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_400309_27de4315-d99a-49b6-9de3-c3adce946ec8.jpg">
+          </span>
+          <div>
+            <h3 class="fs-xl mb-0 lh-tight">SimplySocket: A Lightweight WebSocket Wrapper for Go</h3>
+            <p class="opacity-75 pt-1">
+              Dhruvik Donga - <time datetime="2024-11-18T05:02:05Z">Nov 18 '24</time>
+            </p>
+          </div>
+        </div>
+      </a>
+      <a href="https://dev.to/yanghy/a-new-era-of-cross-platform-desktop-application-development-in-go-language-a-comprehensive-23p9" data-preload-image="https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fgy7r4y7am4beopjtmayt.png" class="crayons-link mt-6 block">
+        <div class="flex items-center">
+          <span class="crayons-avatar crayons-avatar--xl m:crayons-avatar--2xl mr-4 shrink-0">
+              <img loading="lazy" alt="yanghy profile image" class="crayons-avatar__image" width="100" height="100" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_1097563_e67716e2-ef6a-4b45-a266-bf2efa67b551.png">
+          </span>
+          <div>
+            <h3 class="fs-xl mb-0 lh-tight">A New Era of Cross-Platform Desktop Application Development in Go Language: A Comprehensive Analysis of LCL, CEF, and Webview</h3>
+            <p class="opacity-75 pt-1">
+              energy - <time datetime="2024-11-18T03:30:06Z">Nov 18 '24</time>
+            </p>
+          </div>
+        </div>
+      </a>
+      <a href="https://dev.to/ashwingopalsamy/go-pointers-memory-management-3ole" data-preload-image="https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fsefacj92gmdtwb8rfpp7.png" class="crayons-link mt-6 block">
+        <div class="flex items-center">
+          <span class="crayons-avatar crayons-avatar--xl m:crayons-avatar--2xl mr-4 shrink-0">
+              <img loading="lazy" alt="ashwingopalsamy profile image" class="crayons-avatar__image" width="100" height="100" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_user_profile_image_1920945_e337b3cf-15d5-4249-a00b-cb978012cc71.png">
+          </span>
+          <div>
+            <h3 class="fs-xl mb-0 lh-tight">Go: Pointers &amp; Memory Management</h3>
+            <p class="opacity-75 pt-1">
+              Ashwin Gopalsamy - <time datetime="2024-11-17T11:54:41Z">Nov 17 '24</time>
+            </p>
+          </div>
+        </div>
+      </a>
+  </section>
+
+    </div>
+  </main>
+
+  <aside class="crayons-layout__sidebar-right" aria-label="Author details">
+    <div class="crayons-article-sticky grid gap-4 pb-4 break-word" id="article-show-primary-sticky-nav">
+  <div class="crayons-card crayons-card--secondary branded-7 p-4 pt-0 gap-4 grid" style="border-top-color: #000000;">
+    <div class="-mt-4">
+  <a href="https://dev.to/aceld" class="flex">
+    <span class="crayons-avatar crayons-avatar--xl  mr-2 shrink-0">
+      <img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws(1).com_uploads_user_profile_image_1077816_9ab52a99-dfb3-4412-9b5f-18d32a8d85a4.png" class="crayons-avatar__image" alt="" loading="lazy">
+    </span>
+    <span class="crayons-link crayons-subtitle-2 mt-5">
+      Aceld
+      
+    </span>
+  </a>
+</div>
+
+<div class="print-hidden">
+  <button name="button" type="button" data-info="{&quot;className&quot;:&quot;User&quot;,&quot;style&quot;:&quot;&quot;,&quot;id&quot;:1077816,&quot;name&quot;:&quot;Aceld&quot;}" class="crayons-btn follow-action-button whitespace-nowrap w-100 follow-user" aria-label="Follow user: Aceld" aria-pressed="false" data-fetched="fetched">Follow</button>
+</div>
+  <div class="color-base-70">
+    Never love in the past, never mix up in the present, never welcome in the future.
+  </div>
+
+  <div class="user-metadata-details">
+    <ul class="user-metadata-details-inner">
+        <li>
+          <div class="key">
+            Location
+          </div>
+          <div class="value">
+            China
+          </div>
+        </li>
+          <li>
+            <div class="key">
+              Pronouns
+            </div>
+            <div class="value">
+              zinx
+            </div>
+          </li>
+      <li>
+        <div class="key">
+          Joined
+        </div>
+        <div class="value">
+          <time datetime="2023-05-06T09:51:48Z" class="date">May 6, 2023</time>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  </div>
+
+      <div class="crayons-card crayons-card--secondary">
+        <header class="crayons-card__header">
+          <h3 class="crayons-subtitle-2">
+            More from <a href="https://dev.to/aceld">Aceld</a>
+          </h3>
+        </header>
+        <div>
+            <a class="crayons-link crayons-link--contentful" href="https://dev.to/aceld/case-iv-kisflow-golang-stream-real--4k3e">
+              Case (IV) - KisFlow-Golang Stream Real- KisFlow in Message Queue (MQ) Applications
+              <div class="crayons-link__secondary -ml-1">
+                  <span class="mr-1"><span class="opacity-50">#</span>go</span>
+              </div>
+            </a>
+            <a class="crayons-link crayons-link--contentful" href="https://dev.to/aceld/case-iii-kisflow-golang-stream-real-application-of-kisflow-in-multi-goroutines-4m7g">
+              Case (III) - KisFlow-Golang Stream Real- Application of KisFlow in Multi-Goroutines
+              <div class="crayons-link__secondary -ml-1">
+                  <span class="mr-1"><span class="opacity-50">#</span>go</span>
+              </div>
+            </a>
+            <a class="crayons-link crayons-link--contentful" href="https://dev.to/aceld/case-i-kisflow-golang-stream-real-time-computing-flow-parallel-operation-364m">
+              Case (II) - KisFlow-Golang Stream Real-Time Computing - Flow Parallel Operation
+              <div class="crayons-link__secondary -ml-1">
+                  <span class="mr-1"><span class="opacity-50">#</span>go</span>
+              </div>
+            </a>
+        </div>
+      </div>
+</div>
+
+<div class="crayons-article-sticky grid gap-4 break-word js-billboard-container" data-async-url="/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh/billboards/post_sidebar"><div>    <div class="crayons-card crayons-card--secondary crayons-bb bb-placement js-billboard" style="" data-display-unit="" data-id="197830" data-category-click="click" data-category-impression="impression" data-context-type="article" data-special="nothing" data-article-id="1792221" data-type-of="partner" data-impression-recorded="true">
+    <div class="crayons-bb__header relative">
+    <div class="flex">
+        <a href="https://dev.to/sentry" target="_blank" rel="noopener" class="flex">
+          <img width="24" height="24" class="radius-default crayons-bb__image" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws.com_uploads_organization_profile_image_3774_02d4162c-978f-4471-9d39-b2928cfb9e24.png" alt="profile" loading="lazy">
+          <div class="crayons-bb__title ml-2 fs-s fw-medium">Sentry</div>
+        </a>
+        <span class="crayons-bb__indicator c-indicator c-indicator--subtle c-indicator--round fs-2xs fw-medium ml-2 py-1 px-2">Promoted</span>
+    </div>
+
+  <button id="sponsorship-dropdown-trigger-197830" aria-controls="sponsorship-dropdown-197830" aria-expanded="false" aria-haspopup="true" class="dropBtn crayons-bb__dropdown crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon" aria-label="Toggle dropdown menu" data-dropdown-initialized="true" data-initialized="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="a9tlo8pqq29cirr730567gvd67dstt5s" class="crayons-icon pointer-events-none"><title id="a9tlo8pqq29cirr730567gvd67dstt5s">Dropdown menu</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm5.25 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm3.75 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+</svg>
+
+  </button>
+
+  <div id="sponsorship-dropdown-197830" class="crayons-dropdown sponsorship-dropdown right-0">
+    <ul class="list-none m-0">
+        <li>
+          <a class="crayons-link crayons-link--block" href="https://dev.to/billboards">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"></path>
+</svg>
+
+            What's a billboard?
+          </a>
+        </li>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/settings/customization#sponsors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M3.34 16.9999C2.91727 16.2689 2.58866 15.4874 2.362 14.6739C2.85531 14.423 3.26959 14.0406 3.55903 13.5688C3.84846 13.0971 4.00176 12.5545 4.00197 12.0011C4.00218 11.4476 3.84928 10.9049 3.5602 10.4329C3.27112 9.961 2.85712 9.57821 2.364 9.32694C2.81604 7.69243 3.67673 6.1999 4.865 4.98994C5.32909 5.29167 5.86762 5.45911 6.42098 5.47373C6.97434 5.48834 7.52095 5.34958 8.00033 5.07278C8.47971 4.79598 8.87315 4.39194 9.13713 3.90539C9.4011 3.41883 9.52531 2.86872 9.496 2.31594C11.1381 1.89157 12.8612 1.89226 14.503 2.31795C14.474 2.87071 14.5984 3.42073 14.8626 3.90715C15.1268 4.39357 15.5204 4.79742 15.9998 5.07401C16.4793 5.35059 17.0259 5.48913 17.5793 5.4743C18.1326 5.45946 18.671 5.29183 19.135 4.98994C19.714 5.57994 20.228 6.25095 20.66 6.99995C21.093 7.74895 21.417 8.52995 21.638 9.32595C21.1447 9.57685 20.7304 9.95932 20.441 10.4311C20.1515 10.9028 19.9982 11.4454 19.998 11.9988C19.9978 12.5523 20.1507 13.095 20.4398 13.5669C20.7289 14.0389 21.1429 14.4217 21.636 14.6729C21.184 16.3075 20.3233 17.8 19.135 19.0099C18.6709 18.7082 18.1324 18.5408 17.579 18.5262C17.0257 18.5115 16.479 18.6503 15.9997 18.9271C15.5203 19.2039 15.1268 19.6079 14.8629 20.0945C14.5989 20.5811 14.4747 21.1312 14.504 21.6839C12.8619 22.1083 11.1388 22.1076 9.497 21.6819C9.52605 21.1292 9.4016 20.5792 9.13742 20.0927C8.87324 19.6063 8.47964 19.2025 8.00017 18.9259C7.5207 18.6493 6.97405 18.5108 6.42073 18.5256C5.8674 18.5404 5.32896 18.7081 4.865 19.0099C4.27399 18.4069 3.76159 17.7315 3.34 16.9999ZM9 17.1959C10.0656 17.8106 10.8668 18.797 11.25 19.9659C11.749 20.0129 12.25 20.0139 12.749 19.9669C13.1324 18.7978 13.934 17.8114 15 17.1969C16.0652 16.5806 17.3205 16.3794 18.525 16.6319C18.815 16.2239 19.065 15.7889 19.273 15.3339C18.4524 14.4174 17.9991 13.2302 18 11.9999C18 10.7399 18.47 9.56295 19.273 8.66595C19.0635 8.21109 18.8125 7.77658 18.523 7.36795C17.3193 7.62025 16.0648 7.41942 15 6.80395C13.9344 6.18932 13.1332 5.20293 12.75 4.03394C12.251 3.98694 11.75 3.98594 11.251 4.03294C10.8676 5.20209 10.066 6.1885 9 6.80295C7.93478 7.41926 6.67948 7.62046 5.475 7.36795C5.18556 7.77623 4.93513 8.21081 4.727 8.66595C5.54757 9.5825 6.00088 10.7697 6 11.9999C6 13.2599 5.53 14.4369 4.727 15.3339C4.93647 15.7888 5.18754 16.2233 5.477 16.6319C6.68072 16.3796 7.93521 16.5805 9 17.1959ZM12 14.9999C11.2044 14.9999 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 11.9999C9 11.2043 9.31607 10.4412 9.87868 9.87862C10.4413 9.31602 11.2044 8.99995 12 8.99995C12.7956 8.99995 13.5587 9.31602 14.1213 9.87862C14.6839 10.4412 15 11.2043 15 11.9999C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 14.9999 12 14.9999ZM12 12.9999C12.2652 12.9999 12.5196 12.8946 12.7071 12.7071C12.8946 12.5195 13 12.2652 13 11.9999C13 11.7347 12.8946 11.4804 12.7071 11.2928C12.5196 11.1053 12.2652 10.9999 12 10.9999C11.7348 10.9999 11.4804 11.1053 11.2929 11.2928C11.1054 11.4804 11 11.7347 11 11.9999C11 12.2652 11.1054 12.5195 11.2929 12.7071C11.4804 12.8946 11.7348 12.9999 12 12.9999Z" fill="black"></path>
+</svg>
+
+          Manage preferences
+        </a>
+      </li>
+      <hr>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/report-abuse?billboard=197830">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12.382 3a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5v6H3V3h9.382Zm-.618 2H5v9h8.236l1 2H19V7h-6.236l-1-2Z"></path>
+</svg>
+
+          Report billboard
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+    <div class="p-1 pt-3 text-styles text-styles--billboard">
+      <p><a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197830" target="_blank" rel="noopener noreferrer"><img src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___i.imgur(1).com_qxfUTBw.jpeg" alt="Sentry workshop image" width="2400" height="2400" loading="lazy"></a></p>
+<h2>  <a name="flaky-tests-got-you-down" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#flaky-tests-got-you-down">  </a>  <a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197830" target="_blank" rel="noopener noreferrer">Flaky tests got you down?</a>
+</h2>
+<p>Learn how to merge your code without having to hit “rerun” every 5 minutes 😮‍💨</p>
+<p><a href="https://sentry.io/resources/flaky-test-workshop/?utm_source=devto&amp;utm_medium=paid%5B%E2%80%A6%5Dov-fy25q4-testanalytics&amp;utm_content=static-ad-flakyworkshop-rsvp&amp;bb=197830" class="ltag_cta ltag_cta--branded" role="button" target="_blank" rel="noopener noreferrer">Save your spot now.</a></p>
+    </div>
+  </div>
+
+</div></div>
+
+  </aside>
+</div>
+
+
+<div class="mod-actions-menu print-hidden"></div>
+<div data-testid="unpublish-post-modal-container" class="unpublish-post-modal-container hidden"></div>
+
+<div class="fullscreen-code js-fullscreen-code"></div>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/followButtons-f2455d1f50a862b83fa006b1953e3a1644598781243cae25d3e75b13c04184fd.js" defer="defer"></script>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/billboard-a7ffd2b38d410444a4ef2d42c6ce905699d84b1520aed314b817a767ddc3b362.js" defer="defer"></script>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/localizeArticleDates-70147c5c6bfe350b42e020ebb2a3dd37419d83978982b5a67b6389119bf162ac.js" defer="defer"></script>
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/articleReactions-79a44d82fb34a91c3987c24cfd3bcf2b0d38a02730b69ae6da297387d185f015.js" defer="defer"></script>
+
+<script>
+  function activateRunkitTags() {
+  if (!areAnyRunkitTagsPresent())
+    return
+
+  var checkRunkit = setInterval(function() {
+    try {
+      dynamicallyLoadRunkitLibrary()
+
+      if (typeof(RunKit) === 'undefined') {
+        return
+      }
+
+      replaceTagContentsWithRunkitWidget()
+      clearInterval(checkRunkit);
+    } catch(e) {
+      console.error(e);
+      clearInterval(checkRunkit);
+    }
+  }, 200);
+}
+
+function isRunkitTagAlreadyActive(runkitTag) {
+  return runkitTag.querySelector("iframe") !== null;
+};
+
+function areAnyRunkitTagsPresent() {
+  var presentRunkitTags = document.getElementsByClassName("runkit-element");
+
+  return presentRunkitTags.length > 0
+}
+
+function replaceTagContentsWithRunkitWidget() {
+  var targets = document.getElementsByClassName("runkit-element");
+  for (var i = 0; i < targets.length; i++) {
+    if (isRunkitTagAlreadyActive(targets[i])) {
+      continue;
+    }
+
+    var wrapperContent = targets[i].textContent;
+    if (/^(<iframe src)/.test(wrapperContent) === false) {
+      if (targets[i].children.length > 0) {
+        var preamble = targets[i].children[0].textContent;
+        var content = targets[i].children[1].textContent;
+        targets[i].innerHTML = "";
+        var notebook = RunKit.createNotebook({
+          element: targets[i],
+          source: content,
+          preamble: preamble
+        });
+      }
+    }
+  }
+};
+
+function dynamicallyLoadRunkitLibrary() {
+  if (typeof(dynamicallyLoadScript) === "undefined")
+    return
+
+  dynamicallyLoadScript("//embed.runkit.com")
+}
+
+activateRunkitTags();
+
+</script>
+<div class="js-billboard-container pb-4 crayons-layout__comments-billboard" data-async-url="/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh/billboards/post_fixed_bottom"><div>    <div class="crayons-card crayons-card--secondary crayons-bb popover-billboard crayons-story__billboard js-billboard fixed bottom-0 left-0 right-0 popover-billboard--menuopenupwards" style="display: none;" data-display-unit="" data-id="120659" data-category-click="click" data-category-impression="impression" data-context-type="article" data-dismissal-sku="" data-special="nothing" data-article-id="1792221" data-type-of="in_house" data-impression-recorded="true">
+    <div class="flex">
+      <div class="crayons-bb__header relative">
+    <div class="crayons-bb__title">👋 Kindness is contagious</div>
+
+  <button id="sponsorship-dropdown-trigger-120659" aria-controls="sponsorship-dropdown-120659" aria-expanded="false" aria-haspopup="true" class="dropBtn crayons-bb__dropdown crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon" aria-label="Toggle dropdown menu" data-dropdown-initialized="true" data-initialized="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="a2mxv8khxqdjdv26ae83nzx03fyrnu5" class="crayons-icon pointer-events-none"><title id="a2mxv8khxqdjdv26ae83nzx03fyrnu5">Dropdown menu</title>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.25 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm5.25 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm3.75 1.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+</svg>
+
+  </button>
+
+  <div id="sponsorship-dropdown-120659" class="crayons-dropdown sponsorship-dropdown right-0">
+    <ul class="list-none m-0">
+        <li>
+          <a class="crayons-link crayons-link--block" href="https://dev.to/billboards">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"></path>
+</svg>
+
+            What's a billboard?
+          </a>
+        </li>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/settings/customization#sponsors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M3.34 16.9999C2.91727 16.2689 2.58866 15.4874 2.362 14.6739C2.85531 14.423 3.26959 14.0406 3.55903 13.5688C3.84846 13.0971 4.00176 12.5545 4.00197 12.0011C4.00218 11.4476 3.84928 10.9049 3.5602 10.4329C3.27112 9.961 2.85712 9.57821 2.364 9.32694C2.81604 7.69243 3.67673 6.1999 4.865 4.98994C5.32909 5.29167 5.86762 5.45911 6.42098 5.47373C6.97434 5.48834 7.52095 5.34958 8.00033 5.07278C8.47971 4.79598 8.87315 4.39194 9.13713 3.90539C9.4011 3.41883 9.52531 2.86872 9.496 2.31594C11.1381 1.89157 12.8612 1.89226 14.503 2.31795C14.474 2.87071 14.5984 3.42073 14.8626 3.90715C15.1268 4.39357 15.5204 4.79742 15.9998 5.07401C16.4793 5.35059 17.0259 5.48913 17.5793 5.4743C18.1326 5.45946 18.671 5.29183 19.135 4.98994C19.714 5.57994 20.228 6.25095 20.66 6.99995C21.093 7.74895 21.417 8.52995 21.638 9.32595C21.1447 9.57685 20.7304 9.95932 20.441 10.4311C20.1515 10.9028 19.9982 11.4454 19.998 11.9988C19.9978 12.5523 20.1507 13.095 20.4398 13.5669C20.7289 14.0389 21.1429 14.4217 21.636 14.6729C21.184 16.3075 20.3233 17.8 19.135 19.0099C18.6709 18.7082 18.1324 18.5408 17.579 18.5262C17.0257 18.5115 16.479 18.6503 15.9997 18.9271C15.5203 19.2039 15.1268 19.6079 14.8629 20.0945C14.5989 20.5811 14.4747 21.1312 14.504 21.6839C12.8619 22.1083 11.1388 22.1076 9.497 21.6819C9.52605 21.1292 9.4016 20.5792 9.13742 20.0927C8.87324 19.6063 8.47964 19.2025 8.00017 18.9259C7.5207 18.6493 6.97405 18.5108 6.42073 18.5256C5.8674 18.5404 5.32896 18.7081 4.865 19.0099C4.27399 18.4069 3.76159 17.7315 3.34 16.9999ZM9 17.1959C10.0656 17.8106 10.8668 18.797 11.25 19.9659C11.749 20.0129 12.25 20.0139 12.749 19.9669C13.1324 18.7978 13.934 17.8114 15 17.1969C16.0652 16.5806 17.3205 16.3794 18.525 16.6319C18.815 16.2239 19.065 15.7889 19.273 15.3339C18.4524 14.4174 17.9991 13.2302 18 11.9999C18 10.7399 18.47 9.56295 19.273 8.66595C19.0635 8.21109 18.8125 7.77658 18.523 7.36795C17.3193 7.62025 16.0648 7.41942 15 6.80395C13.9344 6.18932 13.1332 5.20293 12.75 4.03394C12.251 3.98694 11.75 3.98594 11.251 4.03294C10.8676 5.20209 10.066 6.1885 9 6.80295C7.93478 7.41926 6.67948 7.62046 5.475 7.36795C5.18556 7.77623 4.93513 8.21081 4.727 8.66595C5.54757 9.5825 6.00088 10.7697 6 11.9999C6 13.2599 5.53 14.4369 4.727 15.3339C4.93647 15.7888 5.18754 16.2233 5.477 16.6319C6.68072 16.3796 7.93521 16.5805 9 17.1959ZM12 14.9999C11.2044 14.9999 10.4413 14.6839 9.87868 14.1213C9.31607 13.5587 9 12.7956 9 11.9999C9 11.2043 9.31607 10.4412 9.87868 9.87862C10.4413 9.31602 11.2044 8.99995 12 8.99995C12.7956 8.99995 13.5587 9.31602 14.1213 9.87862C14.6839 10.4412 15 11.2043 15 11.9999C15 12.7956 14.6839 13.5587 14.1213 14.1213C13.5587 14.6839 12.7956 14.9999 12 14.9999ZM12 12.9999C12.2652 12.9999 12.5196 12.8946 12.7071 12.7071C12.8946 12.5195 13 12.2652 13 11.9999C13 11.7347 12.8946 11.4804 12.7071 11.2928C12.5196 11.1053 12.2652 10.9999 12 10.9999C11.7348 10.9999 11.4804 11.1053 11.2929 11.2928C11.1054 11.4804 11 11.7347 11 11.9999C11 12.2652 11.1054 12.5195 11.2929 12.7071C11.4804 12.8946 11.7348 12.9999 12 12.9999Z" fill="black"></path>
+</svg>
+
+          Manage preferences
+        </a>
+      </li>
+      <hr>
+      <li>
+        <a class="crayons-link crayons-link--block" href="https://dev.to/report-abuse?billboard=120659">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" role="img" aria-hidden="true" class="crayons-icon c-btn__icon">
+    <path d="M12.382 3a1 1 0 0 1 .894.553L14 5h6a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6.382a1 1 0 0 1-.894-.553L12 16H5v6H3V3h9.382Zm-.618 2H5v9h8.236l1 2H19V7h-6.236l-1-2Z"></path>
+</svg>
+
+          Report billboard
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+      <button id="sponsorship-close-trigger-120659" aria-controls="sponsorship-close-120659" class="crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-labelledby="a2zlnrbavjqz8i9tpktxezm8kb698tg2" class="crayons-icon pointer-events-none"><title id="a2zlnrbavjqz8i9tpktxezm8kb698tg2">Close</title><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636l4.95 4.95z"></path></svg>
+
+      </button>
+    </div>
+    <div class="p-1 text-styles text-styles--billboard">
+      <p>Immerse yourself in a wealth of knowledge with this piece, supported by the inclusive DEV Community—<strong>every developer,</strong> no matter where they are in their journey, is invited to contribute to our collective wisdom.</p>
+<p>A simple “thank you” goes a long way—express your gratitude below in the comments!</p>
+<p><strong>Gathering insights enriches our journey</strong> on DEV and fortifies our community ties. Did you find this article valuable? Taking a moment to thank the author can have a significant impact.</p>
+<h3>  <a name="-cta-httpsdevtoenterstatenewuser-" href="https://dev.to/aceld/golang-triad-ii-comprehensive-analysis-of-gos-hybrid-write-barrier-garbage-collection-3knh#-cta-httpsdevtoenterstatenewuser-">  </a>  <a href="https://dev.to/enter?state=new-user&amp;bb=120659" class="ltag_cta ltag_cta--branded" role="button">Okay</a>
+</h3>
+    </div>
+  </div>
+
+</div></div>
+
+
+    <div id="runtime-banner-container"></div>
+  </div>
+</div>
+    
+
+<footer id="footer" class="crayons-footer print-hidden">
+  <div id="footer-container" class="crayons-footer__container">
+
+
+          <div style="" data-display-unit="" data-id="146443" data-category-click="click" data-category-impression="impression" data-context-type="home" data-special="nothing" data-article-id="" data-type-of="in_house">
+      <p style="font-weight: bold;margin-bottom: 10px">
+Thank you to our Diamond Sponsor <a href="https://neon.tech/" target="_blank" rel="noopener noreferrer">Neon</a> for supporting our community.
+</p>
+  </div>
+
+
+    <p class="fs-s crayons-footer__description">
+      <a class="c-link c-link--branded fw-medium" aria-label="DEV Community Home" href="https://dev.to/">DEV Community</a> — A constructive and inclusive social network for software developers. With you every step of your journey.
+    </p>
+
+    <ul class="footer__nav-links flex gap-2 justify-center flex-wrap fs-s p-0" style="">
+        <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/">
+      Home
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/++">
+      DEV++
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/pod">
+      Podcasts
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/videos">
+      Videos
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/tags">
+      Tags
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/help">
+      DEV Help
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://shop.forem.com/" target="_blank" rel="noopener noreferrer">
+      Forem Shop
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/advertise">
+      Advertise on DEV
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/challenges">
+      DEV Challenges
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/showcase">
+      DEV Showcase
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/about">
+      About
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/contact">
+      Contact
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/free-postgres-database-tier">
+      Free Postgres Database
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/guides">
+      Guides
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/software-comparisons">
+      Software comparisons
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+
+    </ul>
+
+    <ul class="footer__nav-links flex gap-2 justify-center flex-wrap fs-s p-0" style="">
+        <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/code-of-conduct">
+      Code of Conduct
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/privacy">
+      Privacy Policy
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+  <li class="footer__nav-link flex items-center">
+    <a href="https://dev.to/terms">
+      Terms of use
+    </a>
+    <span class="dot ml-2"></span>
+  </li>
+
+    </ul>
+
+    <div class="fs-s">
+      <p>Built on <a class="c-link c-link--branded" target="_blank" rel="noopener noreferrer" href="https://www.forem.com/">Forem</a> — the <a target="_blank" rel="noopener" class="c-link c-link--branded" href="https://dev.to/t/opensource">open source</a> software that powers <a target="_blank" rel="noopener" class="c-link c-link--branded" href="https://dev.to/">DEV</a> and other inclusive communities.</p>
+      <p>Made with love and <a target="_blank" rel="noopener" class="c-link c-link--branded" href="https://dev.to/t/rails">Ruby on Rails</a>. DEV Community <span title="copyright">©</span> 2016 - 2024.</p>
+    </div>
+  </div>
+</footer>
+<div id="snack-zone"></div>
+
+    <div id="global-signup-modal" class="authentication-modal hidden">
+  <div class="authentication-modal__container">
+    <figure class="authentication-modal__image-container">
+      <img class="authentication-modal__image" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/https___dev-to-uploads.s3.amazonaws(1).com_uploads_articles_8j7kvp660rqzt99zui8e.png" alt="DEV Community" loading="lazy">
+    </figure>
+    <div class="authentication-modal__content">
+      <p class="authentication-modal__description">
+          We're a place where coders share, stay up-to-date and grow their careers.
+      </p>
+    </div>
+    <div class="authentication-modal__actions">
+      <a href="https://dev.to/enter" class="crayons-btn" aria-label="Log in" data-no-instant="">
+        Log in
+      </a>
+      <a href="https://dev.to/enter?state=new-user" class="crayons-btn crayons-btn--ghost-brand js-global-signup-modal__create-account" aria-label="Create new account" data-no-instant="">
+        Create account
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/signupModalShortcuts-0b25469b985100a01e94cbd7fccaf7f0a4d776e129aac65c766aa32cb28ab29a.js" defer="defer"></script>
+
+    <div id="cookie-consent"></div>
+  <div id="i18n-translations" data-translations="{&quot;en&quot;:{&quot;core&quot;:{&quot;add_comment&quot;:&quot;Add comment&quot;,&quot;beta&quot;:&quot;beta&quot;,&quot;comment&quot;:&quot;Comment&quot;,&quot;copy_link&quot;:&quot;Copy link&quot;,&quot;edit_profile&quot;:&quot;Edit profile&quot;,&quot;follow&quot;:&quot;Follow&quot;,&quot;follow_back&quot;:&quot;Follow back&quot;,&quot;following&quot;:&quot;Following&quot;,&quot;like&quot;:&quot;Like&quot;,&quot;loading&quot;:&quot;loading...&quot;,&quot;reaction&quot;:&quot;Reaction&quot;,&quot;report_abuse&quot;:&quot;Report abuse&quot;,&quot;search&quot;:&quot;Search&quot;,&quot;success_settings&quot;:&quot;Successfully updated settings.&quot;,&quot;counted_organization&quot;:{&quot;one&quot;:&quot;%{count} organization&quot;,&quot;other&quot;:&quot;%{count} organizations&quot;},&quot;counted_user&quot;:{&quot;one&quot;:&quot;%{count} person&quot;,&quot;other&quot;:&quot;%{count} people&quot;},&quot;not_following&quot;:&quot;You&#39;re not following anyone&quot;,&quot;following_everyone&quot;:&quot;You&#39;re following %{details} (everyone)&quot;,&quot;you_are_following&quot;:&quot;You&#39;re following&quot;,&quot;and&quot;:&quot;and&quot;}}}"></div>
+  <div id="reaction-category-resources" class="hidden" aria-hidden="true">
+    <img data-name="Like" data-slug="like" data-position="1" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/sparkle-heart-5f9bee3767e18deb1bb725290cb151c25234768a0e9a2bd39370c382d02920cf.svg" width="18" height="18">
+    <img data-name="Unicorn" data-slug="unicorn" data-position="2" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/multi-unicorn-b44d6f8c23cdd00964192bedc38af3e82463978aa611b4365bd33a0f1f4f3e97.svg" width="18" height="18">
+    <img data-name="Exploding Head" data-slug="exploding_head" data-position="3" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/exploding-head-daceb38d627e6ae9b730f36a1e390fca556a4289d5a41abb2c35068ad3e2c4b5.svg" width="18" height="18">
+    <img data-name="Raised Hands" data-slug="raised_hands" data-position="4" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/raised-hands-74b2099fd66a39f2d7eed9305ee0f4553df0eb7b4f11b01b6b1b499973048fe5.svg" width="18" height="18">
+    <img data-name="Fire" data-slug="fire" data-position="5" src="./(Golang Triad)-II-Comprehensive Analysis of Go&#39;s Hybrid Write Barrier Garbage Collection - DEV Community_files/fire-f60e7a582391810302117f987b22a8ef04a2fe0df7e3258a5f49332df1cec71e.svg" width="18" height="18">
+</div>
+
+  
+  
+  
+</body></html>

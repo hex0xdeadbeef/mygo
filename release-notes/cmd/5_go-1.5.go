@@ -43,6 +43,28 @@ package main
 
 */
 
+func mapTypeEliding() {
+
+	type Point struct {
+		x, y float64
+	}
+
+	m := map[Point]string{
+		Point{29.935523, 52.891566}:   "Persepolis", // redundant type from array, slice, or map composite literalsimplifycompositelitdefault
+		Point{-25.352594, 131.034361}: "Uluru",      // redundant type from array, slice, or map composite literalsimplifycompositelitdefault
+		Point{37.422455, -122.084306}: "Googleplex", // redundant type from array, slice, or map composite literalsimplifycompositelitdefault
+
+	}
+
+	m = map[Point]string{
+		{29.935523, 52.891566}:   "Persepolis",
+		{-25.352594, 131.034361}: "Uluru",
+		{37.422455, -122.084306}: "Googleplex",
+	}
+
+	_ = m
+}
+
 /*
 	THE IMPLEMENTATION
 */
@@ -68,4 +90,39 @@ package main
 	In Go 1.5, the order in which goroutines are scheduled has been changed. The properties of the scheduler were never defined by the language, but programs that depend on the scheduling order may be broken by this change. We have seen a few (erroneous) programs affected by this change. If you have programs that implicitly depend on the scheduling order, you will need to update them.
 
 	Another potentially breaking change is that the runtime now sets the default number of threads to run sumiltaneously, defined GOMAXPROCS, to the number of cores available on the CPU. In prior releases the default was 1. Programs that don't expect to run with multiple cores may break inadvertently. They can be updated by removing the restriction or by setting GOMAXPROCS explicitly. For a more detailed discussion of this change, see the design document (https://go.googlesource.com/proposal/+/master/design/go15bootstrap.md)
+*/
+
+/*
+	TOOLS
+*/
+
+/*
+	1. Translating
+	As part of the process to eliminate C from the tree, the compiler and linker were translared from C to Go. It was a genuine translation, so the new programs are essentially the old programs translated rather than new ones with new bugs. We are confident the translation process has introduced few if any new bugs, and in fact uncovered a number of previously unknown bugs, now fixed.
+
+	The assembler is a new program, however; it's described below.
+*/
+
+/*
+	2. Compiler
+	The 1.5 compiler is mostly equivalent to the old, but some internal details have changed. One significant change is that evaluation of constants now uses the `math/big` package rather than a custom (and less well tested) implementation of high precision arithmetic. We don't expect this to affect the results.
+*/
+
+/*
+	3. Assembler
+	The new assembler is very nearly compatible with the previous ones, but there are a few changes that may affect some assembler source files.
+
+	First, the expression evaluation used for constants is a little different. It now uses unsigned 64-bit arithmetic and the precedence of operations (+, -, <<, etc.) comes from Go, not C. We expect these changes to affect very few programs but manual verification may be required.
+*/
+
+/*
+	4. Linker
+	The linker in Go 1.5 is now one Go program, that replaces 6l, 8l, etc. Its operating system and instruction seet are specified by the environment variables GOOS and GOARCH.
+ */
+
+/*
+	PERFORMANCE
+	AS always the changes are so general and varied that precise statements about performance are difficult to make. The changes are even broader ranging than usual in this release, which includes a new GC and a conversion of the runtime of Go. Some programs may run faster, sone slower. On average the programs in the Go 1 benchmark suite run a few percent faster in Go 1.5 than they did in Go 1.4, while as mentioned above the GC's pauses are dramatically shorter, and almost always under 10 milliseconds.
+
+	Builds in Go 1.5 will be slower by a factor of about two. The automatic translation of the compiler and linker from C to Go resulted in unidiomatic Go code that performs poorly compared to well-written Go. Analysis tools and refactoring helped to improve the code, but much remains to done. Further profiling and optimization will continue in Go 1.6 and future releases.
 */

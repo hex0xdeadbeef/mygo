@@ -20,10 +20,11 @@ package main
 
 /*
 	1. MARK-SWEEP ALGORITHM IN GO UNTIL V1.3
-	Next, let's take a look at the conventional mark-sweep algrorithm primarily used in Golang before version 1.3. This algorithm consists of two main steps:
+	Next, let's take a look at the conventional mark-sweep algorithm primarily used in Golang before version 1.3. This algorithm consists of two main steps:
 		- Mark phase
 		- Sweep phase
-	The process iq quite straightforward: identify memory data to be cleared and then sweep them all at once.
+	The process iq quite straightforward:
+		identify memory data to be cleared and then sweep them all at once.
 */
 
 /*
@@ -59,7 +60,7 @@ package main
 /*
 	2.1 THE PROCESS OF TRICOLOR MARKING
 	1) First, every newly created object is initially marked as `white`.
-	2) In the second step, at the start of each GC collection, the process begins by traversing all objects from the root nodes. Objects encountered during this traversal are moved from the white set to the `gray` set. it's important to note that this traversal is a single-level, non-recursive process. It traverses one level of objects reachable from the program. If the currently reachable objects are object 1 and object 4, then by the end of this round of traversal, objects 1 and 4 will be marked as `gray`, and the `gray` marking table will include these two objects.
+	2) In the second step, at the start of each GC collection, the process begins by traversing all objects from the root nodes. Objects encountered during this traversal are moved from the white set to the `gray` set. (!!!) it's important to note that this traversal is a single-level, non-recursive process. It traverses one level of objects reachable from the program. If the currently reachable objects are object 1 and object 4, then by the end of this round of traversal, objects 1 and 4 will be marked as `gray`, and the `gray` marking table will include these two objects.
 	3) In the third step, the `gray` set is traversed. Object referenced by `gray` objects are moved from `white` set to the `gray` set. Afterward, the original `gray` objects are moved to the `black` set. This traversal only scans `gray` objects. The first layer of objects reachable from the `gray` objects is moved from the `white` set to the `gray` set, such as objects 2 and 7. Meanwhile, the previously `gray` objects 1 and 4 are marked as `black` and moved from the `gray` marking table to the `black` marking table.
 	4) In the fourth step, repeat the third step until there are no objects left in the `gray` set.
 
@@ -95,8 +96,71 @@ package main
 
 		1) A white object is referrenced by a black object (the white object is attached under the black object)
 
-		2) The reachable relationship between a gray object and a white object it references is broken (the gray object loses the reference to the white object). If both of the above conditions are met simultaneously, it results in object loss. Furthermore, in the scenario shown above, if the white object 3 has many downstream objects, they will be cleared as well.
+		2) The reachable relationship between a gray object and a white object it references is broken (the gray object loses the reference to the white object). If both of the above conditions are met simultaneously, it results in object loss. (!!!) Furthermore, in the scenario shown above, if the white object 3 has many downstream objects, they will be cleared as well.
 
 	To prevent this phenomenon, the simplest method is STW, which directly prohibits other user programs from interfering with object reference relationships. However, the STW process leads to significant resource waste and greatly impacts all user programs. Is it possible to maximize GC efficiency and minimize STW time while ensuring no objects are lost? The answer is yes. By using a mechanism that attempts to break the above two necessary conditions, this can be achieved.
+*/
 
+/*
+	3. BARRIER MECHANISM IN Go V1.5
+	The GC ensures that objects aren't lost when one of the following two conditions is met: the `strong tricolor invariant` and the `weak tricolor invariant`
+
+	3.1 `Strong-Weak` Tricolor Invariants
+		1) Strong Tricolor Invariant: No `black` object should reference a `white` object.
+
+		The `Strong Tricolor Invariant` essentially enforces that `black` objects aren't allowed to reference `white` objects, preventing the accidental deletion of white objects.
+
+		2) Weak Tricolor Invariant: All white objects referenced by black objects are in a `gray` protected state, as shown in figure 1.
+
+		The `Weak Tricolor Invariant` emphasizes that while black objects can reference `white` objects, those `white` objects must have references from other `gray` objects or have a chain of `gray` objects upstream in their reachable path. This means that although a white object referenced by a black object is in a potentially dangerous state of being deleted, the references from upstream `gray` objects protect it and ensure its safety.
+
+		To adhere to these two invariants, the GC algorithm has evolved to include two types of barriers:
+			- Insertion barriers
+			- Deletion barriers
+
+	3.2 Insertion Barrier
+	The specific operation of an insertion is as follows:
+
+		When object `A` references object `B`, object `B` is marked as gray (object `B` must be marked as gray when it's attached downstream of object `A`)
+
+	The insertion barrier effectively satisfies the `Strong Tricolor Invariant` (preventing the situation where a black object references a white object because the white object will be forcibly marked as gray)
+
+	The pseudocode for the insertion barrier is as follows:
+		addDownstreamObject(currentDownstreamSlot, newDownstreamObjectPtr) {
+			// Step 1
+			MarkGray(newDownstreamObjectPtr)
+
+			// Step 2
+			currentDownstreamSlot = newDownstreamObjectPtr
+		}
+
+		The pseudocode for inserting a write barrier in different scenarios is as follows:
+
+			// A previously had no downstream, now add a downstream object B, and B is marked gray
+			addDownstreamObject(nil, B)
+
+			// A replaces the downstream object C with B, and B is marked gray
+			addDownstreamObject(C, B)
+
+		This pseudocode logic represents the write barrier. Memory slots for black objects can be located in two places:
+			- Stack
+			- Heap
+		The stack is characterized by its small capacity but requires fast access due to frequent function calls. Therefore, the `insertion barrier` mechanism isn't used for objects in stack space but is applied in heap space.
+
+		Check the screenshots until the 5 step, After the 5th screenshot:
+			At this point, the insertion barrier will not immediately trigger GC but will instead perform an additional process.
+
+			However, if the stack isn't scanned, there may still be white objects referenced in the stack after the tricolor marking is complete (such as object 9 in the previous figure). Therefore, the stack needs to be re-scanned with the tricolor marking to ensure no objects are lost. This re-scan requires initiating an STW (Stop-The-World) pause until the tricolor marking of the stack space is finished.
+
+			All memory objects in the stack are re-marked as white. During this process, STW is activated to protect these white objects, preventing any read or write ops on these protected objects by intercepting and blocking them, thus avoiding external interference (e.g., new white objects being added by black objects)
+
+			Meanwhile, other heap space objects will not trigger STW, ensuring the performance of GC collection in the heap space.
+
+			Next, within the STW-protected are, the tricolor marking process continues until all reachable white objects are scanned and no gray nodes remain. The final state is achieved where object 1,2,3 and 9 are marked black. Since object 5 is still not scanne, it remains white.
+
+			This time, when all memory objects are either white or black, the STW will be stopped, and the protection layer will be released.
+
+			Finally, all remaining white nodes in the stack and heap space (objects 5 and 6) are scanned and collected. Typically, the STW duration for this stack space operation is around 10 to 100 milliseconds. After the final scan, all objects in memory will be black. This concludes the explanation of the tricolor marking and collection mechanism based on the insertion barrier.
+
+			The purpose of the insertion barrier is to ensure that when a white object is inserted, there's a gray object to protect it, or the inserted object is turned gray. The insertion barrier essentially satisfies the strong tricolor invariant, preventing mistakenly deleted white objects.
 */

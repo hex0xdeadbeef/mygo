@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 )
 
@@ -310,6 +309,7 @@ For example: the acces sequence is A B C D E F and cache size is 4 cache lines.
 
 /*
 	POINTERS PROBLEM
+
 1. Assume that our structure fits the size of L1 cache and we've decided to use the pointer to this structure instead of using this structure itself. In this case instead of
 copying the structure itself we copy the address of this structure and we have to go to the DRAM to get the contents of it.
 2. The conclusion is: it's better to pass the structure itself instead of passing the pointer to it because of the larger time needed to go to DRAM.
@@ -317,7 +317,7 @@ copying the structure itself we copy the address of this structure and we have t
 work of GC.
 */
 func main() {
-	fmt.Println(math.Log2(2730))
+
 }
 
 func createMatrix(size int) [][]int64 {
@@ -449,5 +449,3 @@ func CacheFriendlyRanging() {
 	}
 
 }
-
-

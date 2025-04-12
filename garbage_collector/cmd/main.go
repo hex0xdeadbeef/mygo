@@ -103,7 +103,7 @@ And it results in four operations we don't want to mix:
 		Goroutines to assist with the Marking work. This is called "Mark Assist". The amount of time any application Goroutine will be placed in "Mark Assist" is proportional to the amount of data
 		it's adding to heap memory.
 
-		One posisive effect of Mark Assist is that it helps to finish the collection faster.
+		One positive effect of Mark Assist is that it helps to finish the collection faster.
 
 		If any given collection ends up requiring a lot of Mark Assist, the collector can start the next garbage collection earlier. This is done in an attempt to reduce the amount of Mark Assist
 		that will be necessary on the next collection.
@@ -202,7 +202,7 @@ slow down.
 	2) Finish of Markering
 the overall application is stopped.
 7. "Alive and Dead" heaps.
-	1) "Alive" heap is the heap that includes all the objects that haven't been sweept by GC at the previous cycle
+	1) "Alive" heap is the heap that includes all the objects that haven't been swept by GC at the previous cycle
 	2) "Dead" heap is the heap that was swept by GC at the previous cycle
 When the overhead above the "Alive" heap reaches 100% of "Alive" heap the GC starts cleaning
 8. We can manage the percentage of ratio of New Heap to "Alive" heap with using GOGC global variable.
@@ -230,7 +230,7 @@ The algorithm:
 	2) Recursively mark all the objects setting on them "a bit of reachability"
 	3) Delete all the unreachable objects
 	4) Resume our execution
-3. The lacks of direct z"Mark And Sweep":
+3. The lacks of direct "Mark And Sweep":
 	1) Pauses
 	2) All the heap traversal
 	3) Fragmentation

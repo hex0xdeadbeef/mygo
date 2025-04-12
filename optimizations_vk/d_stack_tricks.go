@@ -37,7 +37,7 @@ func SliceAllocationC() {
 
 	var (
 		// referencing to the last index and assigning a value to it
-		s = []byte{1 << 28: 1}
+		s = make([]byte, 0, 64*1<<10-1)
 	)
 
 	printAlloc()
@@ -57,5 +57,5 @@ func printAlloc() {
 	)
 
 	runtime.ReadMemStats(&m)
-	fmt.Printf("%d MB\n", m.Alloc/(1<<20))
+	fmt.Printf("%d KB\n", m.Alloc/(1<<10))
 }

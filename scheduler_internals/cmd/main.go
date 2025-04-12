@@ -108,7 +108,7 @@ instructions of latency
 	GMP MODEL
 1. Every P is assigned an OS Thread (M). The "M" stands for machine. This thread is still managed by the OS and the OS is still responsible for placing the thread on a Core for execution.
 	This all means that when we run a Go program on my machine, we have 12 threads available to execute all the work, each individually attached to a P.
-2. Every Go program is also given an initial Goroutine ("G"), which is the path of execution for a Go program.
+2. Every Go program is also given an initial Goroutine ("G0"), which is the path of execution for a Go program.
 3. We can think of Goroutines as app-level threads and they are similar to OS Threads (Ms) in many ways. Just as OS Threads are context-switched on and off a core, Goroutines are
 	context-switched on and off an M.
 4. There are two different queues in the Go scheduler: Global Run Queue (GRQ) and the Local Run Queue (LRQ).
@@ -206,10 +206,10 @@ and everything is non-deterministic. Apps that run on top of the OS have no cont
 5. Idle threads with a P assignment don't block if there are idle Ms without a P assignment.
 
 	When new Goroutines are created or an M is being blocked, scheduler ensures that there's at least one spinning M. This ensures that there are no runnable goroutines that can be otherwise
-	running; and avoids excessive M blocking/ublocking
+	running; and avoids excessive M blocking/unblocking
 
 	CONCLUSION
-1. Since all the context-switching is happening at the app levelm we don't lose the same ~12k instructions (on average) per context swtich that we were losing when using Threads.
+1. Since all the context-switching is happening at the app level we don't lose the same ~12k instructions (on average) per context switch that we were losing when using Threads.
 2. In Go, those same context switches are costing us ~200 nanoseconds of ~2,4k instructions.
 3. The scheduler also helps with gains on cache-line efficiencies
 */
@@ -250,7 +250,7 @@ schedinit, that is responsible for launching of tasks scheduler. The comment for
 4. Before rewriting the maximum number of Ms (OS Thread) with the referening to GOMAXPROCS, we refer to the OS to find out the available number of them.
 5. If we rewrite the GOMAXPROCS environment variable with the higher number than our system can support, we could dramatically descrease the performance of the overall app.
 6. After that we find the main Goroutine an attach it to the first OS Thread run by the OS.
-7. M - is the stream of the execution. M - is that, the Operation Ssytem fights for as we saw before. The fewer amount of OS Threads, the easier the process of planning of tasks of the OS.
+7. M - is the stream of the execution. M - is that, the Operation System fights for as we saw before. The fewer amount of OS Threads, the easier the process of planning of tasks of the OS.
 	At the too low amount of Ms we have many tasks undone.
 8. If we don't have the work, we could park our Ms.
 
@@ -293,7 +293,7 @@ schedinit, that is responsible for launching of tasks scheduler. The comment for
 	2) "Runnable"
 		In "Runnable" state the Goroutine is ready to be executed, but it's not being executed yet. It's just waiting for execution on an M (OS Thread)
 	3) "Running"
-		In "Running" state the Goroutine is being executed on a Thread (M). It will resuwe until the work is done or until it's stopped by the scheduler or smth else.
+		In "Running" state the Goroutine is being executed on a Thread (M). It will resume until the work is done or until it's stopped by the scheduler or smth else.
 3. Logical Processor (P)
 	P - is just an abstraction that is also called logical processor. As default the amount of Ps is set to the number of available kernels on the host.
 	Each P includes its own list of "Runnable" Goroutines, that is called Local Run Queue (LRQ). The limit of Goroutines in LRQ is 256 (1<<8) Goroutines.
@@ -387,7 +387,7 @@ In this situation we discard the use of CPU caches, so the caches are invalidate
 10. Working with goroutines we use "N:M model"
 	1) We perform N Goroutines on M OS threads
 11. Local queues of Goroutines.
-	1) Each Local Ru Queue (LRQ) will be bound to a specific OS Thread (M)
+	1) Each Local Run Queue (LRQ) will be bound to a specific OS Thread (M)
 	2) The OS thread will reference only to its own local run queue
 	3) This way eliminates work with synchronization primitives
 	4) The max size of the local queue of Goroutines is 256 (1 << 8) Goroutines
@@ -412,7 +412,7 @@ In this situation we discard the use of CPU caches, so the caches are invalidate
 	Syscalls work with the kernel of OS. In this stage the OS thread is blocked fully. It turns into the "Waiting" stage. The OS scheduler removes this OS Thread from the kernel and
 	puts a new one istead.
 		1) When a syscall is performed, we unpin the OS Thread (M) from its P (Local queue)
-		2) Create a new OS hread and put it into the P
+		2) Create a new OS thread and put it into the P
 		3) We pass all the goroutines left of this M created
 	A bunch of these OS Threads is called "Thread Pool" and is used to keep the OS Threads that are in syscalls
 

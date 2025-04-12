@@ -5,4 +5,5 @@ package main
 */
 
 func main() {
+	SliceAllocationC()
 }

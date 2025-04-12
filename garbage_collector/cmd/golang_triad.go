@@ -276,7 +276,7 @@ package main
 
 	Finally, execute the third line of code in the above scenario: `object2 -> object3 = null`. Object 2 will remove downstream object 3. Since object 2 is within the stack space, the write barrier mechanism isn't triggered. Object 2 directly detaches object 3 from its downstream.
 
-	From the above process, we can see hat in the hybrid write barrier mechanism, an object transferring from the downstream of one stack object to another stack object's dowmnstream ensures the object's safety without the need to trigger the write barrier or the STW mechanism, since stack objects are all black. This highlights the ingenious design of the hybrid write barrier.
+	From the above process, we can see that in the hybrid write barrier mechanism, an object transferring from the downstream of one stack object to another stack object's dowmnstream ensures the object's safety without the need to trigger the write barrier or the STW mechanism, since stack objects are all black. This highlights the ingenious design of the hybrid write barrier.
 
 	4.3 Scenario Three: Heap Reference Deletion, Becoming a Heap Downstream
 

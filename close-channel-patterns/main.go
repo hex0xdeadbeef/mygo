@@ -7,7 +7,7 @@ func main() {
 
 	// ManySendersOneReceiver()
 
-	ManySendersManyReceivers()
+	// ManySendersManyReceivers()
 
 	// ManySendersOneReceiverThirdPartyClose()
 }

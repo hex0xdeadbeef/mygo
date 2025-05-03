@@ -8,30 +8,10 @@ import (
 )
 
 func main() {
-	// StringUsageA()
-	// StringUsageB()
-
-	// SliceUsageA()
-	// fmt.Printf("%b", Float64Bits(3.14134))
-
-	// GetFieldWithOffset()
-	// GetSecondFieldVal()
-	// RangeOverSliceWithUinptr()
-
-	// ConversionBetweenTypes()
-	// AccessingStringHeader()
-
-	// AdvancePointerFurther()
-	// AligningFields()
-	// PrivateFieldsAccessing()
-	// StringConversionOptimization()
-
-	// MisuseOfUinptr()
-
-	// userManipulation()
-	// IteratingOverASlice()
-
-	FastConversions()
+	// UintptrIntroduction()
+	// StructFieldsManipulation()
+	// IteratingOverSlice()
+	FastConversionFromBytesToString()
 }
 
 func StringUsageA() {
@@ -186,24 +166,7 @@ func PrivateFieldsAccessing() {
 	fmt.Println(secret.privateField)
 }
 
-// Conversion optimization
-// NOTE: b mustn't be changed after comparison
-func StringConversionOptimization() {
-	b := []byte("Hello!")
 
-	s := *(*string)(unsafe.Pointer(&b))
-
-	b[0] = 'h'
-
-	_ = s
-}
-
-func StringConversionDefault() {
-	b := []byte("Hello!")
-	s := string(b)
-
-	_ = s
-}
 
 // uintptr doesn't have the semantics of a usual pointer
 // we cannot count on correctness with pointer arithmetic,
@@ -223,99 +186,4 @@ func MisuseOfUinptr() {
 	// casted back to an unsafe.Pointer, points to some invalid
 	// piece of memory
 	fmt.Println(*(*int)(unsafe.Pointer(xUinptr)))
-}
-
-// Manipulating Struct Fields
-func p(a any) { fmt.Printf("%+v\n", a) }
-
-type user struct {
-	name    string
-	age     int
-	animals []string
-}
-
-func userManipulation() {
-	var u user
-	p(u)
-
-	// Retrieve an unsafe.Pointer to 'u', which points to the first
-	// member of the struct - 'name' - which is a string. Then we
-	// cast the unsafe.Pointer to a string pointer. This allows us
-	// to manipulate the memory pointed at as a string type.
-	uNamePtr := (*string)(unsafe.Pointer(&u))
-	*uNamePtr = "Dmitriy"
-
-	p(u)
-
-	// Here we have a similar situation in that we want to get a pointer
-	// to a struct member. This time it's the second member, so we need
-	// to calculate the address within the struct by using offsets. The
-	// general idea is that we need to add the size of 'name' to the
-	// address of the struct to get the start of the 'age' member.
-	// Finally we get an unsafe.Pointer from 'unsafe.Add' and cast it to
-	// an *int
-	age := (*int)(unsafe.Add(unsafe.Pointer(&u), unsafe.Offsetof(u.age)))
-
-	*age = 21
-
-	p(u)
-
-	u.animals = []string{"missy", "ellie", "toby"}
-	// Now we want to get a pointer to the second slice element and make
-	// a change to it. We use the new unsafe func here called 'SliceData'.
-	// This will return a pointer to the underlying array of the argument
-	// slice. Now that we have a pointer to the array, we can add the size
-	// of one string to the pointer to get the address of the second element.
-	// This means we could say 2*unsafe.Sizeof("") to get the third element
-	// in this example if that is helpful for visualizing.
-
-	secondAnimal := (*string)(unsafe.Add(
-		unsafe.Pointer(unsafe.SliceData(u.animals)),
-		unsafe.Sizeof("")),
-	)
-
-	p(u)
-
-	*secondAnimal = "Belly"
-
-	p(u)
-
-}
-
-// All this can be applied to private structs / struct members, however there are some
-// implementation differences in terms of how to access and calculate things when we don't have
-// direct access to the members.
-func IteratingOverASlice() {
-	fruits := []string{"apples", "oranges", "bananas", "kansas"}
-
-	start := unsafe.Pointer(unsafe.SliceData(fruits))
-
-	size := unsafe.Sizeof(fruits[0])
-
-	for i := range len(fruits) {
-		p(*(*string)(unsafe.Add(start, uintptr(i)*size)))
-	}
-}
-
-// Strings and Bytes
-func FastConversions() {
-	myStr := "neato burrito"
-	byteSlice := unsafe.Slice(unsafe.StringData(myStr), len(myStr))
-
-	p(byteSlice)
-
-	// ByteSliceToString
-	myBytes := []byte{
-		115, 111, 32, 109, 97, 110, 121, 32, 110,
-		101, 97, 116, 32, 98, 121, 116, 101, 115,
-	}
-
-	str := unsafe.String(unsafe.SliceData(myBytes), len(myBytes))
-	fmt.Println(str)
-
-	// While unsafe provides a high-performance alternative for string-byte slice conversions
-	// it should be used judiciously. Note that we should never modify the underlying bytes of
-	// string after these conversions to ensure data integrity and avoid unexpected behavior. The
-	// benefits of using unsafe for these conversions must be weighed against the increased
-	// complexity and potential risks.
 }

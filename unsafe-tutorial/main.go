@@ -11,7 +11,26 @@ func main() {
 	// UintptrIntroduction()
 	// StructFieldsManipulation()
 	// IteratingOverSlice()
-	FastConversionFromBytesToString()
+	// FastConversionFromBytesToString()
+
+	// OffsetofAlignofSizeofUsageA()
+	// OffsetofAlignofSizeofUsageB()
+
+	// UsingUnsafePackageFuncs()
+	// UnsafePointerOfUnsafePointer()
+
+	// ConversionsBetweenSliceTypes()
+	// Pattern2Usage()
+	// Pattern3Usafe()
+	// Pattern3UsafeWrong()
+
+	// WorkingWithReflectRight()
+	// WorkingWithReflectWrong()
+
+	// ReflectHeadersWorkingA()
+	// ReflectHeadersWorkingB()
+	// ReflectHeadersWorkingC()
+	ReflectHeadersWorkingDUsage()
 }
 
 func StringUsageA() {
@@ -49,10 +68,6 @@ func SliceUsageA() {
 	s = unsafe.Slice(sd, 0)
 	fmt.Println(s)
 	fmt.Println(s == nil)
-}
-
-func Float64Bits(f float64) uint64 {
-	return *(*uint64)(unsafe.Pointer(&f))
 }
 
 type Numbers struct {
@@ -165,8 +180,6 @@ func PrivateFieldsAccessing() {
 
 	fmt.Println(secret.privateField)
 }
-
-
 
 // uintptr doesn't have the semantics of a usual pointer
 // we cannot count on correctness with pointer arithmetic,

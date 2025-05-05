@@ -190,19 +190,12 @@ func FastConversionFromBytesToString() {
 
 // Conversion optimization
 // NOTE: b mustn't be changed after comparison
-func StringConversionOptimization() {
+func StringConversionOptimization() string {
 	b := []byte("Hello!")
-
-	s := *(*string)(unsafe.Pointer(&b))
-
-	b[0] = 'h'
-
-	_ = s
+	return unsafe.String(unsafe.SliceData(b), len(b))
 }
 
-func StringConversionDefault() {
+func StringConversionDefault() string {
 	b := []byte("Hello!")
-	s := string(b)
-
-	_ = s
+	return string(b)
 }

@@ -6,18 +6,18 @@ import "testing"
 // goarch: arm64
 // pkg: unsafe-tutorial
 // cpu: Apple M3 Pro
-// BenchmarkStringConversionFast-12        1000000000               1.000 ns/op
-// BenchmarkStringConversionDefault-12     436401061                2.812 ns/op
+// BenchmarkStringConversionFast-12        16081910                64.33 ns/op           16 B/op          1 allocs/op
+// BenchmarkStringConversionDefault-12     16904682                68.04 ns/op           16 B/op          1 allocs/op
 
 func BenchmarkStringConversionFast(b *testing.B) {
 	for b.Loop() {
-		StringConversionOptimization()
+		_ = StringConversionOptimization()
 	}
 
 }
 
 func BenchmarkStringConversionDefault(b *testing.B) {
 	for b.Loop() {
-		StringConversionDefault()
+		_ = StringConversionDefault()
 	}
 }

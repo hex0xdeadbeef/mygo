@@ -30,7 +30,20 @@ func main() {
 	// ReflectHeadersWorkingA()
 	// ReflectHeadersWorkingB()
 	// ReflectHeadersWorkingC()
-	ReflectHeadersWorkingDUsage()
+	// ReflectHeadersWorkingDUsage()
+
+	// FirstExample()
+	// UnsafeTypeSwap()
+	// AlignmentExplanation()
+	// OffsetofExample()
+	// AlignofUsageA()
+
+	// Pattern1UsageA()
+	// Pattern1UsageB()
+	// Pattern3UsageA()
+	// Patter5UsageA()
+	// Pattern6UsageA()
+	Pattern6UsageB()
 }
 
 func StringUsageA() {

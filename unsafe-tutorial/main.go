@@ -43,7 +43,7 @@ func main() {
 	// Pattern3UsageA()
 	// Patter5UsageA()
 	// Pattern6UsageA()
-	Pattern6UsageB()
+	// Pattern6UsageB()
 }
 
 func StringUsageA() {

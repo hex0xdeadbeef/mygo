@@ -37,7 +37,7 @@ func SliceAllocationC() {
 
 	var (
 		// referencing to the last index and assigning a value to it
-		s = make([]byte, 0, 64*1<<10-1)
+		s = []byte{300*1<<20 - 1: 0}
 	)
 
 	printAlloc()

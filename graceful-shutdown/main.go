@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 /*
@@ -275,4 +276,10 @@ func Sleep(ctx context.Context, dur time.Duration) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+type slice struct {
+	data unsafe.Pointer // Нижележащий слайс
+	len  int            // Длина (то, сколько элементов мы видим у `body`)
+	cap  int            // Емкость (то. сколько элементов мы можем поместить, чтобы не произвести реаллокации `body`)
 }
